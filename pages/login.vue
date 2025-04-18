@@ -74,13 +74,14 @@ const onSubmit = form.handleSubmit(async (values) => {
     } else {
       await signIn(values.email, values.password);
     }
-  } catch (error) {
-    console.error(`Error during ${activeTab.value}:`, error);
-  } finally {
+
     setTimeout(() => {
       form.resetForm();
       loading.value = false;
     }, 1000);
+  } catch (error) {
+    console.error(`Error during ${activeTab.value}:`, error);
+    loading.value = false;
   }
 });
 

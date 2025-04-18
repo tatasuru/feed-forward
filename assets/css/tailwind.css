@@ -94,6 +94,12 @@
   --error: oklch(0.51 0.2018 21.34);
   --link: oklch(0.6 0.18 265);
   --link-foreground: oklch(0.145 0 0);
+  --gradient: linear-gradient(
+    to right,
+    var(--blue),
+    var(--purple),
+    var(--pink)
+  );
 }
 
 .dark {

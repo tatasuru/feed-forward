@@ -37,6 +37,7 @@ export default defineNuxtConfig({
     "@nuxtjs/color-mode",
     "@nuxtjs/supabase",
     "@formkit/auto-animate/nuxt",
+    "@pinia/nuxt",
   ],
 
   colorMode: {
@@ -71,5 +72,9 @@ export default defineNuxtConfig({
     //   sameSite: "lax",
     //   secure: true,
     // },
+  },
+
+  pinia: {
+    storesDirs: ["./stores/**"],
   },
 });

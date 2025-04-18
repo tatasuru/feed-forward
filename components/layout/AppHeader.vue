@@ -7,6 +7,7 @@ import AvatarFallback from "@/components/shadcn-ui/AvatarFallback.vue";
 const router = useRouter();
 const colorMode = useColorMode();
 const supabase = useSupabaseClient();
+const store = useStore();
 
 const pageMenu = [
   {
@@ -85,7 +86,7 @@ const logout = async () => {
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Avatar :size="'sm'" class="cursor-pointer">
-            <AvatarImage src="/" alt="@unovue" />
+            <AvatarImage :src="store.profile.avatar_url" alt="@unovue" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
@@ -97,8 +98,8 @@ const logout = async () => {
           class="w-56"
         >
           <div class="flex flex-col gap-1 p-2">
-            <p class="text-sm">user name</p>
-            <p class="text-sm">example@gmail.com</p>
+            <p class="text-sm">{{ store.profile.display_name }}</p>
+            <p class="text-sm">{{ store.profile.email }}</p>
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem

@@ -3,6 +3,10 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
 
+definePageMeta({
+  middleware: "auth",
+});
+
 const supabase = useSupabaseClient();
 const config = useRuntimeConfig();
 
@@ -122,7 +126,7 @@ async function signIn(email: string, password: string) {
 
   // redirect to the home page
   const redirectInfo = useSupabaseCookieRedirect();
-  window.location.href = redirectInfo.pluck() || "/";
+  window.location.href = redirectInfo.pluck() || "/confirm";
 
   return data;
 }
@@ -152,10 +156,16 @@ watch(
         class="w-2/3 mx-auto gap-8"
       >
         <TabsList class="w-full">
-          <TabsTrigger value="signup" class="cursor-pointer">
+          <TabsTrigger
+            value="signup"
+            class="cursor-pointer dark:data-[state=active]:bg-background dark:data-[state=active]:text-foreground"
+          >
             サインアップ
           </TabsTrigger>
-          <TabsTrigger value="signin" class="cursor-pointer">
+          <TabsTrigger
+            value="signin"
+            class="cursor-pointer dark:data-[state=active]:bg-background dark:data-[state=active]:text-foreground"
+          >
             ログイン
           </TabsTrigger>
         </TabsList>
@@ -223,6 +233,7 @@ watch(
                 'gradient-bg': tab === 'signup',
                 'gradient-bg-reverse': tab === 'signin',
               }"
+              variant="main"
             >
               {{
                 loading

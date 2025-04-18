@@ -9,12 +9,7 @@ watch(
     const { data: userData, error } = await supabase.rpc("get_current_user");
 
     setTimeout(() => {
-      if (!userData) {
-        window.location.href = "/login";
-        return;
-      }
-
-      if (!userData.display_name) {
+      if (userData.display_name === null) {
         window.location.href = "/setup";
         return;
       }

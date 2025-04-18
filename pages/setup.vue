@@ -3,6 +3,10 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 
+definePageMeta({
+  middleware: "auth",
+});
+
 type formValues = {
   displayName: string;
   avatarUrl: string;

@@ -12,11 +12,11 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
     return navigateTo("/");
   }
 
-  if (user.value && !userData.display_name && to.path !== "/setup") {
+  if (user.value && !userData?.display_name && to.path !== "/setup") {
     return navigateTo("/setup");
   }
 
-  if (user.value && userData.display_name && to.path === "/setup") {
+  if (user.value && userData?.display_name && to.path === "/setup") {
     return navigateTo("/");
   }
 });

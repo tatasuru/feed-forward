@@ -115,7 +115,7 @@ async function checkFirstLogin() {
     return;
   }
 
-  if (!userData.display_name) {
+  if (!userData?.display_name) {
     isFirstLogin.value = true;
     return;
   }

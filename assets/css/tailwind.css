@@ -45,6 +45,11 @@
   --color-blue: var(--blue);
   --color-purple: var(--purple);
   --color-pink: var(--pink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-link: var(--link);
+  --color-link-foreground: var(--link-foreground);
 }
 
 :root {
@@ -84,6 +89,11 @@
   --blue: oklch(0.6 0.18 265);
   --purple: oklch(0.58 0.2 295);
   --pink: oklch(0.68 0.22 330);
+  --success: oklch(0.5 0.2 120);
+  --warning: oklch(0.5 0.2 60);
+  --error: oklch(0.5 0.2 0);
+  --link: oklch(0.6 0.18 265);
+  --link-foreground: oklch(0.145 0 0);
 }
 
 .dark {
@@ -122,6 +132,11 @@
   --blue: oklch(0.45 0.18 265);
   --purple: oklch(0.43 0.2 295);
   --pink: oklch(0.53 0.22 330);
+  --success: oklch(0.5 0.2 120);
+  --warning: oklch(0.5 0.2 60);
+  --error: oklch(0.5 0.2 0);
+  --link: oklch(0.45 0.18 265);
+  --link-foreground: oklch(0.985 0 0);
 }
 
 @layer base {
@@ -135,4 +150,8 @@
 
 .gradient-text {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-blue via-purple to-pink;
+}
+
+.gradient-bg {
+  @apply bg-gradient-to-r from-blue/80 via-purple/80 to-pink/80;
 }

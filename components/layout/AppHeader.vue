@@ -6,6 +6,7 @@ import AvatarFallback from "@/components/shadcn-ui/AvatarFallback.vue";
 
 const router = useRouter();
 const colorMode = useColorMode();
+const supabase = useSupabaseClient();
 
 const pageMenu = [
   {
@@ -34,6 +35,16 @@ const pageMenu = [
 const currentPath = router.currentRoute.value.path;
 const isActive = (path: string) => {
   return currentPath === path;
+};
+
+// for logout
+const logout = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Logout error:", error);
+  } else {
+    window.location.href = "/login";
+  }
 };
 </script>
 
@@ -102,6 +113,7 @@ const isActive = (path: string) => {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             class="cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
+            @click="logout"
           >
             <Icon name="mdi:logout" class="size-4" />
             ログアウト

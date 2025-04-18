@@ -4,11 +4,13 @@ import { useForm } from "vee-validate";
 import * as z from "zod";
 
 const supabase = useSupabaseClient();
-const loading = ref<boolean>(false);
-const activeTab = ref<"signup" | "signin">("signup");
 const config = useRuntimeConfig();
 
+const loading = ref<boolean>(false);
+const activeTab = ref<"signup" | "signin">("signup");
 const baseUrl = config.public.baseUrl;
+const signupMessage = ref<string>("");
+const signinMessage = ref<string>("");
 
 /********************************
  * Form setup
@@ -91,7 +93,16 @@ async function signUp(email: string, password: string) {
     throw error;
   }
 
+  const identities = data.user?.identities;
+  if (!identities?.length) {
+    signupMessage.value = "既に登録済みのユーザーです。";
+    return;
+  }
+
   console.log("User signed up:", data?.user);
+  signupMessage.value =
+    "サインアップが完了しました。メールを確認してください。";
+
   return data;
 }
 
@@ -104,6 +115,8 @@ async function signIn(email: string, password: string) {
 
   if (error) {
     console.error("Error signing in:", error);
+    signinMessage.value =
+      "ログインに失敗しました。メールアドレスとパスワードを確認してください。";
     throw error;
   }
 
@@ -119,6 +132,11 @@ watch(
   activeTab,
   (newTab) => {
     form.resetForm();
+    if (newTab === "signup") {
+      signupMessage.value = "";
+    } else {
+      signinMessage.value = "";
+    }
   },
   { immediate: true }
 );
@@ -149,6 +167,18 @@ watch(
           :value="tab"
           class="w-full flex flex-col gap-6"
         >
+          <!-- message -->
+          <p
+            class="text-sm text-center font-bold"
+            :class="{
+              'text-success': activeTab === 'signup' && signupMessage,
+              'text-error': activeTab === 'signin' && signinMessage,
+            }"
+          >
+            {{ activeTab === "signup" ? signupMessage : signinMessage }}
+          </p>
+
+          <!-- form -->
           <form class="space-y-6" @submit="onSubmit">
             <FormField v-slot="{ componentField }" name="email">
               <FormItem>
@@ -185,7 +215,15 @@ watch(
               </FormItem>
             </FormField>
 
-            <Button type="submit" class="w-full gradient-bg cursor-pointer">
+            <Button
+              type="submit"
+              class="w-full cursor-pointer"
+              :disabled="loading"
+              :class="{
+                'gradient-bg': tab === 'signup',
+                'gradient-bg-reverse': tab === 'signin',
+              }"
+            >
               {{
                 loading
                   ? tab === "signup"

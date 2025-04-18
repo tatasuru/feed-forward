@@ -2,7 +2,6 @@
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
-import Textarea from "@/components/shadcn-ui/Textarea.vue";
 
 type formValues = {
   displayName: string;
@@ -23,16 +22,9 @@ onMounted(async () => {
   if (isFirstLogin.value) {
     return;
   }
-
-  await checkDisplayName();
-
-  if (!isFirstLogin.value) {
-    window.location.href = "/";
-    return;
-  }
 });
 
-const stepIndex = ref(1);
+const stepIndex = ref<number>(1);
 const steps = [
   {
     step: 1,
@@ -99,7 +91,6 @@ function onSubmit(values: formValues) {
 
     setTimeout(() => {
       registrationProfile(values);
-      store.profile.display_name = values.displayName;
     }, 1000);
   } catch (error) {
     console.error("Validation error:", error);
@@ -166,6 +157,14 @@ async function registrationProfile(values: formValues) {
       website: website,
     })
     .eq("id", profile.value.id);
+
+  store.profile = {
+    ...store.profile,
+    display_name: displayName,
+    avatar_url: avatarUrl,
+    bio: bio,
+    website: website,
+  };
 
   if (error) {
     console.error("プロフィール登録エラー:", error);

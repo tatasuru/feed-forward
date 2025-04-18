@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import ColorModeMenu from "@/components/layout/ColorModeMenu.vue";
-import Avatar from "@/components/shadcn-ui/Avatar.vue";
-import AvatarImage from "@/components/shadcn-ui/AvatarImage.vue";
-import AvatarFallback from "@/components/shadcn-ui/AvatarFallback.vue";
+import Avatar from "@/components/shadcn-ui/avatar/Avatar.vue";
+import AvatarFallback from "@/components/shadcn-ui/avatar/AvatarFallback.vue";
+import AvatarImage from "@/components/shadcn-ui/avatar/AvatarImage.vue";
 
 const router = useRouter();
 const colorMode = useColorMode();

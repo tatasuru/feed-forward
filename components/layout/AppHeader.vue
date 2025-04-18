@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import ColorModeMenu from "@/components/layout/ColorModeMenu.vue";
+import Avatar from "@/components/shadcn-ui/Avatar.vue";
+import AvatarImage from "@/components/shadcn-ui/AvatarImage.vue";
+import AvatarFallback from "@/components/shadcn-ui/AvatarFallback.vue";
+
 const router = useRouter();
+const colorMode = useColorMode();
 
 const pageMenu = [
   {
@@ -58,7 +63,52 @@ const isActive = (path: string) => {
       <Button :variant="'outline'" :size="'icon'" class="cursor-pointer">
         <Icon name="solar:bell-bold" class="dark:text-white text-black" />
       </Button>
-      <ColorModeMenu />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Avatar :size="'sm'" class="cursor-pointer">
+            <AvatarImage src="/" alt="@unovue" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          side="bottom"
+          align="end"
+          :side-offset="4"
+          :align-offset="0"
+          class="w-56"
+        >
+          <div class="flex flex-col gap-1 p-2">
+            <p class="text-sm">user name</p>
+            <p class="text-sm">example@gmail.com</p>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            v-if="colorMode.preference === 'light'"
+            @click="colorMode.preference = 'dark'"
+            class="cursor-pointer"
+          >
+            <Icon name="radix-icons:moon" class="size-4" />
+            Dark mode
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            v-else-if="colorMode.preference === 'dark'"
+            @click="colorMode.preference = 'light'"
+            class="cursor-pointer"
+          >
+            <Icon name="radix-icons:sun" class="size-4" />
+            light mode
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            class="cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
+          >
+            <Icon name="mdi:logout" class="size-4" />
+            ログアウト
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <!-- hamburger menu -->
       <Sheet>
         <SheetTrigger as-child>

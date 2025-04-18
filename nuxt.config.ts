@@ -66,10 +66,10 @@ export default defineNuxtConfig({
       exclude: [],
       cookieRedirect: false,
     },
-    cookieOptions: {
-      maxAge: 60 * 60 * 8,
-      sameSite: "lax",
-      secure: true,
-    },
+    // cookieOptions: {
+    //   maxAge: 60 * 60 * 8,
+    //   sameSite: "lax",
+    //   secure: true,
+    // },
   },
 });

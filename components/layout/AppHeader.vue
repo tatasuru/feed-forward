@@ -15,7 +15,7 @@ const pageMenu = [
   },
   {
     name: "MY PROJECTS",
-    link: "/projects",
+    link: "/my-projects",
   },
   {
     name: "DISCOVERY",
@@ -71,8 +71,15 @@ const logout = async () => {
       </NavigationMenuList>
     </NavigationMenu>
     <div class="items-center gap-2 flex">
-      <Button :variant="'outline'" :size="'icon'" class="cursor-pointer">
-        <Icon name="solar:bell-bold" class="dark:text-white text-black" />
+      <Button
+        :variant="'ghost'"
+        :size="'icon'"
+        class="cursor-pointer rounded-full"
+      >
+        <Icon
+          name="solar:bell-bold"
+          class="dark:text-white text-black size-4"
+        />
       </Button>
 
       <DropdownMenu>

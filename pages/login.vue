@@ -77,8 +77,10 @@ const onSubmit = form.handleSubmit(async (values) => {
   } catch (error) {
     console.error(`Error during ${activeTab.value}:`, error);
   } finally {
-    form.resetForm();
-    loading.value = false;
+    setTimeout(() => {
+      form.resetForm();
+      loading.value = false;
+    }, 1000);
   }
 });
 
@@ -148,12 +150,14 @@ watch(
 
 <template>
   <div class="flex items-center justify-center w-full h-screen">
-    <div class="w-1/2 gradient-bg h-full"></div>
-    <div class="w-1/2 flex flex-col items-center justify-center gap-4">
+    <div class="w-1/2 flex items-center justify-center h-full gradient-bg" />
+    <div class="w-1/2 flex flex-col items-center justify-center gap-8">
+      <h1 class="gradient-text font-bold text-4xl">Feed Forward</h1>
+
       <Tabs
         v-model="activeTab"
         default-value="signup"
-        class="w-2/3 mx-auto gap-8"
+        class="w-2/3 mx-auto gap-4"
       >
         <TabsList class="w-full">
           <TabsTrigger

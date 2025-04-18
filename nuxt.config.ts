@@ -77,4 +77,8 @@ export default defineNuxtConfig({
   pinia: {
     storesDirs: ["./stores/**"],
   },
+
+  image: {
+    dir: "assets/images",
+  },
 });

@@ -194,63 +194,84 @@ watch(
           </p>
 
           <!-- form -->
-          <form class="space-y-6" @submit="onSubmit">
-            <FormField v-slot="{ componentField }" name="email">
-              <FormItem>
-                <FormLabel>メールアドレス</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="xxxxxx@example.com"
-                    v-bind="componentField"
-                    autocomplete="email"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+          <Card>
+            <CardHeader>
+              <CardTitle>{{
+                activeTab === "signup" ? "アカウントを作成" : "ログイン"
+              }}</CardTitle>
+              <CardDescription>
+                {{
+                  activeTab === "signup"
+                    ? "新しいアカウントを作成します。"
+                    : "アカウントにログインします。"
+                }}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form class="space-y-6" @submit="onSubmit">
+                <FormField v-slot="{ componentField }" name="email">
+                  <FormItem>
+                    <FormLabel>メールアドレス</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="xxxxxx@example.com"
+                        v-bind="componentField"
+                        autocomplete="email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
 
-            <FormField v-slot="{ componentField }" name="password">
-              <FormItem>
-                <FormLabel>パスワード</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="パスワード"
-                    v-bind="componentField"
-                    autocomplete="new-password"
-                  />
-                </FormControl>
-                <FormDescription>
-                  パスワードは8文字以上で、{{
-                    tab === "signup" ? "英字と数字を含む" : ""
-                  }}必要があります。
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+                <FormField v-slot="{ componentField }" name="password">
+                  <FormItem>
+                    <FormLabel>パスワード</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="パスワード"
+                        v-bind="componentField"
+                        autocomplete="new-password"
+                      />
+                    </FormControl>
+                    <FormDescription v-if="tab === 'signup'">
+                      パスワードは8文字以上で英字と数字を含む必要があります。
+                    </FormDescription>
+                    <FormDescription v-else>
+                      パスワードを忘れた場合は、
+                      <router-link to="/reset-password" class="text-link"
+                        >こちら</router-link
+                      >
+                      からリセットしてください。
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
 
-            <Button
-              type="submit"
-              class="w-full cursor-pointer"
-              :disabled="loading"
-              :class="{
-                'gradient-bg': tab === 'signup',
-                'gradient-bg-reverse': tab === 'signin',
-              }"
-              variant="main"
-            >
-              {{
-                loading
-                  ? tab === "signup"
-                    ? "処理中..."
-                    : "ログイン中..."
-                  : tab === "signup"
-                  ? "アカウント作成"
-                  : "ログイン"
-              }}
-            </Button>
-          </form>
+                <Button
+                  type="submit"
+                  class="w-full cursor-pointer"
+                  :disabled="loading"
+                  :class="{
+                    'gradient-bg': tab === 'signup',
+                    'gradient-bg-reverse': tab === 'signin',
+                  }"
+                  variant="main"
+                >
+                  {{
+                    loading
+                      ? tab === "signup"
+                        ? "処理中..."
+                        : "ログイン中..."
+                      : tab === "signup"
+                      ? "アカウント作成"
+                      : "ログイン"
+                  }}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

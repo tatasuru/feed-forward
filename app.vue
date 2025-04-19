@@ -10,7 +10,8 @@ const isLoginPage = computed(() => {
   return (
     currentPath.value.includes("/login") ||
     currentPath.value.includes("/confirm") ||
-    currentPath.value.includes("/setup")
+    currentPath.value.includes("/setup") ||
+    currentPath.value.includes("/reset-password")
   );
 });
 

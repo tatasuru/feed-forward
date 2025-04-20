@@ -129,9 +129,8 @@ async function signIn(email: string, password: string) {
 
   // redirect to the home page
   const redirectInfo = useSupabaseCookieRedirect();
-  window.location.href = redirectInfo.pluck() || "/confirm";
-
-  return data;
+  const redirectPath = redirectInfo.pluck() || "/confirm";
+  return navigateTo(redirectPath);
 }
 
 // for reset form when tab changes
@@ -240,9 +239,9 @@ watch(
                     </FormDescription>
                     <FormDescription v-else>
                       パスワードを忘れた場合は、
-                      <router-link to="/reset-password" class="text-link"
-                        >こちら</router-link
-                      >
+                      <NuxtLink to="/reset-password" class="text-link">
+                        こちら
+                      </NuxtLink>
                       からリセットしてください。
                     </FormDescription>
                     <FormMessage />

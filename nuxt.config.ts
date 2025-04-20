@@ -64,7 +64,7 @@ export default defineNuxtConfig({
       login: "/login",
       callback: "/confirm",
       include: undefined,
-      exclude: [],
+      exclude: ["/login", "/reset-password", "/update-password"],
       cookieRedirect: false,
     },
     // cookieOptions: {

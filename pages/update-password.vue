@@ -8,23 +8,27 @@ definePageMeta({
 });
 
 const supabase = useSupabaseClient();
-const config = useRuntimeConfig();
-
 const loading = ref<boolean>(false);
-const email = ref<string>("");
 const stage = ref<"request" | "confirmation">("request");
 const message = ref<string>("");
-const baseUrl = config.public.baseUrl;
 
 // Form validation schema
 const formSchema = toTypedSchema(
-  z.object({
-    email: z
-      .string({
-        message: "メールアドレスは必須です",
-      })
-      .email({ message: "有効なメールアドレスを入力してください" }),
-  })
+  z
+    .object({
+      password: z
+        .string({ message: "パスワードは必須です" })
+        .min(8, { message: "パスワードは8文字以上である必要があります。" })
+        .regex(/[a-zA-Z]/, { message: "英字を含める必要があります。" })
+        .regex(/[0-9]/, { message: "数字を含める必要があります。" }),
+      confirmPassword: z.string({
+        message: "確認のためのパスワードは必須です",
+      }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "パスワードが一致しません",
+      path: ["confirmPassword"],
+    })
 );
 
 const form = useForm({
@@ -37,21 +41,21 @@ const onSubmit = form.handleSubmit(async (values) => {
   message.value = "";
 
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-      redirectTo: `${baseUrl}/update-password`,
+    await supabase.auth.updateUser({ password: "new_password" });
+    const { error } = await supabase.auth.updateUser({
+      password: values.password,
     });
-
     if (error) {
-      console.error("Error requesting password reset:", error);
-      message.value = "パスワードリセットのリクエストに失敗しました。";
+      console.error("Error updating password:", error);
+      message.value = "パスワードの更新に失敗しました。";
     } else {
       stage.value = "confirmation";
       message.value =
-        "パスワードリセット用のメールを送信しました。メールを確認してください。";
+        "パスワードが正常に更新されました。ログインページよりログインしてください。";
     }
   } catch (error) {
-    console.error("Exception during password reset request:", error);
-    message.value = "パスワードリセット処理中にエラーが発生しました。";
+    console.error("Exception during password update:", error);
+    message.value = "パスワード更新処理中にエラーが発生しました。";
   } finally {
     loading.value = false;
   }
@@ -66,23 +70,38 @@ const onSubmit = form.handleSubmit(async (values) => {
 
       <Card class="w-2/3 mx-auto">
         <CardHeader>
-          <CardTitle>パスワードリセット</CardTitle>
+          <CardTitle>パスワード更新</CardTitle>
           <CardDescription v-if="stage === 'request'">
-            登録したメールアドレスを入力してください。パスワードリセット用のリンクを送信します。
+            下記フォームより新しいパスワードを設定してください。
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div v-if="stage === 'request'">
             <form @submit="onSubmit" class="space-y-6">
-              <FormField v-slot="{ componentField }" name="email">
+              <FormField v-slot="{ componentField }" name="password">
                 <FormItem>
-                  <FormLabel>メールアドレス</FormLabel>
+                  <FormLabel>新しいパスワード</FormLabel>
                   <FormControl>
                     <Input
-                      type="email"
-                      placeholder="xxxxxx@example.com"
+                      type="password"
+                      placeholder="新しいパスワードを入力"
                       v-bind="componentField"
-                      autocomplete="email"
+                      autocomplete="new-password"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+
+              <FormField v-slot="{ componentField }" name="confirmPassword">
+                <FormItem>
+                  <FormLabel>パスワードの確認</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="パスワードを再入力"
+                      v-bind="componentField"
+                      autocomplete="new-password"
                     />
                   </FormControl>
                   <FormMessage />
@@ -95,7 +114,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                 :disabled="loading"
                 variant="main"
               >
-                {{ loading ? "処理中..." : "リセットリンクを送信" }}
+                {{ loading ? "処理中..." : "パスワードを更新する" }}
               </Button>
             </form>
           </div>

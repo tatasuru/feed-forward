@@ -81,7 +81,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 
     <!-- right -->
     <div
-      class="w-full relative h-screen md:h-auto md:w-1/2 flex flex-col items-center justify-center gap-8"
+      class="w-full relative md:h-auto md:w-1/2 flex flex-col items-center justify-center gap-8"
     >
       <h1 class="gradient-text font-bold text-4xl z-10">Feed Forward</h1>
 

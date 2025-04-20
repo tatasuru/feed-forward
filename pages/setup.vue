@@ -19,6 +19,7 @@ const isFirstLogin = ref<boolean>(false);
 const profile = ref<any>(null);
 const isSubmitting = ref<boolean>(false);
 const store = useStore();
+const { isMobile } = useDevice();
 
 onMounted(async () => {
   await checkFirstLogin();
@@ -42,7 +43,7 @@ const steps = [
   },
   {
     step: 3,
-    title: "3. ひとことあいさつ・自己紹介とポートフォリオサイト",
+    title: "3. その他設定",
     description: "自己紹介やポートフォリオサイトのURLを入力してください",
   },
 ];
@@ -124,28 +125,6 @@ async function checkFirstLogin() {
   return;
 }
 
-/***************************************************
- * Check if user already resigned display name
- ***************************************************/
-async function checkDisplayName() {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", profile.value.id)
-    .single();
-
-  if (error) {
-    console.error("Error fetching display name:", error);
-    return;
-  }
-
-  if (data.display_name) {
-    isFirstLogin.value = false;
-  } else {
-    isFirstLogin.value = true;
-  }
-}
-
 /********************************
  * FormField setup
  ********************************/
@@ -179,81 +158,91 @@ async function registrationProfile(values: formValues) {
 </script>
 
 <template>
-  <div class="flex items-center justify-center w-full h-screen">
-    <div class="w-1/2 h-full backdrop-blur-md gradient-bg">
+  <div
+    class="flex items-center justify-center md:flex-row flex-col w-full h-screen"
+  >
+    <div
+      class="md:w-1/2 w-full h-fit md:h-full backdrop-blur-md gradient-bg p-4 py-12 md:p-12"
+    >
       <div class="flex items-center justify-center h-full">
         <Stepper
           v-model="stepIndex"
           orientation="vertical"
-          class="mx-auto flex w-full max-w-md flex-col justify-start gap-20"
+          class="mx-auto flex w-full max-w-md md:flex-col justify-start gap-20"
         >
-          <StepperItem
-            v-for="step in steps"
-            :key="step.step"
-            v-slot="{ state }"
-            class="relative flex w-full items-start gap-6"
-            :step="step.step"
-          >
-            <StepperSeparator
-              v-if="step.step !== steps[steps.length - 1].step"
-              class="absolute left-[23px] top-[100%] block h-[167%] w-0.5 shrink-0 rounded-full bg-background/20 group-data-[state=completed]:bg-background"
-            />
+          <template v-for="step in steps" :key="step.step">
+            <StepperItem
+              v-if="isMobile ? stepIndex === step.step : true"
+              v-slot="{ state }"
+              class="relative flex w-full items-start gap-6"
+              :step="step.step"
+            >
+              <StepperSeparator
+                v-if="step.step !== steps[steps.length - 1].step"
+                class="absolute left-[23px] top-[100%] hidden md:block h-[167%] w-0.5 shrink-0 rounded-full bg-background/20 group-data-[state=completed]:bg-background"
+              />
 
-            <StepperTrigger as-child>
-              <Button
-                :variant="
-                  state === 'completed' || state === 'active'
-                    ? 'default'
-                    : 'outline'
-                "
-                size="icon"
-                class="z-10 rounded-full shrink-0 size-12"
-                :class="[
-                  state === 'active' &&
-                    'ring-2 ring-background ring-offset-2 ring-offset-purple bg-background hover:bg-background focus:bg-background',
-                  state === 'completed' &&
-                    'bg-background text-primary shadow-md shadow-primary/20 hover:bg-background focus-bg-background',
-                ]"
-                :disabled="state !== 'active'"
+              <StepperTrigger
+                :state="state"
+                class="flex flex-col items-center gap-2"
+                :class="[state === 'active' && 'text-primary']"
+                as-child
               >
-                <Icon
-                  name="mdi:account"
-                  v-if="step.step === 1"
-                  class="!size-5 text-purple"
-                />
-                <Icon
-                  name="mdi:file-image-box"
-                  v-if="step.step === 2"
-                  class="!size-5 text-purple"
-                />
-                <Icon
-                  name="mdi:web-plus"
-                  v-if="step.step === 3"
-                  class="!size-5 text-purple"
-                />
-              </Button>
-            </StepperTrigger>
+                <Button
+                  :variant="
+                    state === 'completed' || state === 'active'
+                      ? 'default'
+                      : 'outline'
+                  "
+                  size="icon"
+                  class="z-10 rounded-full shrink-0 size-12"
+                  :class="[
+                    state === 'active' &&
+                      'ring-2 ring-background ring-offset-2 ring-offset-purple bg-background hover:bg-background focus:bg-background',
+                    state === 'completed' &&
+                      'bg-background text-primary shadow-md shadow-primary/20 hover:bg-background focus-bg-background',
+                  ]"
+                  :disabled="state !== 'active'"
+                >
+                  <Icon
+                    name="mdi:account"
+                    v-if="step.step === 1"
+                    class="!size-5 text-purple"
+                  />
+                  <Icon
+                    name="mdi:file-image-box"
+                    v-if="step.step === 2"
+                    class="!size-5 text-purple"
+                  />
+                  <Icon
+                    name="mdi:web-plus"
+                    v-if="step.step === 3"
+                    class="!size-5 text-purple"
+                  />
+                </Button>
+              </StepperTrigger>
 
-            <div class="flex flex-col gap-1">
-              <StepperTitle
-                :class="[state === 'active' && 'text-primary']"
-                class="text-sm font-semibold transition lg:text-base text-white"
-              >
-                {{ step.title }}
-              </StepperTitle>
-              <StepperDescription
-                :class="[state === 'active' && 'text-primary']"
-                class="sr-only text-xs text-white transition md:not-sr-only lg:text-sm"
-              >
-                {{ step.description }}
-              </StepperDescription>
-            </div>
-          </StepperItem>
+              <div class="flex flex-col gap-1">
+                <StepperTitle
+                  :class="[state === 'active' && 'text-primary']"
+                  class="text-sm font-semibold transition lg:text-base text-white whitespace-normal"
+                >
+                  {{ step.title }}
+                </StepperTitle>
+                <StepperDescription
+                  :class="[state === 'active' && 'text-primary']"
+                  class="text-xs text-white transition md:not-sr-only lg:text-sm"
+                >
+                  {{ step.description }}
+                </StepperDescription>
+              </div>
+            </StepperItem>
+          </template>
         </Stepper>
       </div>
     </div>
     <div
-      class="w-1/2 flex flex-col items-center justify-center gap-4 p-12 h-full relative"
+      class="w-full md:w-1/2 flex flex-col items-center justify-center gap-4 p-4 pt-12 md:p-12 h-full relative"
     >
       <Form
         v-slot="{ meta, values, validate }"
@@ -272,7 +261,7 @@ async function registrationProfile(values: formValues) {
               }
             }
           "
-          class="w-full flex flex-col gap-5"
+          class="w-full h-full md:h-auto flex flex-col gap-5"
         >
           <div class="flex flex-col">
             <template v-if="stepIndex === 1">

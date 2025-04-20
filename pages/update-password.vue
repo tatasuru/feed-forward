@@ -64,79 +64,88 @@ const onSubmit = form.handleSubmit(async (values) => {
 
 <template>
   <div class="flex items-center justify-center w-full h-screen">
-    <div class="w-1/2 flex items-center justify-center h-full gradient-bg" />
-    <div class="w-1/2 flex flex-col items-center justify-center gap-8">
-      <h1 class="gradient-text font-bold text-4xl">Feed Forward</h1>
+    <!-- left -->
+    <div
+      class="w-1/2 items-center justify-center h-full gradient-bg md:flex hidden"
+    />
 
-      <Card class="w-2/3 mx-auto">
-        <CardHeader>
-          <CardTitle>パスワード更新</CardTitle>
-          <CardDescription v-if="stage === 'request'">
-            下記フォームより新しいパスワードを設定してください。
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div v-if="stage === 'request'">
-            <form @submit="onSubmit" class="space-y-6">
-              <FormField v-slot="{ componentField }" name="password">
-                <FormItem>
-                  <FormLabel>新しいパスワード</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="新しいパスワードを入力"
-                      v-bind="componentField"
-                      autocomplete="new-password"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </FormField>
+    <!-- right -->
+    <div
+      class="w-full relative h-screen md:h-auto md:w-1/2 flex flex-col items-center justify-center gap-8"
+    >
+      <h1 class="gradient-text font-bold text-4xl z-10">Feed Forward</h1>
 
-              <FormField v-slot="{ componentField }" name="confirmPassword">
-                <FormItem>
-                  <FormLabel>パスワードの確認</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="パスワードを再入力"
-                      v-bind="componentField"
-                      autocomplete="new-password"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </FormField>
+      <div class="w-full p-4 md:p-0 md:w-2/3 mx-auto gap-4 z-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>パスワード更新</CardTitle>
+            <CardDescription v-if="stage === 'request'">
+              下記フォームより新しいパスワードを設定してください。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div v-if="stage === 'request'">
+              <form @submit="onSubmit" class="space-y-6">
+                <FormField v-slot="{ componentField }" name="password">
+                  <FormItem>
+                    <FormLabel>新しいパスワード</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="新しいパスワードを入力"
+                        v-bind="componentField"
+                        autocomplete="new-password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
 
-              <Button
-                type="submit"
-                class="w-full cursor-pointer gradient-bg"
-                :disabled="loading"
-                variant="main"
-              >
-                {{ loading ? "処理中..." : "パスワードを更新する" }}
+                <FormField v-slot="{ componentField }" name="confirmPassword">
+                  <FormItem>
+                    <FormLabel>パスワードの確認</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="パスワードを再入力"
+                        v-bind="componentField"
+                        autocomplete="new-password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <Button
+                  type="submit"
+                  class="w-full cursor-pointer gradient-bg"
+                  :disabled="loading"
+                  variant="main"
+                >
+                  {{ loading ? "処理中..." : "パスワードを更新する" }}
+                </Button>
+              </form>
+            </div>
+
+            <div v-else class="text-center space-y-6">
+              <p class="text-success text-sm" v-if="message">
+                {{ message }}
+              </p>
+              <Button class="cursor-pointer" variant="outline" as-child>
+                <NuxtLink to="/login">ログインページに戻る</NuxtLink>
               </Button>
-            </form>
-          </div>
-
-          <div v-else class="text-center space-y-6">
-            <p class="text-success text-sm" v-if="message">
+            </div>
+          </CardContent>
+          <CardFooter v-if="stage === 'request'" class="flex justify-between">
+            <p class="text-sm">
               {{ message }}
             </p>
-            <Button class="cursor-pointer" variant="outline" as-child>
+            <Button class="cursor-pointer" variant="link" as-child>
               <NuxtLink to="/login">ログインページに戻る</NuxtLink>
             </Button>
-          </div>
-        </CardContent>
-        <CardFooter v-if="stage === 'request'" class="flex justify-between">
-          <p class="text-sm">
-            {{ message }}
-          </p>
-          <Button class="cursor-pointer" variant="link" as-child>
-            <NuxtLink to="/login">ログインページに戻る</NuxtLink>
-          </Button>
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   </div>
 </template>

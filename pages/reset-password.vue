@@ -37,8 +37,14 @@ const onSubmit = form.handleSubmit(async (values) => {
   loading.value = true;
   message.value = "";
 
-  // // if check if email is already registered
-  if (!user.value) {
+  // if check if email is already registered
+  const { data: userData, error } = await supabase
+    .from("profiles") // Replace "users" with the actual table name
+    .select("email")
+    .eq("email", values.email);
+  console.log("userData", userData);
+
+  if (error || !userData) {
     isRegistered.value = false;
     loading.value = false;
     return;
@@ -68,73 +74,82 @@ const onSubmit = form.handleSubmit(async (values) => {
 
 <template>
   <div class="flex items-center justify-center w-full h-screen">
-    <div class="w-1/2 flex items-center justify-center h-full gradient-bg" />
-    <div class="w-1/2 flex flex-col items-center justify-center gap-8">
-      <h1 class="gradient-text font-bold text-4xl">Feed Forward</h1>
+    <!-- left -->
+    <div
+      class="w-1/2 items-center justify-center h-full gradient-bg md:flex hidden"
+    />
 
-      <Card class="w-2/3 mx-auto">
-        <CardHeader>
-          <CardTitle>パスワードリセット</CardTitle>
-          <CardDescription v-if="stage === 'request'">
-            登録したメールアドレスを入力してください。パスワードリセット用のリンクを送信します。
-          </CardDescription>
-        </CardHeader>
+    <!-- right -->
+    <div
+      class="w-full relative h-screen md:h-auto md:w-1/2 flex flex-col items-center justify-center gap-8"
+    >
+      <h1 class="gradient-text font-bold text-4xl z-10">Feed Forward</h1>
 
-        <p
-          v-if="!isRegistered"
-          class="text-danger text-sm text-center text-error"
-        >
-          このメールアドレスは登録されていません。
-        </p>
+      <div class="w-full p-4 md:p-0 md:w-2/3 mx-auto gap-4 z-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>パスワードリセット</CardTitle>
+            <CardDescription v-if="stage === 'request'">
+              登録したメールアドレスを入力してください。パスワードリセット用のリンクを送信します。
+            </CardDescription>
+          </CardHeader>
 
-        <CardContent>
-          <div v-if="stage === 'request'">
-            <form @submit="onSubmit" class="space-y-6">
-              <FormField v-slot="{ componentField }" name="email">
-                <FormItem>
-                  <FormLabel>メールアドレス</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="xxxxxx@example.com"
-                      v-bind="componentField"
-                      autocomplete="email"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </FormField>
+          <p
+            v-if="!isRegistered"
+            class="text-danger text-sm text-center text-error"
+          >
+            このメールアドレスは登録されていません。
+          </p>
 
-              <Button
-                type="submit"
-                class="w-full cursor-pointer gradient-bg"
-                :disabled="loading"
-                variant="main"
-              >
-                {{ loading ? "処理中..." : "リセットリンクを送信" }}
+          <CardContent>
+            <div v-if="stage === 'request'">
+              <form @submit="onSubmit" class="space-y-6">
+                <FormField v-slot="{ componentField }" name="email">
+                  <FormItem>
+                    <FormLabel>メールアドレス</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="xxxxxx@example.com"
+                        v-bind="componentField"
+                        autocomplete="email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <Button
+                  type="submit"
+                  class="w-full cursor-pointer gradient-bg"
+                  :disabled="loading"
+                  variant="main"
+                >
+                  {{ loading ? "処理中..." : "リセットリンクを送信" }}
+                </Button>
+              </form>
+            </div>
+
+            <div v-else class="text-center space-y-6">
+              <p class="text-success text-sm" v-if="message">
+                {{ message }}
+              </p>
+              <Button class="cursor-pointer" variant="outline" as-child>
+                <NuxtLink to="/login">ログインページに戻る</NuxtLink>
               </Button>
-            </form>
-          </div>
+            </div>
+          </CardContent>
 
-          <div v-else class="text-center space-y-6">
-            <p class="text-success text-sm" v-if="message">
+          <CardFooter v-if="stage === 'request'" class="flex justify-between">
+            <p class="text-sm">
               {{ message }}
             </p>
-            <Button class="cursor-pointer" variant="outline" as-child>
+            <Button class="cursor-pointer" variant="link" as-child>
               <NuxtLink to="/login">ログインページに戻る</NuxtLink>
             </Button>
-          </div>
-        </CardContent>
-
-        <CardFooter v-if="stage === 'request'" class="flex justify-between">
-          <p class="text-sm">
-            {{ message }}
-          </p>
-          <Button class="cursor-pointer" variant="link" as-child>
-            <NuxtLink to="/login">ログインページに戻る</NuxtLink>
-          </Button>
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   </div>
 </template>

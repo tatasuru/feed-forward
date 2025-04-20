@@ -17,18 +17,18 @@ const pageMenu = [
     name: "MY PROJECTS",
     link: "/my-projects",
   },
-  {
-    name: "DISCOVERY",
-    link: "/discovery",
-  },
-  {
-    name: "CREATE PROJECT",
-    link: "/projects/create",
-  },
-  {
-    name: "ANALYTICS",
-    link: "/analytics",
-  },
+  // {
+  //   name: "DISCOVERY",
+  //   link: "/discovery",
+  // },
+  // {
+  //   name: "CREATE PROJECT",
+  //   link: "/projects/create",
+  // },
+  // {
+  //   name: "ANALYTICS",
+  //   link: "/analytics",
+  // },
 ];
 
 // for active link

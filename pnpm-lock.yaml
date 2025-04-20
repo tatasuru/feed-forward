@@ -29,6 +29,9 @@ importers:
       '@nuxt/test-utils':
         specifier: 3.17.2
         version: 3.17.2(@types/node@22.14.1)(jiti@2.4.2)(lightningcss@1.29.2)(magicast@0.3.5)(terser@5.39.0)(typescript@5.8.3)(yaml@2.7.1)
+      '@nuxtjs/device':
+        specifier: 3.2.4
+        version: 3.2.4
       '@nuxtjs/supabase':
         specifier: 1.5.0
         version: 1.5.0
@@ -761,6 +764,9 @@ packages:
 
   '@nuxtjs/color-mode@3.5.2':
     resolution: {integrity: sha512-cC6RfgZh3guHBMLLjrBB2Uti5eUoGM9KyauOaYS9ETmxNWBMTvpgjvSiSJp1OFljIXPIqVTJ3xtJpSNZiO3ZaA==}
+
+  '@nuxtjs/device@3.2.4':
+    resolution: {integrity: sha512-jIvN6QeodBNrUrL/1FCHk4bebsiLsGHlJd8c/m2ksLrGY4IZ0npA8IYhDTdYV92epGxoe8+3iZOzCjav+6TshQ==}
 
   '@nuxtjs/supabase@1.5.0':
     resolution: {integrity: sha512-UD+JVifYvvAuiTxwenw3QR36PfJgvZBSV2vGUhhzviWYtzv9SkIZmHcyIp31JIyTAhqqEoi1cv4ctfFmAP3cGQ==}
@@ -5411,6 +5417,10 @@ snapshots:
       semver: 7.7.1
     transitivePeerDependencies:
       - magicast
+
+  '@nuxtjs/device@3.2.4':
+    dependencies:
+      defu: 6.1.4
 
   '@nuxtjs/supabase@1.5.0':
     dependencies:

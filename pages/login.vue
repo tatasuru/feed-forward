@@ -150,14 +150,21 @@ watch(
 
 <template>
   <div class="flex items-center justify-center w-full h-screen">
-    <div class="w-1/2 flex items-center justify-center h-full gradient-bg" />
-    <div class="w-1/2 flex flex-col items-center justify-center gap-8">
-      <h1 class="gradient-text font-bold text-4xl">Feed Forward</h1>
+    <!-- left -->
+    <div
+      class="w-1/2 items-center justify-center h-full gradient-bg md:flex hidden"
+    />
+
+    <!-- right -->
+    <div
+      class="w-full relative h-screen md:h-auto md:w-1/2 flex flex-col items-center justify-center gap-8"
+    >
+      <h1 class="gradient-text font-bold text-4xl z-10">Feed Forward</h1>
 
       <Tabs
         v-model="activeTab"
         default-value="signup"
-        class="w-2/3 mx-auto gap-4"
+        class="w-full p-4 md:p-0 md:w-2/3 mx-auto gap-4 z-10"
       >
         <TabsList class="w-full">
           <TabsTrigger
@@ -183,6 +190,10 @@ watch(
         >
           <!-- message -->
           <p
+            v-if="
+              (activeTab === 'signup' && signupMessage) ||
+              (activeTab === 'signin' && signinMessage)
+            "
             class="text-sm text-center font-bold"
             :class="{
               'text-success': activeTab === 'signup' && signupMessage,

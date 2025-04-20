@@ -8,12 +8,13 @@ definePageMeta({
 });
 
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 const config = useRuntimeConfig();
 
 const loading = ref<boolean>(false);
-const email = ref<string>("");
 const stage = ref<"request" | "confirmation">("request");
 const message = ref<string>("");
+const isRegistered = ref<boolean>(true);
 const baseUrl = config.public.baseUrl;
 
 // Form validation schema
@@ -35,6 +36,13 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
   loading.value = true;
   message.value = "";
+
+  // // if check if email is already registered
+  if (!user.value) {
+    isRegistered.value = false;
+    loading.value = false;
+    return;
+  }
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
@@ -71,6 +79,14 @@ const onSubmit = form.handleSubmit(async (values) => {
             登録したメールアドレスを入力してください。パスワードリセット用のリンクを送信します。
           </CardDescription>
         </CardHeader>
+
+        <p
+          v-if="!isRegistered"
+          class="text-danger text-sm text-center text-error"
+        >
+          このメールアドレスは登録されていません。
+        </p>
+
         <CardContent>
           <div v-if="stage === 'request'">
             <form @submit="onSubmit" class="space-y-6">
@@ -109,6 +125,7 @@ const onSubmit = form.handleSubmit(async (values) => {
             </Button>
           </div>
         </CardContent>
+
         <CardFooter v-if="stage === 'request'" class="flex justify-between">
           <p class="text-sm">
             {{ message }}

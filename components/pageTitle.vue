@@ -8,24 +8,24 @@ const props = defineProps<{
 const titleSize = computed(() => {
   switch (props.size) {
     case "large":
-      return "text-4xl";
+      return "md:text-4xl text-3xl";
     case "medium":
-      return "text-3xl";
+      return "md:text-3xl text-2xl";
     case "small":
-      return "text-2xl";
+      return "md:text-2xl text-xl";
     default:
-      return "text-3xl";
+      return "md:text-2xl text-xl";
   }
 });
 
 const descriptionSize = computed(() => {
   switch (props.size) {
     case "large":
-      return "text-lg";
+      return "text-lg md:text-xl";
     case "medium":
-      return "text-sm";
+      return "text-base md:text-lg";
     case "small":
-      return "text-sm";
+      return "text-sm md:text-base";
     default:
       return "text-sm";
   }

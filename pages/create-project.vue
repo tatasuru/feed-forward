@@ -117,6 +117,12 @@ const formSchema = toTypedSchema(
           message: "期限は未来の日付である必要があります",
         }
       ),
+    materialLink: z
+      .string({
+        message: "フィードバック対象のファイルやリンクは必須です",
+      })
+      .url("URL形式で入力してください")
+      .optional(),
   })
 );
 
@@ -134,28 +140,38 @@ const onSubmit = form.handleSubmit((values) => {
     <PageTitle
       title="新規プロジェクト作成"
       description="フィードバックを受け取りたいプロジェクトの詳細を入力してください"
+      size="large"
     />
 
     <!-- section -->
     <section id="create-project-form">
-      <!-- info -->
-      <Card>
-        <CardHeader>
-          <PageTitle
-            title="基本情報"
-            description="プロジェクトの基本情報を入力してください"
-            size="small"
-          />
-        </CardHeader>
-        <CardContent>
-          <form @submit="onSubmit" class="flex flex-col gap-8">
+      <!-- info for evaluation -->
+
+      <form @submit="onSubmit" class="grid gap-8">
+        <Card>
+          <CardHeader>
+            <PageTitle
+              title="①基本情報"
+              description="プロジェクトの基本情報を入力してください"
+              size="small"
+            />
+          </CardHeader>
+          <CardContent class="flex flex-col gap-8">
             <FormField v-slot="{ componentField }" name="projectName">
               <FormItem>
-                <FormLabel>プロジェクト名</FormLabel>
+                <FormLabel>
+                  プロジェクト名
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="text"
-                    placeholder="shadcn"
+                    placeholder="新規プロダクト草案"
                     v-bind="componentField"
                   />
                 </FormControl>
@@ -165,9 +181,22 @@ const onSubmit = form.handleSubmit((values) => {
             </FormField>
             <FormField v-slot="{ componentField }" name="projectDescription">
               <FormItem>
-                <FormLabel>プロジェクトの説明</FormLabel>
+                <FormLabel>
+                  プロジェクトの説明
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
                 <FormControl>
-                  <Textarea placeholder="shadcn" v-bind="componentField" />
+                  <Textarea
+                    placeholder="デザインやデモ、企画の詳細をわかりやすく記載"
+                    v-bind="componentField"
+                    :rows="4"
+                    class="resize-none h-[200px]"
+                  />
                 </FormControl>
                 <FormDescription
                   >プロジェクトの説明は必須です。</FormDescription
@@ -177,12 +206,20 @@ const onSubmit = form.handleSubmit((values) => {
             </FormField>
             <FormField v-slot="{ componentField }" name="projectType">
               <FormItem>
-                <FormLabel>プロジェクトの種類</FormLabel>
+                <FormLabel>
+                  プロジェクトの種類
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
                 <FormControl>
                   <RadioGroup
                     v-bind="componentField"
                     :orientation="'vertical'"
-                    class="grid grid-cols-3 gap-4 [&_svg]:fill-purple"
+                    class="grid md:grid-cols-3 gap-2 md:gap-4 [&_svg]:fill-purple"
                   >
                     <Card
                       v-for="projectType in projectTypes"
@@ -224,7 +261,15 @@ const onSubmit = form.handleSubmit((values) => {
             </FormField>
             <FormField v-slot="{ componentField }" name="projectDueDate">
               <FormItem>
-                <FormLabel>プロジェクトの期限</FormLabel>
+                <FormLabel>
+                  プロジェクトの期限
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="text"
@@ -241,9 +286,48 @@ const onSubmit = form.handleSubmit((values) => {
                 <FormMessage />
               </FormItem>
             </FormField>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <!-- file or link for evaluation -->
+        <Card>
+          <CardHeader>
+            <PageTitle
+              title="②フィードバック対象のファイルやリンク"
+              description="フィードバックを受け取りたいファイルやリンクをアップロードしてください"
+              size="small"
+            />
+          </CardHeader>
+          <CardContent class="flex flex-col gap-8">
+            <FormField v-slot="{ componentField }" name="materialLink">
+              <FormItem>
+                <FormLabel>
+                  フィードバック対象のファイルやリンク
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com"
+                    v-bind="componentField"
+                  />
+                </FormControl>
+                <FormDescription>プロジェクト名は必須です。</FormDescription>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+          </CardContent>
+        </Card>
+
+        <!-- evaluation items -->
+
+        <!-- publish settings -->
+      </form>
     </section>
   </div>
 </template>

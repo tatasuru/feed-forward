@@ -9,6 +9,7 @@ definePageMeta({
     <PageTitle
       title="マイプロジェクト"
       description="あなたが作成したフィードバックプロジェクト"
+      size="large"
     />
   </div>
 </template>

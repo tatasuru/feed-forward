@@ -45,6 +45,7 @@ onMounted(async () => {
     <PageTitle
       title="ダッシュボード"
       description="プロジェクトとフィードバックの概要"
+      size="large"
     />
     <div class="flex items-center gap-2 md:gap-4 overflow-scroll">
       <Card

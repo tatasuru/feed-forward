@@ -29,7 +29,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex items-center justify-center h-screen w-full">
+  <div class="flex items-center justify-center h-svh w-full">
     <p class="text-2xl gradient-text font-bold">Waiting for loading...</p>
   </div>
 </template>

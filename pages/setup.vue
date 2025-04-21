@@ -159,7 +159,7 @@ async function registrationProfile(values: formValues) {
 
 <template>
   <div
-    class="flex items-center justify-center md:flex-row flex-col w-full h-screen"
+    class="flex items-center justify-center md:flex-row flex-col w-full h-svh"
   >
     <div
       class="md:w-1/2 w-full h-fit md:h-full backdrop-blur-md gradient-bg p-4 py-12 md:p-12"

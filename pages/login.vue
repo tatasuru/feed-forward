@@ -149,7 +149,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex items-center justify-center w-full h-screen">
+  <div class="flex items-center justify-center w-full h-svh">
     <!-- left -->
     <div
       class="w-1/2 items-center justify-center h-full gradient-bg md:flex hidden"

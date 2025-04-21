@@ -7,6 +7,7 @@ const router = useRouter();
 const colorMode = useColorMode();
 const supabase = useSupabaseClient();
 const store = useStore();
+const isOpen = ref<boolean>(false);
 
 const pageMenu = [
   {
@@ -31,10 +32,9 @@ const pageMenu = [
   // },
 ];
 
-// for active link
-const currentPath = router.currentRoute.value.path;
+// for active link - changed to computed property for reactivity
 const isActive = (path: string) => {
-  return currentPath === path;
+  return router.currentRoute.value.path === path;
 };
 
 // for logout
@@ -50,7 +50,7 @@ const logout = async () => {
 
 <template>
   <header
-    class="flex items-center justify-between p-4 w-full fixed top-0 shadow-md z-10 bg-background"
+    class="flex items-center justify-between p-2 px-4 md:p-4 w-full fixed top-0 shadow-md z-10 bg-background border-b"
   >
     <h1 class="text-xl md:text-2xl font-bold gradient-text">FeedForward</h1>
     <NavigationMenu class="md:flex hidden">
@@ -70,22 +70,22 @@ const logout = async () => {
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
-    <div class="items-center gap-2 flex">
+    <div class="items-center gap-1 md:gap-2 flex">
       <Button
         :variant="'ghost'"
-        :size="'icon'"
         class="cursor-pointer rounded-full"
+        size="icon"
       >
         <Icon
-          name="solar:bell-bold"
-          class="dark:text-white text-black size-4"
+          name="solar:bell-line-duotone"
+          class="dark:text-white text-black !size-5 flex"
         />
       </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Avatar :size="'sm'" class="cursor-pointer">
-            <AvatarImage :src="store.profile.avatar_url" alt="@unovue" />
+            <AvatarImage :src="store.profile.avatar_url" alt="avatar" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
@@ -129,16 +129,17 @@ const logout = async () => {
       </DropdownMenu>
 
       <!-- hamburger menu -->
-      <Sheet>
+      <Sheet :open="isOpen" @update:open="isOpen = $event">
         <SheetTrigger as-child>
           <Button
-            :variant="'outline'"
-            :size="'icon'"
-            class="cursor-pointe md:hidden"
+            :variant="'ghost'"
+            class="cursor-pointer rounded-full flex md:hidden"
+            size="icon"
+            @click="isOpen = true"
           >
             <Icon
               name="solar:hamburger-menu-linear"
-              class="dark:text-white text-black"
+              class="dark:text-white text-black !size-5 flex"
             />
           </Button>
         </SheetTrigger>
@@ -147,12 +148,12 @@ const logout = async () => {
             <SheetTitle class="text-xl md:text-2xl font-bold gradient-text">
               FeedForward
             </SheetTitle>
-            <SheetDescription />
+            <!-- <SheetDescription /> -->
           </SheetHeader>
 
           <nav class="space-y-4 w-full p-4">
             <div v-for="menu in pageMenu" :key="menu.name" class="w-full">
-              <router-link
+              <NuxtLink
                 :to="menu.link"
                 :class="[
                   'flex items-center w-full px-4 py-3 rounded-md transition-colors duration-200 text-sm',
@@ -160,11 +161,25 @@ const logout = async () => {
                     ? 'bg-purple dark:bg-purple/40 text-white font-medium'
                     : 'text-black dark:text-white hover:bg-purple/10 hover:text-purple',
                 ]"
+                @click="isOpen = false"
               >
                 {{ menu.name }}
-              </router-link>
+              </NuxtLink>
             </div>
           </nav>
+
+          <Separator />
+
+          <div class="p-4">
+            <Button
+              :variant="'ghost'"
+              class="cursor-pointer w-full justify-center text-destructive hover:bg-destructive/10 hover:text-destructive"
+              @click="logout"
+            >
+              <Icon name="mdi:logout" class="size-4 mr-2" />
+              ログアウト
+            </Button>
+          </div>
         </SheetContent>
       </Sheet>
     </div>

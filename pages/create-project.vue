@@ -550,7 +550,7 @@ const onSubmit = form.handleSubmit((values) => {
 
             <div class="flex flex-col gap-2">
               <Label> 通知設定 </Label>
-              <Card>
+              <Card class="shadow-none rounded-sm">
                 <CardContent class="flex flex-col gap-8">
                   <FormField
                     v-slot="{ componentField }"

@@ -2,25 +2,12 @@
 import { cn } from "@/lib/utils";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
-import {
-  CalendarDate,
-  DateFormatter,
-  getLocalTimeZone,
-  parseDate,
-  today,
-} from "@internationalized/date";
-import { CalendarIcon } from "lucide-vue-next";
+import { parseDate } from "@internationalized/date";
+
 import * as z from "zod";
-import { toDate } from "reka-ui/date";
 
 definePageMeta({
   middleware: "auth",
-});
-
-// 日本時間に合わせる
-const df = new DateFormatter("ja-JP", {
-  timeZone: "Asia/Tokyo",
-  dateStyle: "long",
 });
 
 const projectTypes = [
@@ -41,13 +28,27 @@ const projectTypes = [
   },
 ];
 
-const value = computed({
-  get: () =>
-    form.values.projectDueDate
-      ? parseDate(form.values.projectDueDate)
-      : undefined,
-  set: (val) => val,
-});
+const dateValue = ref<string>("");
+
+const dateFormatToYYYYMMDD = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  let value = input.value.replace(/[^0-9/]/g, "");
+
+  if (value.length === 4 && !value.includes("/")) {
+    dateValue.value = value + "/";
+  } else if (
+    value.length === 7 &&
+    value.charAt(4) === "/" &&
+    !value.includes("/", 5)
+  ) {
+    dateValue.value = value + "/";
+  }
+
+  // 最大10文字（YYYY/MM/DD）まで
+  if (value.length > 10) {
+    input.value = value.slice(0, 10);
+  }
+};
 
 /********************************
  * Form setup
@@ -70,8 +71,52 @@ const formSchema = toTypedSchema(
       errorMap: () => ({ message: "プロジェクトの種類は必須です" }),
     }),
     projectDueDate: z
-      .string()
-      .refine((v) => v, { message: "A date of birth is required." }),
+      .string({
+        message: "プロジェクトの期限は必須です",
+      })
+      .regex(/^[0-9/]+$/, {
+        message: "日付は数字とスラッシュのみで入力してください",
+      })
+      .regex(/^\d{4}\/\d{2}\/\d{2}$/, {
+        message: "日付はYYYY/MM/DD形式で入力してください",
+      })
+      .refine(
+        (v) => {
+          const parts = v.split("/");
+          if (parts.length !== 3) return false;
+
+          const year = parseInt(parts[0]);
+          const month = parseInt(parts[1]);
+          const day = parseInt(parts[2]);
+
+          // Check if the month is valid (1-12)
+          const date = new Date(year, month - 1, day);
+          return (
+            date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day
+          );
+        },
+        {
+          message: "有効な日付を入力してください",
+        }
+      )
+      .refine(
+        (v) => {
+          // Check if the date is in the future
+          const parts = v.split("/");
+          const inputDate = new Date(
+            parseInt(parts[0]),
+            parseInt(parts[1]) - 1,
+            parseInt(parts[2])
+          );
+          const today = new Date();
+          return inputDate > today;
+        },
+        {
+          message: "期限は未来の日付である必要があります",
+        }
+      ),
   })
 );
 
@@ -179,46 +224,20 @@ const onSubmit = form.handleSubmit((values) => {
             </FormField>
             <FormField v-slot="{ componentField }" name="projectDueDate">
               <FormItem>
-                <FormLabel>プロジェクトの締切日</FormLabel>
-                <Popover>
-                  <PopoverTrigger as-child>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        :class="
-                          cn(
-                            'w-[240px] ps-3 text-start font-normal cursor-pointer',
-                            !value && 'text-muted-foreground'
-                          )
-                        "
-                      >
-                        <span>
-                          {{ value ? df.format(toDate(value)) : "Pick a date" }}
-                        </span>
-                        <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
-                      </Button>
-                      <input hidden />
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent class="w-auto p-0">
-                    <Calendar
-                      v-model="value"
-                      calendar-label="Date of birth"
-                      initial-focus
-                      :min-value="new CalendarDate(1900, 1, 1)"
-                      :max-value="today(getLocalTimeZone())"
-                      @update:model-value="
-                        (v:any) => {
-                          if (v) {
-                            form.setFieldValue('projectDueDate', v.toString());
-                          } else {
-                            form.setFieldValue('projectDueDate', undefined);
-                          }
-                        }
-                      "
-                    />
-                  </PopoverContent>
-                </Popover>
+                <FormLabel>プロジェクトの期限</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="YYYY/MM/DD"
+                    v-bind="componentField"
+                    v-model="dateValue"
+                    @input="(e: Event) => dateFormatToYYYYMMDD(e)"
+                    maxlength="10"
+                  />
+                </FormControl>
+                <FormDescription>
+                  日付はYYYY/MM/DD形式で入力してください（例: 2025/04/30）
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             </FormField>

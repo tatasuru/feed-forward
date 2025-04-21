@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import Avatar from "@/components/shadcn-ui/avatar/Avatar.vue";
-import AvatarFallback from "@/components/shadcn-ui/avatar/AvatarFallback.vue";
-import AvatarImage from "@/components/shadcn-ui/avatar/AvatarImage.vue";
-
 const router = useRouter();
 const colorMode = useColorMode();
 const supabase = useSupabaseClient();

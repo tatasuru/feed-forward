@@ -18,8 +18,8 @@ const projectTypes = [
   },
   {
     icon: "mdi:code-tags",
-    value: "code",
-    label: "コーディング",
+    value: "demo",
+    label: "デモ",
   },
   {
     icon: "mdi:clipboard-text",
@@ -105,7 +105,7 @@ const formSchema = toTypedSchema(
       })
       .min(10)
       .max(500),
-    projectType: z.enum(["design", "code", "plan"], {
+    projectType: z.enum(["design", "demo", "plan"], {
       errorMap: () => ({ message: "プロジェクトの種類は必須です" }),
     }),
     projectDueDate: z

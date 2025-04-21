@@ -8,11 +8,11 @@ const props = defineProps<{
 const titleSize = computed(() => {
   switch (props.size) {
     case "large":
-      return "md:text-4xl text-3xl";
-    case "medium":
       return "md:text-3xl text-2xl";
-    case "small":
+    case "medium":
       return "md:text-2xl text-xl";
+    case "small":
+      return "md:text-xl text-lg";
     default:
       return "md:text-2xl text-xl";
   }

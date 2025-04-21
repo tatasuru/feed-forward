@@ -52,7 +52,17 @@ const logout = async () => {
   <header
     class="flex items-center justify-between p-2 px-4 md:p-4 w-full fixed top-0 shadow-md z-10 bg-background border-b"
   >
-    <h1 class="text-xl md:text-2xl font-bold gradient-text">FeedForward</h1>
+    <NuxtLink to="/">
+      <h1 class="text-xl md:text-2xl font-bold gradient-text">FeedForward</h1>
+    </NuxtLink>
+
+    <!-- loading bar -->
+    <NuxtLoadingIndicator
+      :color="'#8658e1'"
+      :height="4"
+      :duration="5000"
+      :throttle="0"
+    />
     <NavigationMenu class="md:flex hidden">
       <NavigationMenuList>
         <NavigationMenuItem v-for="menu in pageMenu" :key="menu.name">

@@ -43,14 +43,6 @@ onMounted(async () => {
 
 <template>
   <NuxtLayout>
-    <!-- loading bar -->
-    <NuxtLoadingIndicator
-      :color="'#1C7C54'"
-      :height="4"
-      :duration="5000"
-      :throttle="0"
-    />
     <NuxtPage />
-    <Toaster />
   </NuxtLayout>
 </template>

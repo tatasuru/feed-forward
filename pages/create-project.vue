@@ -175,7 +175,6 @@ const onSubmit = form.handleSubmit((values) => {
                     v-bind="componentField"
                   />
                 </FormControl>
-                <FormDescription>プロジェクト名は必須です。</FormDescription>
                 <FormMessage />
               </FormItem>
             </FormField>
@@ -198,9 +197,6 @@ const onSubmit = form.handleSubmit((values) => {
                     class="resize-none h-[200px]"
                   />
                 </FormControl>
-                <FormDescription
-                  >プロジェクトの説明は必須です。</FormDescription
-                >
                 <FormMessage />
               </FormItem>
             </FormField>
@@ -317,7 +313,6 @@ const onSubmit = form.handleSubmit((values) => {
                     v-bind="componentField"
                   />
                 </FormControl>
-                <FormDescription>プロジェクト名は必須です。</FormDescription>
                 <FormMessage />
               </FormItem>
             </FormField>

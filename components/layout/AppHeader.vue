@@ -166,13 +166,14 @@ const logout = async () => {
               <NuxtLink
                 :to="menu.link"
                 :class="[
-                  'flex items-center w-full px-4 py-3 rounded-md transition-colors duration-200 text-sm',
+                  'flex items-center w-full px-4 py-3 rounded-md transition-colors duration-200 text-sm gap-2',
                   isActive(menu.link)
                     ? 'bg-purple dark:bg-purple/40 text-white font-medium'
                     : 'text-black dark:text-white hover:bg-purple/10 hover:text-purple',
                 ]"
                 @click="isOpen = false"
               >
+                <Icon :name="menu.icon" class="!size-4" />
                 {{ menu.name }}
               </NuxtLink>
             </div>

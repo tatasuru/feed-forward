@@ -56,8 +56,8 @@ const logout = async () => {
     <NavigationMenu class="md:flex hidden">
       <NavigationMenuList>
         <NavigationMenuItem v-for="menu in pageMenu" :key="menu.name">
-          <NavigationMenuLink
-            :href="menu.link"
+          <NuxtLink
+            :to="menu.link"
             :class="[
               isActive(menu.link)
                 ? 'bg-purple dark:bg-purple/40 text-white hover:bg-purple hover:text-white focus:bg-purple focus:text-white'
@@ -66,7 +66,7 @@ const logout = async () => {
             class="px-4 py-2 rounded-md dark:text-white"
           >
             {{ menu.name }}
-          </NavigationMenuLink>
+          </NuxtLink>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>

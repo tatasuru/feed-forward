@@ -29,7 +29,7 @@ onMounted(async () => {
     return;
   }
 
-  if (userData.display_name !== null) {
+  if (userData && userData.display_name !== null) {
     store.profile = {
       display_name: userData.display_name,
       email: userData.email,

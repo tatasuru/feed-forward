@@ -5,6 +5,7 @@ import * as z from "zod";
 
 definePageMeta({
   middleware: "auth",
+  layout: "custom",
 });
 
 type formValues = {

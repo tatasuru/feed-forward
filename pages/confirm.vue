@@ -3,6 +3,10 @@ const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 const redirectInfo = useSupabaseCookieRedirect();
 
+definePageMeta({
+  layout: "custom",
+});
+
 watch(
   user,
   async () => {

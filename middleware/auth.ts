@@ -11,6 +11,8 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
 
     if (user.value && !userData?.display_name && to.path !== "/setup") {
       return navigateTo("/setup");
+    } else if (user.value && userData?.display_name && to.path === "/setup") {
+      return navigateTo("/");
     }
   } catch (err) {
     console.error("Exception in auth middleware:", err);

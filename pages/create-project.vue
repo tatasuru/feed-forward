@@ -394,38 +394,84 @@ const onSubmit = form.handleSubmit((values) => {
             <div class="flex flex-col gap-4">
               <div class="flex flex-col gap-2">
                 <Label>評価項目</Label>
-                <Card class="bg-blue/10 border-blue rounded-sm">
-                  <CardContent class="flex flex-col gap-8">
-                    <FormField v-slot="{ componentField }" name="materialLink">
-                      <FormItem>
-                        <FormLabel> 項目名 </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="url"
-                            placeholder="操作のしやすさ"
-                            v-bind="componentField"
-                            class="border-blue/50"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    </FormField>
-                    <FormField v-slot="{ componentField }" name="materialLink">
-                      <FormItem>
-                        <FormLabel> 説明（任意） </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="url"
-                            placeholder="https://example.com"
-                            v-bind="componentField"
-                            class="border-blue/50"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    </FormField>
-                  </CardContent>
-                </Card>
+                <div class="flex flex-col gap-3">
+                  <Card class="bg-blue/10 border-blue rounded-sm">
+                    <CardContent class="flex flex-col gap-8">
+                      <FormField
+                        v-slot="{ componentField }"
+                        name="materialLink"
+                      >
+                        <FormItem>
+                          <FormLabel> 項目名1 </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="操作のしやすさ"
+                              v-bind="componentField"
+                              class="border-blue/50"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
+                      <FormField
+                        v-slot="{ componentField }"
+                        name="materialLink"
+                      >
+                        <FormItem>
+                          <FormLabel> 説明（任意） </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://example.com"
+                              v-bind="componentField"
+                              class="border-blue/50"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
+                    </CardContent>
+                  </Card>
+                  <Card class="bg-pink/10 border-pink rounded-sm">
+                    <CardContent class="flex flex-col gap-8">
+                      <FormField
+                        v-slot="{ componentField }"
+                        name="materialLink"
+                      >
+                        <FormItem>
+                          <FormLabel> 項目名2 </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="操作のしやすさ"
+                              v-bind="componentField"
+                              class="border-pink/50"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
+                      <FormField
+                        v-slot="{ componentField }"
+                        name="materialLink"
+                      >
+                        <FormItem>
+                          <FormLabel> 説明（任意） </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://example.com"
+                              v-bind="componentField"
+                              class="border-pink/50"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
               <Button

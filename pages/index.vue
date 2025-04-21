@@ -41,8 +41,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div id="home" class="grid w-full gap-8">
-    <PageTitle title="HOME" description="プロジェクトとフィードバックの概要" />
+  <div id="dashboard" class="grid w-full gap-8">
+    <PageTitle
+      title="ダッシュボード"
+      description="プロジェクトとフィードバックの概要"
+    />
     <div class="flex items-center gap-2 md:gap-4 overflow-scroll">
       <Card
         v-for="(item, index) in dashboardContents"

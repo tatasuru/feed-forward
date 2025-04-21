@@ -5,7 +5,10 @@ definePageMeta({
 </script>
 
 <template>
-  <div>
-    <h1>My Projects</h1>
+  <div id="create-project" class="grid w-full gap-8">
+    <PageTitle
+      title="マイプロジェクト"
+      description="あなたが作成したフィードバックプロジェクト"
+    />
   </div>
 </template>

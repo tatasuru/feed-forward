@@ -11,22 +11,23 @@ const isOpen = ref<boolean>(false);
 
 const pageMenu = [
   {
-    name: "HOME",
+    name: "ダッシュボード",
     link: "/",
     icon: "mdi:home",
   },
   {
-    name: "MY PROJECTS",
+    name: "マイプロジェクト",
     link: "/my-projects",
     icon: "mdi:folder",
+  },
+  {
+    name: "新規プロジェクト作成",
+    link: "/create-project",
+    icon: "mdi:plus-circle-outline",
   },
   // {
   //   name: "DISCOVERY",
   //   link: "/discovery",
-  // },
-  // {
-  //   name: "CREATE PROJECT",
-  //   link: "/projects/create",
   // },
   // {
   //   name: "ANALYTICS",

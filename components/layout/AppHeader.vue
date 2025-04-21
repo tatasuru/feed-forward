@@ -13,10 +13,12 @@ const pageMenu = [
   {
     name: "HOME",
     link: "/",
+    icon: "mdi:home",
   },
   {
     name: "MY PROJECTS",
     link: "/my-projects",
+    icon: "mdi:folder",
   },
   // {
   //   name: "DISCOVERY",
@@ -71,10 +73,11 @@ const logout = async () => {
             :class="[
               isActive(menu.link)
                 ? 'bg-purple dark:bg-purple/40 text-white hover:bg-purple hover:text-white focus:bg-purple focus:text-white'
-                : 'text-black hover:bg-purple/10 hover:text-purple focus:bg-purple/10 focus:text-purple',
+                : 'text-foreground hover:bg-purple/10 hover:text-purple focus:bg-purple/10 focus:text-purple',
             ]"
-            class="px-4 py-2 rounded-md dark:text-white"
+            class="px-4 py-2 rounded-md dark:text-white flex items-center gap-1 text-sm"
           >
+            <Icon :name="menu.icon" class="!size-5" />
             {{ menu.name }}
           </NuxtLink>
         </NavigationMenuItem>

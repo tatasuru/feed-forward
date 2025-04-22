@@ -66,6 +66,8 @@ const borderColorPalette = [
   "border-blue/50",
   "border-pink/50",
 ];
+const status = ref<ProjectData["status"]>("active");
+const formRef = ref<HTMLElement | null>(null);
 
 /********************************
  * Lifecycle hooks
@@ -85,44 +87,57 @@ const form = useForm({
   validationSchema: formSchema,
 });
 
-const onSubmit = form.handleSubmit((values) => {
-  const userId = user.value?.id;
+const onSubmit = form.handleSubmit(
+  (values) => {
+    const userId = user.value?.id;
 
-  if (!userId) {
-    console.error("User not found");
-    return;
+    if (!userId) {
+      console.error("User not found");
+      return;
+    }
+
+    const formattedDeadline = values.deadline
+      ? new Date(values.deadline).toISOString()
+      : null;
+
+    const projectData: ProjectData = {
+      user_id: userId,
+      title: values.title,
+      description: values.description,
+      project_type: values.projectType,
+      deadline: formattedDeadline,
+      resource_url: values.resourceUrl,
+      evaluation_type: values.evaluationType,
+      visibility_type: values.visibilityType,
+      email_notifications: values.emailNotifications
+        ? values.emailNotifications
+        : false,
+      app_notifications: values.appNotifications
+        ? values.appNotifications
+        : false,
+      status: status.value,
+    };
+
+    try {
+      createProject(projectData);
+      form.resetForm();
+    } catch (error) {
+      console.error("Error creating project:", error);
+    }
+    console.log("Project data:", projectData);
+  },
+  async (errors) => {
+    // Check if the form has errors
+    if (Object.keys(errors).length > 0) {
+      await nextTick();
+
+      formRef.value?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
   }
-
-  const formattedDeadline = values.deadline
-    ? new Date(values.deadline).toISOString()
-    : null;
-
-  const projectData: ProjectData = {
-    user_id: userId,
-    title: values.title,
-    description: values.description,
-    project_type: values.projectType,
-    deadline: formattedDeadline,
-    resource_url: values.resourceUrl,
-    evaluation_type: values.evaluationType,
-    visibility_type: values.visibilityType,
-    email_notifications: values.emailNotifications
-      ? values.emailNotifications
-      : false,
-    app_notifications: values.appNotifications
-      ? values.appNotifications
-      : false,
-    status: "active",
-  };
-
-  try {
-    createProject(projectData);
-    form.resetForm();
-  } catch (error) {
-    console.error("Error creating project:", error);
-  }
-  console.log("Project data:", projectData);
-});
+);
 
 async function createProject(projectData: ProjectData) {
   try {
@@ -186,7 +201,7 @@ function formatDate(newDate: DateValue) {
 </script>
 
 <template>
-  <div id="create-project" class="grid w-full gap-8">
+  <div id="create-project" class="grid w-full gap-8" ref="formRef">
     <PageTitle
       title="新規プロジェクト作成"
       description="フィードバックを受け取りたいプロジェクトの詳細を入力してください"
@@ -196,6 +211,16 @@ function formatDate(newDate: DateValue) {
     <!-- section -->
     <section id="create-project-form">
       <form @submit="onSubmit" class="grid gap-8">
+        <!-- error message -->
+        <div
+          v-if="!form.meta.value.valid && form.meta.value.touched"
+          class="text-sm text-destructive w-full md:w-auto flex items-center justify-center gap-1 border border-destructive/50 bg-destructive/10 rounded-sm p-4"
+        >
+          <Icon name="mdi:alert-outline" class="!size-4" />
+          入力項目が足りていないか誤りがあります
+          <Icon name="mdi:alert-outline" class="!size-4" />
+        </div>
+
         <!-- info for evaluation -->
         <Card>
           <CardHeader>
@@ -646,7 +671,8 @@ function formatDate(newDate: DateValue) {
             <!-- save as draft -->
             <Button
               variant="outline"
-              type="button"
+              type="submit"
+              @click="status = 'draft'"
               class="text-sm text-primary cursor-pointer w-full md:w-auto"
             >
               <Icon name="mdi:content-save" class="!size-4" />

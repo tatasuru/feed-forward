@@ -68,7 +68,7 @@ onMounted(async () => {
           </TabsTrigger>
         </TabsList>
         <Button as-child>
-          <NuxtLink to="/create-project" class="gradient-bg w-fit">
+          <NuxtLink to="/create-project" class="gradient-bg w-fit text-white">
             <Icon name="mdi:plus-circle-outline" class="!size-4" />
             新規プロジェクト作成
           </NuxtLink>

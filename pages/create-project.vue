@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { cn } from "@/lib/utils";
 import { useForm } from "vee-validate";
 import { formSchema } from "@/utils/form-schema/create-project";
 import type {
   ProjectData,
   CriteriaTemplate,
 } from "@/types/create-project.types";
+import {
+  today,
+  type DateValue,
+  getLocalTimeZone,
+} from "@internationalized/date";
+import { CalendarIcon } from "lucide-vue-next";
 
 definePageMeta({
   middleware: "auth",
@@ -50,6 +57,7 @@ const visibilityTypes = [
 const evaluationTypes = ref<CriteriaTemplate[]>([]);
 const criteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
 const dateValue = ref<string>("");
+const selectedDateValue = ref<DateValue>();
 const bgColorPalette = ["bg-purple/10", "bg-blue/10", "bg-pink/10"];
 const borderColorPalette = [
   "border-purple/50",
@@ -133,26 +141,6 @@ async function createProject(projectData: ProjectData) {
 /********************************
  * HELPER FUNCTIONS
  ********************************/
-function dateFormatToYYYYMMDD(e: Event) {
-  const input = e.target as HTMLInputElement;
-  let value = input.value.replace(/[^0-9/]/g, "");
-
-  if (value.length === 4 && !value.includes("/")) {
-    dateValue.value = value + "/";
-  } else if (
-    value.length === 7 &&
-    value.charAt(4) === "/" &&
-    !value.includes("/", 5)
-  ) {
-    dateValue.value = value + "/";
-  }
-
-  // 最大10文字（YYYY/MM/DD）まで
-  if (value.length > 10) {
-    input.value = value.slice(0, 10);
-  }
-}
-
 async function getCriteriaTemplate(isAll: boolean) {
   try {
     const { data, error } = await supabase.rpc("get_criteria_templates", {
@@ -179,6 +167,19 @@ function selectCriteriaTemplate() {
   } else {
     criteriaTemplate.value = [];
   }
+}
+
+function formatDate(newDate: DateValue) {
+  const localTimeZone = getLocalTimeZone();
+  const date = newDate.toDate(localTimeZone);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // 月は0始まり
+  const day = String(date.getDate()).padStart(2, "0");
+
+  // Set the formatted date to the input field
+  dateValue.value = `${year}/${month}/${day}`;
+  form.setFieldValue("deadline", dateValue.value);
 }
 </script>
 
@@ -310,14 +311,35 @@ function selectCriteriaTemplate() {
                   </Badge>
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="YYYY/MM/DD"
-                    v-bind="componentField"
-                    v-model="dateValue"
-                    @input="(e: Event) => dateFormatToYYYYMMDD(e)"
-                    maxlength="10"
-                  />
+                  <div class="relative">
+                    <Input
+                      type="text"
+                      placeholder="YYYY/MM/DD"
+                      v-bind="componentField"
+                      v-model="dateValue"
+                      maxlength="10"
+                    />
+                    <Popover>
+                      <PopoverTrigger as-child>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          class="absolute right-2 top-1/2 -translate-y-1/2 size-6 cursor-pointer"
+                        >
+                          <CalendarIcon class="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent class="w-auto p-0" align="end">
+                        <Calendar
+                          v-model="selectedDateValue"
+                          @update:model-value="formatDate(selectedDateValue!)"
+                          initial-focus
+                          :locale="'ja-JP'"
+                          :min-value="today(getLocalTimeZone())"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </FormControl>
                 <FormDescription>
                   日付はYYYY/MM/DD形式で入力してください（例: 2025/04/30）
@@ -470,14 +492,15 @@ function selectCriteriaTemplate() {
                 </div>
               </div>
               <!-- TODO: For paid version -->
-              <!--
+
               <Button
                 variant="outline"
                 class="w-full text-sm text-primary cursor-pointer"
+                disabled
               >
                 <Icon name="mdi:plus" class="!size-4" />
-                評価項目を追加
-              </Button> -->
+                評価項目を追加 (有料版のみ)
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -554,9 +577,12 @@ function selectCriteriaTemplate() {
                     name="emailNotifications"
                   >
                     <FormItem class="flex items-center justify-between">
-                      <FormLabel>メールで通知を受け取る</FormLabel>
+                      <FormLabel class="text-sm text-muted-foreground"
+                        >メールで通知を受け取る (有料版のみ)</FormLabel
+                      >
                       <FormControl>
                         <Switch
+                          disabled
                           :model-value="value"
                           @update:model-value="handleChange"
                           class="cursor-pointer data-[state=checked]:bg-purple"

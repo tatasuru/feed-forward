@@ -67,7 +67,8 @@ export const formSchema = toTypedSchema(
             parseInt(parts[2])
           );
           const today = new Date();
-          return inputDate > today;
+          today.setHours(0, 0, 0, 0); // Set time to midnight for comparison
+          return inputDate >= today;
         },
         {
           message: "期限は未来の日付である必要があります",

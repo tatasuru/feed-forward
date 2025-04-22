@@ -16,3 +16,11 @@ export type ProjectData = {
   app_notifications: boolean;
   status: "draft" | "active" | "archived" | "completed";
 };
+
+export type CriteriaTemplate = {
+  id: number;
+  name: string;
+  description: string;
+  evaluation_type: ProjectData["evaluation_type"];
+  criteria: { name: string; description: string }[];
+};

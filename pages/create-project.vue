@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useForm } from "vee-validate";
 import { formSchema } from "@/utils/form-schema/create-project";
-import type { ProjectData } from "@/types/create-project.types";
+import type {
+  ProjectData,
+  CriteriaTemplate,
+} from "@/types/create-project.types";
 
 definePageMeta({
   middleware: "auth",
@@ -44,50 +47,26 @@ const visibilityTypes = [
     label: "プライベート（招待した人のみ閲覧・フィードバック可能）",
   },
 ];
-const evaluationTypes = [
-  {
-    value: "uiDesignEvaluation",
-    label: "UIデザイン評価",
-  },
-  {
-    value: "uxDesignEvaluation",
-    label: "UXデザイン評価",
-  },
-  {
-    value: "demoEvaluation",
-    label: "デモ評価",
-  },
-  {
-    value: "planEvaluation",
-    label: "企画評価",
-  },
-  {
-    value: "customEvaluation",
-    label: "カスタム評価",
-  },
+const evaluationTypes = ref<CriteriaTemplate[]>([]);
+const criteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
+const dateValue = ref<string>("");
+const bgColorPalette = ["bg-purple/10", "bg-blue/10", "bg-pink/10"];
+const borderColorPalette = [
+  "border-purple/50",
+  "border-blue/50",
+  "border-pink/50",
 ];
 
-const dateValue = ref<string>("");
-
-const dateFormatToYYYYMMDD = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  let value = input.value.replace(/[^0-9/]/g, "");
-
-  if (value.length === 4 && !value.includes("/")) {
-    dateValue.value = value + "/";
-  } else if (
-    value.length === 7 &&
-    value.charAt(4) === "/" &&
-    !value.includes("/", 5)
-  ) {
-    dateValue.value = value + "/";
+/********************************
+ * Lifecycle hooks
+ ********************************/
+onMounted(async () => {
+  try {
+    evaluationTypes.value = await getCriteriaTemplate(true);
+  } catch (error) {
+    console.error("Error fetching evaluation types:", error);
   }
-
-  // 最大10文字（YYYY/MM/DD）まで
-  if (value.length > 10) {
-    input.value = value.slice(0, 10);
-  }
-};
+});
 
 /********************************
  * Form setup
@@ -148,6 +127,57 @@ async function createProject(projectData: ProjectData) {
     console.log("Project created successfully:", data);
   } catch (error) {
     console.error("Error creating project:", error);
+  }
+}
+
+/********************************
+ * HELPER FUNCTIONS
+ ********************************/
+function dateFormatToYYYYMMDD(e: Event) {
+  const input = e.target as HTMLInputElement;
+  let value = input.value.replace(/[^0-9/]/g, "");
+
+  if (value.length === 4 && !value.includes("/")) {
+    dateValue.value = value + "/";
+  } else if (
+    value.length === 7 &&
+    value.charAt(4) === "/" &&
+    !value.includes("/", 5)
+  ) {
+    dateValue.value = value + "/";
+  }
+
+  // 最大10文字（YYYY/MM/DD）まで
+  if (value.length > 10) {
+    input.value = value.slice(0, 10);
+  }
+}
+
+async function getCriteriaTemplate(isAll: boolean) {
+  try {
+    const { data, error } = await supabase.rpc("get_criteria_templates", {
+      p_evaluation_type: isAll ? "" : form.values.evaluationType,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching criteria templates:", error);
+  }
+}
+
+function selectCriteriaTemplate() {
+  const selectedTemplate = evaluationTypes.value.find(
+    (template) => template.evaluation_type === form.values.evaluationType
+  );
+
+  if (selectedTemplate) {
+    criteriaTemplate.value = selectedTemplate.criteria;
+  } else {
+    criteriaTemplate.value = [];
   }
 }
 </script>
@@ -363,13 +393,16 @@ async function createProject(projectData: ProjectData) {
                     <SelectGroup>
                       <SelectItem
                         v-for="evaluationType in evaluationTypes"
-                        :key="evaluationType.value"
-                        :value="evaluationType.value"
-                        :disabled="evaluationType.value === 'customEvaluation'"
+                        :key="evaluationType.name"
+                        :value="evaluationType.evaluation_type"
+                        :disabled="
+                          evaluationType.evaluation_type === 'customEvaluation'
+                        "
+                        @vue:updated="selectCriteriaTemplate"
                       >
-                        {{ evaluationType.label }}
+                        {{ evaluationType.name }}
                         {{
-                          evaluationType.value === "customEvaluation"
+                          evaluationType.evaluation_type === "customEvaluation"
                             ? "(有料版のみ)"
                             : ""
                         }}
@@ -377,102 +410,75 @@ async function createProject(projectData: ProjectData) {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                <FormDescription class="flex items-center">
+                  項目はそれぞれ5段階で評価されます。(星1つ〜星5つ)
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             </FormField>
 
             <!-- TODO: display when selector selected -->
-            <!-- <div class="flex flex-col gap-4">
+            <div
+              v-if="
+                form.values.evaluationType &&
+                form.values.evaluationType !== 'customEvaluation'
+              "
+              class="flex flex-col gap-4"
+            >
               <div class="flex flex-col gap-2">
                 <Label>評価項目</Label>
                 <div class="flex flex-col gap-3">
-                  <Card class="bg-blue/10 border-blue rounded-sm">
+                  <Card
+                    v-for="(criteria, index) in criteriaTemplate"
+                    class="rounded-sm"
+                    :class="{
+                      [bgColorPalette[index]]: criteriaTemplate.length > 0,
+                      [borderColorPalette[index]]: criteriaTemplate.length > 0,
+                    }"
+                  >
                     <CardContent class="flex flex-col gap-8">
-                      <FormField
-                        v-slot="{ componentField }"
-                        name="materialLink"
-                      >
-                        <FormItem>
-                          <FormLabel> 項目名1 </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="操作のしやすさ"
-                              v-bind="componentField"
-                              class="border-blue/50"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormField>
-                      <FormField
-                        v-slot="{ componentField }"
-                        name="materialLink"
-                      >
-                        <FormItem>
-                          <FormLabel> 説明（任意） </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://example.com"
-                              v-bind="componentField"
-                              class="border-blue/50"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormField>
-                    </CardContent>
-                  </Card>
-                  <Card class="bg-pink/10 border-pink rounded-sm">
-                    <CardContent class="flex flex-col gap-8">
-                      <FormField
-                        v-slot="{ componentField }"
-                        name="materialLink"
-                      >
-                        <FormItem>
-                          <FormLabel> 項目名2 </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="操作のしやすさ"
-                              v-bind="componentField"
-                              class="border-pink/50"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormField>
-                      <FormField
-                        v-slot="{ componentField }"
-                        name="materialLink"
-                      >
-                        <FormItem>
-                          <FormLabel> 説明（任意） </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://example.com"
-                              v-bind="componentField"
-                              class="border-pink/50"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormField>
+                      <div class="flex flex-col gap-2">
+                        <Label> 項目{{ index + 1 }} </Label>
+                        <Input
+                          type="url"
+                          :placeholder="criteria.name"
+                          v-model="criteria.name"
+                          :class="{
+                            [borderColorPalette[index]]:
+                              criteriaTemplate.length > 0,
+                          }"
+                          :default-value="criteria.name"
+                          disabled
+                        />
+                      </div>
+
+                      <div class="flex flex-col gap-2">
+                        <Label> 項目{{ index + 1 }}の説明 </Label>
+                        <Input
+                          :placeholder="criteria.description"
+                          v-model="criteria.description"
+                          :class="{
+                            [borderColorPalette[index]]:
+                              criteriaTemplate.length > 0,
+                          }"
+                          :default-value="criteria.description"
+                          disabled
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
               </div>
-
+              <!-- TODO: For paid version -->
+              <!--
               <Button
                 variant="outline"
                 class="w-full text-sm text-primary cursor-pointer"
               >
                 <Icon name="mdi:plus" class="!size-4" />
                 評価項目を追加
-              </Button>
-            </div> -->
+              </Button> -->
+            </div>
           </CardContent>
         </Card>
 

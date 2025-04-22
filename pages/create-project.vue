@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils";
 import { useForm } from "vee-validate";
-import { toTypedSchema } from "@vee-validate/zod";
-import { parseDate } from "@internationalized/date";
-
-import * as z from "zod";
+import { formSchema } from "@/utils/form-schema/create-project";
+import type { ProjectData } from "@/types/create-project.types";
 
 definePageMeta({
   middleware: "auth",
 });
+
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 
 const projectTypes = [
   {
@@ -24,10 +24,10 @@ const projectTypes = [
   {
     icon: "mdi:clipboard-text",
     value: "plan",
-    label: "プランニング",
+    label: "企画・仕様",
   },
 ];
-const publishTypes = [
+const visibilityTypes = [
   {
     icon: "mdi:earth",
     value: "public",
@@ -44,7 +44,7 @@ const publishTypes = [
     label: "プライベート（招待した人のみ閲覧・フィードバック可能）",
   },
 ];
-const templateType = [
+const evaluationTypes = [
   {
     value: "uiDesignEvaluation",
     label: "UIデザイン評価",
@@ -66,6 +66,7 @@ const templateType = [
     label: "カスタム評価",
   },
 ];
+
 const dateValue = ref<string>("");
 
 const dateFormatToYYYYMMDD = (e: Event) => {
@@ -91,89 +92,64 @@ const dateFormatToYYYYMMDD = (e: Event) => {
 /********************************
  * Form setup
  ********************************/
-const formSchema = toTypedSchema(
-  z.object({
-    projectName: z
-      .string({
-        message: "プロジェクト名は必須です",
-      })
-      .min(2)
-      .max(50),
-    projectDescription: z
-      .string({
-        message: "プロジェクトの説明は必須です",
-      })
-      .min(10)
-      .max(500),
-    projectType: z.enum(["design", "demo", "plan"], {
-      errorMap: () => ({ message: "プロジェクトの種類は必須です" }),
-    }),
-    projectDueDate: z
-      .string({
-        message: "プロジェクトの期限は必須です",
-      })
-      .regex(/^[0-9/]+$/, {
-        message: "日付は数字とスラッシュのみで入力してください",
-      })
-      .regex(/^\d{4}\/\d{2}\/\d{2}$/, {
-        message: "日付はYYYY/MM/DD形式で入力してください",
-      })
-      .refine(
-        (v) => {
-          const parts = v.split("/");
-          if (parts.length !== 3) return false;
-
-          const year = parseInt(parts[0]);
-          const month = parseInt(parts[1]);
-          const day = parseInt(parts[2]);
-
-          // Check if the month is valid (1-12)
-          const date = new Date(year, month - 1, day);
-          return (
-            date.getFullYear() === year &&
-            date.getMonth() === month - 1 &&
-            date.getDate() === day
-          );
-        },
-        {
-          message: "有効な日付を入力してください",
-        }
-      )
-      .refine(
-        (v) => {
-          // Check if the date is in the future
-          const parts = v.split("/");
-          const inputDate = new Date(
-            parseInt(parts[0]),
-            parseInt(parts[1]) - 1,
-            parseInt(parts[2])
-          );
-          const today = new Date();
-          return inputDate > today;
-        },
-        {
-          message: "期限は未来の日付である必要があります",
-        }
-      ),
-    materialLink: z
-      .string({
-        message: "フィードバック対象のファイルやリンクは必須です",
-      })
-      .url("URL形式で入力してください")
-      .optional(),
-    publishType: z.enum(["public", "unlisted", "private"], {
-      errorMap: () => ({ message: "公開範囲は必須です" }),
-    }),
-  })
-);
-
 const form = useForm({
   validationSchema: formSchema,
 });
 
 const onSubmit = form.handleSubmit((values) => {
-  console.log("Form submitted!", values);
+  const userId = user.value?.id;
+
+  if (!userId) {
+    console.error("User not found");
+    return;
+  }
+
+  const formattedDeadline = values.deadline
+    ? new Date(values.deadline).toISOString()
+    : null;
+
+  const projectData: ProjectData = {
+    user_id: userId,
+    title: values.title,
+    description: values.description,
+    project_type: values.projectType,
+    deadline: formattedDeadline,
+    resource_url: values.resourceUrl,
+    evaluation_type: values.evaluationType,
+    visibility_type: values.visibilityType,
+    email_notifications: values.emailNotifications
+      ? values.emailNotifications
+      : false,
+    app_notifications: values.appNotifications
+      ? values.appNotifications
+      : false,
+    status: "active",
+  };
+
+  try {
+    createProject(projectData);
+    form.resetForm();
+  } catch (error) {
+    console.error("Error creating project:", error);
+  }
+  console.log("Project data:", projectData);
 });
+
+async function createProject(projectData: ProjectData) {
+  try {
+    const { data, error } = await supabase.rpc("create_project_from_form", {
+      form_data: projectData,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log("Project created successfully:", data);
+  } catch (error) {
+    console.error("Error creating project:", error);
+  }
+}
 </script>
 
 <template>
@@ -197,7 +173,7 @@ const onSubmit = form.handleSubmit((values) => {
             />
           </CardHeader>
           <CardContent class="flex flex-col gap-8">
-            <FormField v-slot="{ componentField }" name="projectName">
+            <FormField v-slot="{ componentField }" name="title">
               <FormItem>
                 <FormLabel>
                   プロジェクト名
@@ -218,7 +194,7 @@ const onSubmit = form.handleSubmit((values) => {
                 <FormMessage />
               </FormItem>
             </FormField>
-            <FormField v-slot="{ componentField }" name="projectDescription">
+            <FormField v-slot="{ componentField }" name="description">
               <FormItem>
                 <FormLabel>
                   プロジェクトの説明
@@ -292,7 +268,7 @@ const onSubmit = form.handleSubmit((values) => {
                 <FormMessage />
               </FormItem>
             </FormField>
-            <FormField v-slot="{ componentField }" name="projectDueDate">
+            <FormField v-slot="{ componentField }" name="deadline">
               <FormItem>
                 <FormLabel>
                   プロジェクトの期限
@@ -332,7 +308,7 @@ const onSubmit = form.handleSubmit((values) => {
             />
           </CardHeader>
           <CardContent class="flex flex-col gap-8">
-            <FormField v-slot="{ componentField }" name="materialLink">
+            <FormField v-slot="{ componentField }" name="resourceUrl">
               <FormItem>
                 <FormLabel>
                   フィードバック対象のファイルやリンク
@@ -366,32 +342,47 @@ const onSubmit = form.handleSubmit((values) => {
             />
           </CardHeader>
           <CardContent class="flex flex-col gap-8">
-            <div class="flex flex-col gap-2">
-              <Label>
-                テンプレート選択
-                <Badge variant="gradient" class="text-xs text-white rounded-sm">
-                  必須
-                </Badge>
-              </Label>
-              <Select>
-                <SelectTrigger class="w-full cursor-pointer">
-                  <SelectValue placeholder="評価項目テンプレートを選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem
-                      v-for="template in templateType"
-                      :key="template.value"
-                      :value="template.value"
-                    >
-                      {{ template.label }}
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+            <FormField v-slot="{ componentField }" name="evaluationType">
+              <FormItem>
+                <FormLabel>
+                  テンプレート選択
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
+                <Select v-bind="componentField">
+                  <FormControl>
+                    <SelectTrigger class="w-full cursor-pointer">
+                      <SelectValue placeholder="評価項目テンプレートを選択" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem
+                        v-for="evaluationType in evaluationTypes"
+                        :key="evaluationType.value"
+                        :value="evaluationType.value"
+                        :disabled="evaluationType.value === 'customEvaluation'"
+                      >
+                        {{ evaluationType.label }}
+                        {{
+                          evaluationType.value === "customEvaluation"
+                            ? "(有料版のみ)"
+                            : ""
+                        }}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            </FormField>
 
-            <div class="flex flex-col gap-4">
+            <!-- TODO: display when selector selected -->
+            <!-- <div class="flex flex-col gap-4">
               <div class="flex flex-col gap-2">
                 <Label>評価項目</Label>
                 <div class="flex flex-col gap-3">
@@ -481,7 +472,7 @@ const onSubmit = form.handleSubmit((values) => {
                 <Icon name="mdi:plus" class="!size-4" />
                 評価項目を追加
               </Button>
-            </div>
+            </div> -->
           </CardContent>
         </Card>
 
@@ -495,7 +486,7 @@ const onSubmit = form.handleSubmit((values) => {
             />
           </CardHeader>
           <CardContent class="flex flex-col gap-8">
-            <FormField v-slot="{ componentField }" name="publishType">
+            <FormField v-slot="{ componentField }" name="visibilityType">
               <FormItem>
                 <FormLabel>
                   公開範囲
@@ -513,32 +504,32 @@ const onSubmit = form.handleSubmit((values) => {
                     class="grid gap-2 [&_svg]:fill-purple"
                   >
                     <Card
-                      v-for="publishType in publishTypes"
-                      :key="publishType.value"
+                      v-for="visibilityType in visibilityTypes"
+                      :key="visibilityType.value"
                       class="flex items-center space-x-2 border rounded-sm cursor-pointer hover:bg-purple/20 transition-colors shadow-none"
-                      @click="componentField.onChange(publishType.value)"
+                      @click="componentField.onChange(visibilityType.value)"
                       :class="{
                         'border-purple border-1 bg-purple/20':
-                          componentField.modelValue === publishType.value,
+                          componentField.modelValue === visibilityType.value,
                       }"
                     >
                       <CardContent
                         class="w-full flex flex-row items-center space-x-2"
                       >
                         <RadioGroupItem
-                          :id="publishType.value"
-                          :value="publishType.value"
+                          :id="visibilityType.value"
+                          :value="visibilityType.value"
                           class="border-purple"
                         />
                         <Icon
-                          :name="publishType.icon"
+                          :name="visibilityType.icon"
                           class="!size-5 text-primary"
                         />
                         <Label
-                          :for="publishType.value"
+                          :for="visibilityType.value"
                           class="w-full cursor-pointer"
                         >
-                          {{ publishType.label }}
+                          {{ visibilityType.label }}
                         </Label>
                       </CardContent>
                     </Card>
@@ -553,24 +544,31 @@ const onSubmit = form.handleSubmit((values) => {
               <Card class="shadow-none rounded-sm">
                 <CardContent class="flex flex-col gap-8">
                   <FormField
-                    v-slot="{ componentField }"
-                    name="mailNotification"
+                    v-slot="{ value, handleChange }"
+                    name="emailNotifications"
                   >
                     <FormItem class="flex items-center justify-between">
                       <FormLabel>メールで通知を受け取る</FormLabel>
                       <FormControl>
                         <Switch
+                          :model-value="value"
+                          @update:model-value="handleChange"
                           class="cursor-pointer data-[state=checked]:bg-purple"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   </FormField>
-                  <FormField v-slot="{ componentField }" name="appNotification">
+                  <FormField
+                    v-slot="{ value, handleChange }"
+                    name="appNotifications"
+                  >
                     <FormItem class="flex items-center justify-between">
                       <FormLabel>アプリ内で通知を受け取る</FormLabel>
                       <FormControl>
                         <Switch
+                          :model-value="value"
+                          @update:model-value="handleChange"
                           class="cursor-pointer data-[state=checked]:bg-purple"
                         />
                       </FormControl>
@@ -590,6 +588,7 @@ const onSubmit = form.handleSubmit((values) => {
           <!-- cancel -->
           <Button
             variant="outline"
+            type="button"
             class="text-sm text-destructive cursor-pointer w-full md:w-auto border-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive"
             @click="$router.back()"
           >
@@ -603,8 +602,8 @@ const onSubmit = form.handleSubmit((values) => {
             <!-- save as draft -->
             <Button
               variant="outline"
+              type="button"
               class="text-sm text-primary cursor-pointer w-full md:w-auto"
-              @click="onSubmit"
             >
               <Icon name="mdi:content-save" class="!size-4" />
               下書きとして保存

@@ -46,12 +46,14 @@ const visibilityTypes = [
   {
     icon: "mdi:lock-open",
     value: "unlisted",
-    label: "限定公開（リンクを知っている人のみ閲覧・フィードバック可能）",
+    label:
+      "限定公開（リンクを知っている人のみ閲覧・フィードバック可能） (有料版のみ)",
   },
   {
     icon: "mdi:lock",
     value: "private",
-    label: "プライベート（招待した人のみ閲覧・フィードバック可能）",
+    label:
+      "プライベート（招待した人のみ閲覧・フィードバック可能） (有料版のみ)",
   },
 ];
 const evaluationTypes = ref<CriteriaTemplate[]>([]);
@@ -540,6 +542,8 @@ function formatDate(newDate: DateValue) {
                       :class="{
                         'border-purple border-1 bg-purple/20':
                           componentField.modelValue === visibilityType.value,
+                        'pointer-events-none bg-accent-foreground/10':
+                          visibilityType.value !== 'public',
                       }"
                     >
                       <CardContent
@@ -553,10 +557,18 @@ function formatDate(newDate: DateValue) {
                         <Icon
                           :name="visibilityType.icon"
                           class="!size-5 text-primary"
+                          :class="{
+                            '!text-muted-foreground':
+                              visibilityType.value !== 'public',
+                          }"
                         />
                         <Label
                           :for="visibilityType.value"
                           class="w-full cursor-pointer"
+                          :class="{
+                            'text-muted-foreground':
+                              visibilityType.value !== 'public',
+                          }"
                         >
                           {{ visibilityType.label }}
                         </Label>

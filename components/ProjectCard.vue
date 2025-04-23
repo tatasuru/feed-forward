@@ -45,7 +45,7 @@ const statusType = {
         {{ props.project.description }}
       </CardDescription>
     </CardHeader>
-    <!-- <CardContent class="flex items-center gap-12"> </CardContent> -->
+
     <CardFooter
       class="flex flex-col md:flex-col items-start justify-between gap-6"
     >

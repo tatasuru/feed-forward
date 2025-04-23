@@ -12,30 +12,28 @@ const myDraftProjects = ref<MyProject[]>([]);
 const myCompletedProjects = ref<MyProject[]>([]);
 const myContributedProjects = ref<MyProject[]>([]);
 
-onMounted(async () => {
-  try {
-    const { data, error } = await supabase.rpc("get_my_projects");
+try {
+  const { data, error } = await supabase.rpc("get_my_projects");
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // set the data to the ref variables
-    myProjects.value = data.created_projects;
-    myContributedProjects.value = data.contributed_projects;
-    myActiveProjects.value = myProjects.value.filter(
-      (project: MyProject) => project.status === "active"
-    );
-    myDraftProjects.value = myProjects.value.filter(
-      (project: MyProject) => project.status === "draft"
-    );
-    myCompletedProjects.value = myProjects.value.filter(
-      (project: MyProject) => project.status === "completed"
-    );
-  } catch (error) {
-    console.error("Error fetching projects:", error);
+  if (error) {
+    throw new Error(error.message);
   }
-});
+
+  // set the data to the ref variables
+  myProjects.value = data.created_projects;
+  myContributedProjects.value = data.contributed_projects;
+  myActiveProjects.value = myProjects.value.filter(
+    (project: MyProject) => project.status === "active"
+  );
+  myDraftProjects.value = myProjects.value.filter(
+    (project: MyProject) => project.status === "draft"
+  );
+  myCompletedProjects.value = myProjects.value.filter(
+    (project: MyProject) => project.status === "completed"
+  );
+} catch (error) {
+  console.error("Error fetching projects:", error);
+}
 </script>
 
 <template>

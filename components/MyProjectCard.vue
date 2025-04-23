@@ -45,7 +45,7 @@ const statusType = {
           class="!size-4 text-muted-foreground"
         />
       </div>
-      <CardDescription>
+      <CardDescription class="line-clamp-3">
         {{ props.project.description }}
       </CardDescription>
     </CardHeader>

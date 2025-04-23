@@ -242,14 +242,8 @@ async function getLinkPreview(url: string) {
                 </div>
                 <Progress
                   :model-value="33"
-                  :class="
-                    cn(
-                      'w-full',
-                      `[&>div]:${
-                        progressBarColors[index % progressBarColors.length]
-                      }`
-                    )
-                  "
+                  :indicator-color="progressBarColors[index]"
+                  class="w-full"
                 />
               </div>
             </div>

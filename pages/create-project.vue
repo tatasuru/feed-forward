@@ -72,13 +72,11 @@ const formRef = ref<HTMLElement | null>(null);
 /********************************
  * Lifecycle hooks
  ********************************/
-onMounted(async () => {
-  try {
-    evaluationTypes.value = await getCriteriaTemplate(true);
-  } catch (error) {
-    console.error("Error fetching evaluation types:", error);
-  }
-});
+try {
+  evaluationTypes.value = await getCriteriaTemplate(true);
+} catch (error) {
+  console.error("Error fetching evaluation types:", error);
+}
 
 /********************************
  * Form setup

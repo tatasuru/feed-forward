@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   title: string;
-  description: string;
+  description?: string;
   size?: "large" | "medium" | "small";
 }>();
 
@@ -37,7 +37,11 @@ const descriptionSize = computed(() => {
     <h1 class="font-bold" :class="titleSize">
       {{ props.title }}
     </h1>
-    <p class="text-muted-foreground" :class="descriptionSize">
+    <p
+      v-if="props.description"
+      class="text-muted-foreground"
+      :class="descriptionSize"
+    >
       {{ props.description }}
     </p>
   </div>

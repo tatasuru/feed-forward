@@ -17,10 +17,6 @@ useHead({
     { property: "og:title", content: `Feed Forward - ${route.meta.title}` },
   ],
 });
-
-onMounted(() => {
-  console.log("app.vue mounted", store.profile);
-});
 </script>
 
 <template>

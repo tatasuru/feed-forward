@@ -72,7 +72,9 @@ const statusType = {
         </div>
       </div>
       <Separator />
-      <div class="flex items-center justify-between w-full">
+      <div
+        class="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between w-full"
+      >
         <div class="flex items-center gap-2">
           <Avatar :size="'xs'" class="cursor-pointer">
             <AvatarImage :src="props.project.user_avatar_url" alt="avatar" />

@@ -21,19 +21,25 @@ const pageMenu = [
     link: "/create-project",
     icon: "mdi:plus-circle-outline",
   },
-  // {
-  //   name: "DISCOVERY",
-  //   link: "/discovery",
-  // },
-  // {
-  //   name: "ANALYTICS",
-  //   link: "/analytics",
-  // },
+  {
+    name: "みんなのプロジェクト",
+    link: "/projects",
+    icon: "mdi:earth",
+  },
+  {
+    name: "設定",
+    link: "/settings",
+    icon: "mdi:cog-outline",
+  },
 ];
 
 // for active link - changed to computed property for reactivity
 const isActive = (path: string) => {
-  return router.currentRoute.value.path === path;
+  if (path === "/") {
+    return router.currentRoute.value.path === path;
+  }
+
+  return router.currentRoute.value.path.includes(path);
 };
 
 // for logout

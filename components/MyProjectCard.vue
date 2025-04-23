@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Project } from "@/types/projects.types";
+import type { MyProject } from "@/types/my-projects.types";
 import { format } from "date-fns";
 
 const props = defineProps<{
-  project: Project;
+  project: MyProject;
 }>();
 
 const badgeColors = {
@@ -40,12 +40,37 @@ const statusType = {
           </Badge>
           <CardTitle>{{ props.project.title }}</CardTitle>
         </div>
+        <Icon
+          :name="visibilityTypeIcon[`${props.project.visibility_type}`]"
+          class="!size-4 text-muted-foreground"
+        />
       </div>
       <CardDescription>
         {{ props.project.description }}
       </CardDescription>
     </CardHeader>
-    <!-- <CardContent class="flex items-center gap-12"> </CardContent> -->
+    <CardContent class="flex items-center gap-12">
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-1">
+          <Icon name="mdi:message-outline" class="!size-4" />
+          <span class="text-sm">フィードバック数</span>
+        </div>
+        <span class="text-2xl text-blue font-bold">
+          {{ props.project.feedback_count }}
+        </span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-1">
+          <Icon name="mdi:star-outline" class="!size-4" />
+          <span class="text-sm">平均評価</span>
+        </div>
+        <span class="text-2xl text-blue font-bold">
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-px">4.2</div>
+          </div>
+        </span>
+      </div>
+    </CardContent>
     <CardFooter
       class="flex flex-col md:flex-col items-start justify-between gap-6"
     >
@@ -70,31 +95,29 @@ const statusType = {
             {{ format(new Date(props.project.deadline), "yyyy/MM/dd") }}
           </span>
         </div>
-      </div>
-      <Separator />
-      <div class="flex items-center justify-between w-full">
-        <div class="flex items-center gap-2">
-          <Avatar :size="'xs'" class="cursor-pointer">
-            <AvatarImage :src="props.project.user_avatar_url" alt="avatar" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+        <div class="flex items-center gap-1">
+          <Icon
+            name="pajamas:status-health"
+            class="!size-4 text-muted-foreground"
+          />
           <span class="text-sm text-muted-foreground">
-            {{ props.project.user_display_name }}
+            ステータス: {{ statusType[props.project.status] }}
           </span>
         </div>
-        <Button
-          as-child
-          variant="main"
-          class="w-full md:w-fit h-fit md:py-1 md:px-6 rounded-sm"
-        >
-          <NuxtLink
-            :to="`/projects/${props.project.id}`"
-            class="text-sm text-purple dark:text-white"
-          >
-            詳細を見る
-          </NuxtLink>
-        </Button>
       </div>
+      <Separator />
+      <Button
+        as-child
+        variant="main"
+        class="w-full md:w-fit h-fit md:py-1 md:px-6 rounded-sm"
+      >
+        <NuxtLink
+          :to="`/my-projects/${props.project.id}`"
+          class="text-sm text-purple dark:text-white"
+        >
+          詳細を見る
+        </NuxtLink>
+      </Button>
     </CardFooter>
   </Card>
 </template>

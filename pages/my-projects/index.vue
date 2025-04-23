@@ -74,7 +74,7 @@ onMounted(async () => {
           v-if="myProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
         >
-          <ProjectCard v-for="project in myProjects" :project="project" />
+          <MyProjectCard v-for="project in myProjects" :project="project" />
         </div>
         <EmptyProjectCard v-else />
       </TabsContent>
@@ -83,7 +83,7 @@ onMounted(async () => {
           v-if="myActiveProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
         >
-          <ProjectCard
+          <MyProjectCard
             v-for="project in myActiveProjects"
             :key="project.id"
             :project="project"
@@ -96,7 +96,7 @@ onMounted(async () => {
           v-if="myDraftProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
         >
-          <ProjectCard
+          <MyProjectCard
             v-for="project in myDraftProjects"
             :key="project.id"
             :project="project"
@@ -109,7 +109,7 @@ onMounted(async () => {
           v-if="myCompletedProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
         >
-          <ProjectCard
+          <MyProjectCard
             v-for="project in myCompletedProjects"
             :key="project.id"
             :project="project"

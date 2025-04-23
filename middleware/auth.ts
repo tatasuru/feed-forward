@@ -1,18 +1,40 @@
 export default defineNuxtRouteMiddleware(async (to, _from) => {
   const supabase = useSupabaseClient();
   const user = useSupabaseUser();
+  const store = useStore();
+  let userData;
+
+  // for redirecting to login page if user is not logged in
+  if (!user.value && to.path !== "/login") {
+    return navigateTo("/login");
+  }
 
   // for redirecting to setup page if user is not set up
   try {
-    const { data: userData, error } = await supabase.rpc("get_current_user");
-    if (error) {
-      console.error("Error fetching user data:", error);
-    }
+    if (user.value) {
+      if (store.profile.email === "") {
+        const { data, error } = await supabase.rpc("get_current_user");
+        userData = data;
+        store.profile = {
+          display_name: data.display_name,
+          email: data.email,
+          avatar_url: data.avatar_url,
+          bio: data.bio,
+          website: data.website,
+        };
 
-    if (user.value && !userData?.display_name && to.path !== "/setup") {
-      return navigateTo("/setup");
-    } else if (user.value && userData?.display_name && to.path === "/setup") {
-      return navigateTo("/");
+        if (error) {
+          console.error("Error fetching user data:", error);
+        }
+      } else {
+        userData = store.profile;
+      }
+
+      if (!userData?.display_name && to.path !== "/setup") {
+        return navigateTo("/setup");
+      } else if (user.value && userData?.display_name && to.path === "/setup") {
+        return navigateTo("/");
+      }
     }
   } catch (err) {
     console.error("Exception in auth middleware:", err);

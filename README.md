@@ -1,75 +1,68 @@
-# Nuxt Minimal Starter
+# Feed Forward
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Feed Forward is a project management platform designed to simplify project creation, tracking, and collaboration.
+
+## Features
+
+- Project creation and management
+- Personal project dashboard
+- Public project listings
+- User authentication and account management
+- Responsive UI built with Nuxt.js and Tailwind CSS
+
+## Technologies
+
+- [Nuxt.js](https://nuxt.com/) - Vue.js framework
+- [Vue 3](https://vuejs.org/) - Progressive JavaScript framework
+- [TypeScript](https://www.typescriptlang.org/) - Typed JavaScript
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Shadcn UI](https://ui.shadcn.com/) - UI component library
+- [Supabase](https://supabase.com/) - Backend and authentication
+- [Pinia](https://pinia.vuejs.org/) - State management
 
 ## Setup
 
 Make sure to install dependencies:
 
 ```bash
-# npm
-npm install
-
-# pnpm
+# pnpm (recommended)
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+## Development
 
 Start the development server on `http://localhost:3000`:
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
 pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+## Build and Production
 
 Build the application for production:
 
 ```bash
-# npm
-npm run build
-
-# pnpm
 pnpm build
+```
 
-# yarn
-yarn build
+Generate a static site:
 
-# bun
-bun run build
+```bash
+pnpm generate
 ```
 
 Locally preview production build:
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
 pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Project Structure
+
+- `assets/` - Static assets like CSS and images
+- `components/` - Reusable Vue components
+- `layouts/` - Page layouts
+- `pages/` - Application routes and views
+- `stores/` - Pinia state stores
+- `types/` - TypeScript type definitions
+- `utils/` - Utility functions and helpers

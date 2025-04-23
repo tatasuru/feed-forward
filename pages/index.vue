@@ -30,14 +30,6 @@ const dashboardContents = [
     value: 75,
   },
 ];
-
-// get user data
-onMounted(async () => {
-  const { data: userData, error } = await supabase.rpc("get_current_user");
-  if (error) {
-    console.error("Error fetching usscripta:", error);
-  }
-});
 </script>
 
 <template>

@@ -138,7 +138,7 @@ const onSubmit = form.handleSubmit(async (values) => {
             </div>
           </CardContent>
           <CardFooter v-if="stage === 'request'" class="flex justify-between">
-            <p class="text-sm">
+            <p class="text-sm text-destructive">
               {{ message }}
             </p>
             <Button class="cursor-pointer" variant="link" as-child>

@@ -2,10 +2,19 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
   const supabase = useSupabaseClient();
   const user = useSupabaseUser();
   const store = useStore();
+
+  const exceptionPages = [
+    "/login",
+    "/confirm",
+    "/reset-password",
+    "/update-password",
+    "/setup",
+  ];
+
   let userData;
 
   // for redirecting to login page if user is not logged in
-  if (!user.value && to.path !== "/login") {
+  if (!user.value && !exceptionPages.includes(to.path)) {
     return navigateTo("/login");
   }
 

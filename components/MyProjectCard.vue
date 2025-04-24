@@ -106,18 +106,32 @@ const statusType = {
         </div>
       </div>
       <Separator />
-      <Button
-        as-child
-        variant="main"
-        class="w-full md:w-fit h-fit md:py-1 md:px-6 rounded-sm"
-      >
-        <NuxtLink
-          :to="`/my-projects/${props.project.id}`"
-          class="text-sm text-purple dark:text-white"
+      <div class="flex items-center justify-end w-full gap-4">
+        <Button
+          as-child
+          variant="outline"
+          class="w-full md:w-fit h-fit md:py-1 md:px-6 rounded-sm hover:text-purple"
         >
-          詳細を見る
-        </NuxtLink>
-      </Button>
+          <NuxtLink
+            :to="`/my-projects/${props.project.id}/edit`"
+            class="text-sm text-purple dark:text-white"
+          >
+            編集する
+          </NuxtLink>
+        </Button>
+        <Button
+          as-child
+          variant="main"
+          class="w-full md:w-fit h-fit md:py-1 md:px-6 rounded-sm"
+        >
+          <NuxtLink
+            :to="`/my-projects/${props.project.id}/details`"
+            class="text-sm text-purple dark:text-white"
+          >
+            詳細を見る
+          </NuxtLink>
+        </Button>
+      </div>
     </CardFooter>
   </Card>
 </template>

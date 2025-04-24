@@ -7,6 +7,7 @@ import * as z from "zod";
 
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
+const supabaseUser = useSupabaseUser();
 const preview = ref();
 
 const projectWithFeedback = ref<ProjectWithFeedback>({} as ProjectWithFeedback);
@@ -58,14 +59,22 @@ const form = useForm({
   },
 });
 
-const onSubmit = form.handleSubmit((values) => {
-  console.log("Form submitted!", values);
-  form.resetForm();
-  hoverStarIndexObj.value = {
-    0: -1,
-    1: -1,
-    2: -1,
-  };
+const onSubmit = form.handleSubmit(async (values) => {
+  try {
+    // submit feedback
+    await submitFeedback(values);
+
+    // reset form and clear hover star index
+    form.resetForm();
+    hoverStarIndexObj.value = {
+      0: -1,
+      1: -1,
+      2: -1,
+    };
+  } catch (error) {
+    console.error("Form validation error:", error);
+    return;
+  }
 });
 
 /******************************
@@ -85,15 +94,8 @@ try {
 
   // Set initial values for ratings
   form.setFieldValue("ratings", initialRatings);
-
-  console.log(
-    "Project details and link preview fetched successfully",
-    form.values
-  );
 } catch (error) {
   console.error("Error fetching project details or link preview:", error);
-} finally {
-  // Handle any cleanup or finalization if needed
 }
 
 /******************************
@@ -138,6 +140,72 @@ async function getLinkPreview(url: string) {
     throw error;
   }
 }
+
+async function submitFeedback(values: {
+  overallComment: string;
+  isAnonymous: boolean;
+  ratings: Record<number, number>;
+}) {
+  try {
+    const ratingsObject: Record<string, number> = {};
+
+    // initialize ratingsObject with the project ID
+    projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
+      const rating = values.ratings[index];
+      if (rating && rating > 0) {
+        ratingsObject[criteria.id] = Number(rating);
+      }
+    });
+
+    // submit feedback
+    const { data, error } = await supabase.rpc("save_feedback_with_ratings", {
+      p_project_id: id,
+      p_user_id: supabaseUser.value?.id,
+      p_comment: values.overallComment,
+      p_is_anonymous: values.isAnonymous,
+      p_ratings: ratingsObject,
+    });
+
+    if (error) {
+      console.error("RPC呼び出しエラー:", error);
+      throw error;
+    }
+
+    return data.feedback_id;
+  } catch (error) {
+    console.error("フィードバック保存中にエラーが発生しました:", error);
+    throw error;
+  }
+}
+
+// フィードバック送信前にチェック
+// async function checkExistingFeedback() {
+//   try {
+//     const { data, error } = await supabase.rpc("check_user_feedback", {
+//       p_project_id: id,
+//       p_user_id: supabaseUser.value?.id,
+//     });
+
+//     if (error) {
+//       console.error("フィードバック確認エラー:", error);
+//       throw error;
+//     }
+
+//     console.log("フィードバック確認結果:", data);
+
+//     // // 既にフィードバックが存在する場合
+//     // if (data.exists) {
+//     //   // 既存のフィードバックを取得
+//     //   return await getUserFeedback(data.feedback_id);
+//     // }
+
+//     // フィードバックが存在しない場合
+//     return null;
+//   } catch (error) {
+//     console.error("フィードバック確認中にエラーが発生しました:", error);
+//     throw error;
+//   }
+// }
 </script>
 
 <template>

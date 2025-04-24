@@ -21,10 +21,6 @@ const progressBarColors = ["bg-pink", "bg-blue", "bg-purple"];
 // Fetch project details and link preview
 try {
   projectWithFeedback.value = await getProjectDetails(id as string);
-  console.log(
-    "Project details fetched successfully:",
-    projectWithFeedback.value
-  );
   preview.value = await getLinkPreview(
     projectWithFeedback.value.project.resource_url
   );
@@ -32,7 +28,6 @@ try {
   console.error("Error fetching project details or link preview:", error);
 } finally {
   // Handle any cleanup or finalization if needed
-  console.log("Project details and link preview fetched successfully.");
 }
 
 /******************************

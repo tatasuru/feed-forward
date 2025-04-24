@@ -122,7 +122,6 @@ const onSubmit = form.handleSubmit(
     } catch (error) {
       console.error("Error creating project:", error);
     }
-    console.log("Project data:", projectData);
   },
   async (errors) => {
     // Check if the form has errors
@@ -146,8 +145,6 @@ async function createProject(projectData: ProjectData) {
     if (error) {
       throw error;
     }
-
-    console.log("Project created successfully:", data);
   } catch (error) {
     console.error("Error creating project:", error);
   }

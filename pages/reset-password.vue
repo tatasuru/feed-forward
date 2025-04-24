@@ -43,7 +43,6 @@ const onSubmit = form.handleSubmit(async (values) => {
     .from("profiles") // Replace "users" with the actual table name
     .select("email")
     .eq("email", values.email);
-  console.log("userData", userData);
 
   if (error || !userData) {
     isRegistered.value = false;

@@ -9,7 +9,6 @@ const projects = ref<Project[]>([]);
 
 try {
   projects.value = await getAllProjects();
-  console.log(`${projects.value.length}件のプロジェクトを取得しました`);
 } catch (err) {
   console.error("Error fetching projects:", err);
 } finally {

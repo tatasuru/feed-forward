@@ -107,7 +107,6 @@ async function signUp(email: string, password: string) {
     return;
   }
 
-  console.log("User signed up:", data?.user);
   signupMessage.value =
     "サインアップが完了しました。メールを確認してください。";
 

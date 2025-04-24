@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils";
 import type { ProjectWithFeedback } from "@/types/projects.types";
 import { format } from "date-fns";
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import * as z from "zod";
 
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
@@ -14,6 +16,57 @@ const badgeColors = {
   plan: "bg-purple/20 text-purple",
 };
 const progressBarColors = ["bg-pink", "bg-blue", "bg-purple"];
+const hoverStarIndexObj = ref<{
+  [key: number]: number;
+}>({
+  0: -1,
+  1: -1,
+  2: -1,
+});
+
+/******************************
+ * form setup
+ ******************************/
+const formSchema = toTypedSchema(
+  z.object({
+    overallComment: z
+      .string()
+      .min(2, "コメントは2文字以上入力してください")
+      .max(1000, "コメントは1000文字以内で入力してください"),
+    isAnonymous: z.boolean().default(false),
+    ratings: z.record(
+      z
+        .number({
+          message: "評価は1から5の間で入力してください",
+        })
+        .min(0, {
+          message: "評価は1から5の間で入力してください",
+        })
+        .max(5, {
+          message: "評価は1から5の間で入力してください",
+        })
+    ),
+  })
+);
+
+const form = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    overallComment: "",
+    isAnonymous: false,
+    ratings: {},
+  },
+});
+
+const onSubmit = form.handleSubmit((values) => {
+  console.log("Form submitted!", values);
+  form.resetForm();
+  hoverStarIndexObj.value = {
+    0: -1,
+    1: -1,
+    2: -1,
+  };
+});
 
 /******************************
  * Lifecycle Hooks
@@ -23,6 +76,19 @@ try {
   projectWithFeedback.value = await getProjectDetails(id as string);
   preview.value = await getLinkPreview(
     projectWithFeedback.value.project.resource_url
+  );
+
+  const initialRatings: Record<number, number> = {};
+  projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
+    initialRatings[index] = -1;
+  });
+
+  // Set initial values for ratings
+  form.setFieldValue("ratings", initialRatings);
+
+  console.log(
+    "Project details and link preview fetched successfully",
+    form.values
   );
 } catch (error) {
   console.error("Error fetching project details or link preview:", error);
@@ -256,45 +322,98 @@ async function getLinkPreview(url: string) {
           size="medium"
         />
 
-        <div class="flex flex-col gap-6">
-          <div
-            v-for="(criteria, index) in projectWithFeedback.evaluation_criteria"
-            class="flex flex-col gap-2"
+        <form @submit="onSubmit" class="flex flex-col gap-6">
+          <!-- rating -->
+          <FormField
+            v-for="(
+              criteria, criteriaIndex
+            ) in projectWithFeedback.evaluation_criteria"
+            v-slot="{ componentField }"
+            :name="`ratings.${criteriaIndex}`"
           >
-            <div class="flex flex-col gap-2">
-              <p class="text-sm font-semibold">{{ criteria.name }}</p>
+            <FormItem>
+              <FormLabel>{{ criteria.name }}</FormLabel>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <Button
-                    v-for="(_, index) in [1, 2, 3, 4, 5]"
-                    :key="index"
-                    variant="ghost"
-                    size="icon"
-                    class="cursor-pointer rounded-full"
-                  >
-                    <Icon
-                      name="mdi:star-outline"
-                      class="!size-6 text-yellow-500"
-                    />
-                  </Button>
+                  <FormControl>
+                    <Button
+                      v-for="(_, index) in [1, 2, 3, 4, 5]"
+                      :key="index"
+                      v-bind="componentField"
+                      variant="ghost"
+                      type="button"
+                      size="icon"
+                      class="cursor-pointer rounded-full hover:bg-yellow-500/20"
+                      @click="
+                        hoverStarIndexObj[criteriaIndex] = index;
+                        form.setFieldValue(
+                          `ratings.${criteriaIndex}`,
+                          index + 1
+                        );
+                      "
+                    >
+                      <Icon
+                        v-if="hoverStarIndexObj[criteriaIndex] >= index"
+                        name="mdi:star"
+                        class="!size-6 text-yellow-500"
+                      />
+                      <Icon
+                        v-else
+                        name="mdi:star-outline"
+                        class="!size-6 text-muted-foreground hover:text-yellow-500"
+                      />
+                    </Button>
+                  </FormControl>
                 </div>
-                <span class="text-sm text-muted-foreground">未評価</span>
+                <span class="text-sm text-muted-foreground">
+                  {{
+                    hoverStarIndexObj[criteriaIndex] < 0
+                      ? 0
+                      : hoverStarIndexObj[criteriaIndex] + 1
+                  }}/5
+                </span>
               </div>
-            </div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <Label>コメント</Label>
-            <Textarea
-              :placeholder="'フィードバックを入力'"
-              class="w-full h-36 border border-muted-foreground/20 rounded-md p-4"
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <Label class="text-sm">匿名でフィードバックをする</Label>
-            <Switch class="cursor-pointer data-[state=checked]:bg-purple" />
-          </div>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <!-- comment -->
+          <FormField v-slot="{ componentField }" name="overallComment">
+            <FormItem>
+              <FormLabel>コメント</FormLabel>
+              <FormControl>
+                <Textarea
+                  type="text"
+                  placeholder="フィードバックを入力"
+                  class="w-full h-36 border border-muted-foreground/20 rounded-md p-4"
+                  v-bind="componentField"
+                />
+              </FormControl>
+              <FormDescription>
+                フィードバックで伝えたい想いがあればご記入ください。
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <!-- anonymous -->
+          <FormField v-slot="{ value, handleChange }" name="isAnonymous">
+            <FormItem class="flex items-center justify-between">
+              <FormLabel class="text-sm text-muted-foreground"
+                >匿名でフィードバックをする</FormLabel
+              >
+              <FormControl>
+                <Switch
+                  :model-value="value"
+                  class="cursor-pointer data-[state=checked]:bg-purple"
+                  @update:model-value="handleChange"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
           <Button variant="main" class="w-full cursor-pointer">送信する</Button>
-        </div>
+        </form>
       </div>
     </div>
   </div>

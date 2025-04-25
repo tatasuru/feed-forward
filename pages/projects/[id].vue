@@ -91,7 +91,7 @@ try {
 
   const userFeedBack = await checkExistingFeedback();
 
-  getRatingPerCriteria();
+  await getRatingPerCriteria();
 
   if (userFeedBack?.exists) {
     userFeedBack.feedback.ratings.forEach(
@@ -479,12 +479,22 @@ async function getRatingPerCriteria() {
                 <div class="flex justify-between items-center">
                   <p class="text-sm">{{ criteria.name }}</p>
                   <p class="text-sm">
-                    平均: {{ ratingPerCriteria[index].rating.toFixed(1) }} / 5
+                    平均:
+                    {{
+                      ratingPerCriteria[index]
+                        ? ratingPerCriteria[index].rating.toFixed(1)
+                        : 0
+                    }}
+                    / 5.0
                   </p>
                 </div>
 
                 <Progress
-                  :model-value="(ratingPerCriteria[index].rating / 5) * 100"
+                  :model-value="
+                    ratingPerCriteria[index]
+                      ? (ratingPerCriteria[index].rating / 5) * 100
+                      : 0
+                  "
                   :indicator-color="progressBarColors[index]"
                   class="w-full"
                 />

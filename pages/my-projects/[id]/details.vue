@@ -26,40 +26,27 @@ const hoverStarIndexObj = ref<{
 });
 const isAlreadyRated = ref<boolean>(false);
 const currentFeedbackId = ref<string | null>(null);
+const ratingPerCriteria = ref<
+  {
+    criteria_id: string;
+    rating: number;
+  }[]
+>([]);
 
-/******************************
- * form setup
- ******************************/
-const formSchema = toTypedSchema(
-  z.object({
-    overallComment: z
-      .string()
-      .min(2, "コメントは2文字以上入力してください")
-      .max(1000, "コメントは1000文字以内で入力してください"),
-    isAnonymous: z.boolean().default(false),
-    ratings: z.record(
-      z
-        .number({
-          message: "評価は1から5の間で入力してください",
-        })
-        .min(0, {
-          message: "評価は1から5の間で入力してください",
-        })
-        .max(5, {
-          message: "評価は1から5の間で入力してください",
-        })
-    ),
-  })
-);
-
-const form = useForm({
-  validationSchema: formSchema,
-  initialValues: {
-    overallComment: "",
-    isAnonymous: false,
-    ratings: {},
+const dashboardContents = [
+  {
+    title: "受け取ったフィードバック",
+    description: "先月比 -8 (20%)",
+    icon: "mdi:comment-check-outline",
+    value: 10,
   },
-});
+  {
+    title: "平均評価",
+    description: "先月比 +0.3 (7.7%)",
+    icon: "mdi:star-check",
+    value: 4.5,
+  },
+];
 
 /******************************
  * Lifecycle Hooks
@@ -74,6 +61,8 @@ try {
   const initialRatings: Record<number, number> = {};
 
   const userFeedBack = await checkExistingFeedback();
+
+  await getRatingPerCriteria();
 
   if (userFeedBack?.exists) {
     userFeedBack.feedback.ratings.forEach(
@@ -90,11 +79,6 @@ try {
     });
     isAlreadyRated.value = false;
   }
-
-  // Set initial values for ratings
-  form.setFieldValue("overallComment", userFeedBack?.feedback.overall_comment);
-  form.setFieldValue("isAnonymous", userFeedBack?.feedback.is_anonymous);
-  form.setFieldValue("ratings", initialRatings);
 } catch (error) {
   console.error("Error fetching project details or link preview:", error);
 }
@@ -207,6 +191,29 @@ async function getUserFeedback() {
     console.error("フィードバック取得中にエラーが発生しました:", error);
     throw error;
   }
+}
+
+async function getRatingPerCriteria() {
+  const feedbacks = projectWithFeedback.value.feedback;
+
+  feedbacks.map((feedback: any) => {
+    feedback.ratings.map((rating: any) => {
+      const existingRating = ratingPerCriteria.value.find(
+        (r) => r.criteria_id === rating.criteria_id
+      );
+
+      if (existingRating) {
+        existingRating.rating += rating.rating;
+      } else {
+        ratingPerCriteria.value.push({
+          criteria_id: rating.criteria_id,
+          rating: rating.rating / feedbacks.length,
+        });
+      }
+    });
+  });
+
+  console.log("ratingPerCriteria", ratingPerCriteria.value);
 }
 </script>
 
@@ -393,10 +400,22 @@ async function getUserFeedback() {
               >
                 <div class="flex justify-between items-center">
                   <p class="text-sm">{{ criteria.name }}</p>
-                  <p class="text-sm">平均: 4.2/5</p>
+                  <p class="text-sm">
+                    平均:
+                    {{
+                      ratingPerCriteria[index]
+                        ? ratingPerCriteria[index].rating.toFixed(1)
+                        : 0
+                    }}
+                    / 5.0
+                  </p>
                 </div>
                 <Progress
-                  :model-value="33"
+                  :model-value="
+                    ratingPerCriteria[index]
+                      ? (ratingPerCriteria[index].rating / 5) * 100
+                      : 0
+                  "
                   :indicator-color="progressBarColors[index]"
                   class="w-full"
                 />
@@ -407,7 +426,37 @@ async function getUserFeedback() {
       </div>
 
       <!-- right -->
-      <div class="flex flex-col gap-8 w-full">
+      <div class="flex flex-col gap-4 w-full">
+        <!-- analytics -->
+        <div
+          class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8"
+        >
+          <PageTitle title="アナリティクス" size="medium" />
+
+          <div class="w-full grid grid-cols-1 gap-4">
+            <Card
+              v-for="(item, index) in dashboardContents"
+              :key="index"
+              class="py-5"
+            >
+              <CardHeader
+                class="flex flex-row items-center justify-between gap-2 px-5"
+              >
+                <CardTitle>{{ item.title }}</CardTitle>
+                <Icon :name="item.icon" class="!size-5" />
+              </CardHeader>
+              <CardContent class="font-bold flex flex-col gap-1 px-5">
+                <span class="text-foreground text-3xl gradient-text">{{
+                  item.value
+                }}</span>
+                <span class="text-muted-foreground text-sm">
+                  {{ item.description }}
+                </span>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         <!-- feedback -->
         <div
           class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8"

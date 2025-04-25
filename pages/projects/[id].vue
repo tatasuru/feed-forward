@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ProjectWithFeedback } from "@/types/projects.types";
-import { format } from "date-fns";
+import { constructNow, format } from "date-fns";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
@@ -24,6 +24,8 @@ const hoverStarIndexObj = ref<{
   1: -1,
   2: -1,
 });
+const isAlreadyRated = ref<boolean>(false);
+const currentFeedbackId = ref<string | null>(null);
 
 /******************************
  * form setup
@@ -63,14 +65,6 @@ const onSubmit = form.handleSubmit(async (values) => {
   try {
     // submit feedback
     await submitFeedback(values);
-
-    // reset form and clear hover star index
-    form.resetForm();
-    hoverStarIndexObj.value = {
-      0: -1,
-      1: -1,
-      2: -1,
-    };
   } catch (error) {
     console.error("Form validation error:", error);
     return;
@@ -88,11 +82,28 @@ try {
   );
 
   const initialRatings: Record<number, number> = {};
-  projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
-    initialRatings[index] = -1;
-  });
+
+  const userFeedBack = await checkExistingFeedback();
+
+  if (userFeedBack?.exists) {
+    userFeedBack.feedback.ratings.forEach(
+      (rating: { rating: number }, index: number) => {
+        initialRatings[index] = rating.rating;
+        hoverStarIndexObj.value[index] = rating.rating - 1;
+      }
+    );
+    isAlreadyRated.value = true;
+  } else {
+    projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
+      initialRatings[index] = -1;
+      hoverStarIndexObj.value[index] = -1;
+    });
+    isAlreadyRated.value = false;
+  }
 
   // Set initial values for ratings
+  form.setFieldValue("overallComment", userFeedBack?.feedback.overall_comment);
+  form.setFieldValue("isAnonymous", userFeedBack?.feedback.is_anonymous);
   form.setFieldValue("ratings", initialRatings);
 } catch (error) {
   console.error("Error fetching project details or link preview:", error);
@@ -157,55 +168,112 @@ async function submitFeedback(values: {
       }
     });
 
-    // submit feedback
-    const { data, error } = await supabase.rpc("save_feedback_with_ratings", {
-      p_project_id: id,
-      p_user_id: supabaseUser.value?.id,
-      p_comment: values.overallComment,
-      p_is_anonymous: values.isAnonymous,
-      p_ratings: ratingsObject,
-    });
+    if (isAlreadyRated) {
+      const { data, error } = await supabase.rpc(
+        "update_feedback_with_ratings",
+        {
+          p_feedback_id: currentFeedbackId.value,
+          p_comment: values.overallComment,
+          p_is_anonymous: values.isAnonymous,
+          p_ratings: ratingsObject,
+        }
+      );
 
-    if (error) {
-      console.error("RPC呼び出しエラー:", error);
-      throw error;
+      if (error) {
+        console.error("RPC呼び出しエラー:", error);
+        throw error;
+      }
+
+      return data.feedback_id;
+    } else {
+      // submit feedback
+      const { data, error } = await supabase.rpc("save_feedback_with_ratings", {
+        p_project_id: id,
+        p_user_id: supabaseUser.value?.id,
+        p_comment: values.overallComment,
+        p_is_anonymous: values.isAnonymous,
+        p_ratings: ratingsObject,
+      });
+
+      if (error) {
+        console.error("RPC呼び出しエラー:", error);
+        throw error;
+      }
+
+      return data.feedback_id;
     }
-
-    return data.feedback_id;
   } catch (error) {
     console.error("フィードバック保存中にエラーが発生しました:", error);
     throw error;
   }
 }
 
-// フィードバック送信前にチェック
-// async function checkExistingFeedback() {
-//   try {
-//     const { data, error } = await supabase.rpc("check_user_feedback", {
-//       p_project_id: id,
-//       p_user_id: supabaseUser.value?.id,
-//     });
+async function checkExistingFeedback() {
+  try {
+    const { data, error } = await supabase.rpc("check_user_feedback", {
+      p_project_id: id,
+      p_user_id: supabaseUser.value?.id,
+    });
 
-//     if (error) {
-//       console.error("フィードバック確認エラー:", error);
-//       throw error;
-//     }
+    if (error) {
+      console.error("フィードバック確認エラー:", error);
+      throw error;
+    }
 
-//     console.log("フィードバック確認結果:", data);
+    if (data.exists) {
+      currentFeedbackId.value = data.feedback_id;
+      return await getUserFeedback();
+    }
 
-//     // // 既にフィードバックが存在する場合
-//     // if (data.exists) {
-//     //   // 既存のフィードバックを取得
-//     //   return await getUserFeedback(data.feedback_id);
-//     // }
+    return null;
+  } catch (error) {
+    console.error("フィードバック確認中にエラーが発生しました:", error);
+    throw error;
+  }
+}
 
-//     // フィードバックが存在しない場合
-//     return null;
-//   } catch (error) {
-//     console.error("フィードバック確認中にエラーが発生しました:", error);
-//     throw error;
-//   }
-// }
+async function getUserFeedback() {
+  try {
+    const { data, error } = await supabase.rpc("get_user_feedback", {
+      p_project_id: id,
+      p_user_id: supabaseUser.value?.id,
+    });
+
+    if (error) {
+      console.error("フィードバック取得エラー:", error);
+      throw error;
+    }
+
+    if (data.status === "success") {
+      const feedback = data.feedback;
+
+      const initialValues: Record<string, any> = {
+        overallComment: feedback.overall_comment || "",
+        isAnonymous: feedback.is_anonymous || false,
+        ratings: {},
+      };
+
+      if (feedback.ratings && feedback.ratings.length > 0) {
+        feedback.ratings.forEach((rating: any) => {
+          initialValues.ratings[rating.criteria_id] = rating.rating;
+        });
+      }
+
+      return {
+        exists: true,
+        feedback: feedback,
+        initialValues: initialValues,
+      };
+    }
+
+    return {
+      exists: false,
+    };
+  } catch (error) {
+    console.error("フィードバック取得中にエラーが発生しました:", error);
+    throw error;
+  }
+}
 </script>
 
 <template>
@@ -325,6 +393,7 @@ async function submitFeedback(values: {
             <NuxtLink
               :to="projectWithFeedback.project.resource_url"
               class="flex flex-col gap-3 border border-muted-foreground/20 rounded-sm"
+              target="_blank"
             >
               <NuxtImg
                 v-if="preview.images?.[0]"
@@ -390,6 +459,16 @@ async function submitFeedback(values: {
           size="medium"
         />
 
+        <div
+          v-if="isAlreadyRated"
+          class="p-4 bg-muted-foreground/20 rounded-md"
+        >
+          <p class="text-sm text-muted-foreground">
+            すでにフィードバックを送信済みです。<br />
+            フィードバックの内容を変更する場合は、再度フィードバックを送信してください。
+          </p>
+        </div>
+
         <form @submit="onSubmit" class="flex flex-col gap-6">
           <!-- rating -->
           <FormField
@@ -411,7 +490,7 @@ async function submitFeedback(values: {
                       variant="ghost"
                       type="button"
                       size="icon"
-                      class="cursor-pointer rounded-full hover:bg-yellow-500/20"
+                      class="cursor-pointer rounded-full hover:bg-yellow-500/20 dark:hover:bg-yellow-500/20"
                       @click="
                         hoverStarIndexObj[criteriaIndex] = index;
                         form.setFieldValue(

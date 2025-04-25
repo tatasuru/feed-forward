@@ -24,6 +24,22 @@ const statusType = {
   completed: "完了",
   archived: "アーカイブ",
 };
+
+const averageRating = computed(() => {
+  const ratings = props.project.feedback_ratings;
+
+  if (!ratings || ratings.length === 0) {
+    return "0.0";
+  }
+
+  const totalRating = ratings.reduce((acc, rating) => {
+    return acc + rating.rating;
+  }, 0);
+
+  const average = totalRating / ratings.length;
+
+  return average.toFixed(1);
+});
 </script>
 
 <template>
@@ -66,7 +82,7 @@ const statusType = {
         </div>
         <span class="text-2xl text-blue font-bold">
           <div class="flex items-center gap-2">
-            <div class="flex items-center gap-px">4.2</div>
+            <div class="flex items-center gap-px">{{ averageRating }}</div>
           </div>
         </span>
       </div>

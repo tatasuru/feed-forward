@@ -84,6 +84,7 @@ try {
   const initialRatings: Record<number, number> = {};
 
   const userFeedBack = await checkExistingFeedback();
+  console.log("userFeedBack", userFeedBack);
 
   if (userFeedBack?.exists) {
     userFeedBack.feedback.ratings.forEach(
@@ -168,7 +169,7 @@ async function submitFeedback(values: {
       }
     });
 
-    if (isAlreadyRated) {
+    if (isAlreadyRated.value) {
       const { data, error } = await supabase.rpc(
         "update_feedback_with_ratings",
         {
@@ -273,6 +274,23 @@ async function getUserFeedback() {
     console.error("フィードバック取得中にエラーが発生しました:", error);
     throw error;
   }
+}
+
+async function getRatingPerCriteria() {
+  const ratings = projectWithFeedback.value.feedback;
+  console.log("Ratings:", ratings);
+
+  // if (!ratings || ratings.length === 0) {
+  //   return "0.0";
+  // }
+
+  // const totalRating = ratings.reduce((acc, rating) => {
+  //   return acc + rating.ratings[criteriaId];
+  // }, 0);
+
+  // const average = totalRating / ratings.length;
+
+  // return average.toFixed(1);
 }
 </script>
 

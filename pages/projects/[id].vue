@@ -300,12 +300,17 @@ async function getRatingPerCriteria() {
       v-if="projectWithFeedback.project"
       class="flex flex-col gap-4 items-start justify-between"
     >
-      <Button as-child variant="ghost">
+      <Button
+        as-child
+        variant="ghost"
+        class="!p-0 hover:bg-transparent hover:text-muted-foreground"
+      >
         <NuxtLink to="/projects" class="text-muted-foreground">
           <Icon name="mdi:arrow-left" class="!size-4 text-muted-foreground" />
           前のページへ戻る
         </NuxtLink>
       </Button>
+
       <PageTitle :title="projectWithFeedback.project.title" size="large" />
 
       <div class="flex items-center gap-4">

@@ -84,7 +84,6 @@ try {
   const initialRatings: Record<number, number> = {};
 
   const userFeedBack = await checkExistingFeedback();
-  console.log("userFeedBack", userFeedBack);
 
   if (userFeedBack?.exists) {
     userFeedBack.feedback.ratings.forEach(

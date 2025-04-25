@@ -43,7 +43,7 @@ const averageRating = computed(() => {
 </script>
 
 <template>
-  <Card>
+  <Card class="grid grid-template-subgrid row-span-3">
     <CardHeader>
       <div class="flex items-start justify-between">
         <div class="flex flex-col gap-2">
@@ -122,7 +122,9 @@ const averageRating = computed(() => {
         </div>
       </div>
       <Separator />
-      <div class="flex items-center justify-end w-full gap-4">
+      <div
+        class="flex flex-col md:flex-row items-center justify-end w-full gap-2 md:gap-4"
+      >
         <Button
           as-child
           variant="outline"

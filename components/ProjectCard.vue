@@ -27,7 +27,7 @@ const statusType = {
 </script>
 
 <template>
-  <Card>
+  <Card class="grid grid-template-subgrid row-span-2">
     <CardHeader>
       <div class="flex items-start justify-between">
         <div class="flex flex-col gap-2">

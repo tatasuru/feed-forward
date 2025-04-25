@@ -67,16 +67,22 @@ try {
           </NuxtLink>
         </Button>
       </div>
-      <TabsContent value="all" class="w-full">
+      <TabsContent value="all" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
         >
           <MyProjectCard v-for="project in myProjects" :project="project" />
         </div>
-        <EmptyProjectCard v-else />
+        <EmptyProjectCard
+          v-else
+          text="プロジェクトはありません"
+          label="新規プロジェクト作成"
+          icon="mdi:plus-circle-outline"
+          link="/create-project"
+        />
       </TabsContent>
-      <TabsContent value="active" class="w-full">
+      <TabsContent value="active" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myActiveProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
@@ -87,9 +93,15 @@ try {
             :project="project"
           />
         </div>
-        <EmptyProjectCard v-else />
+        <EmptyProjectCard
+          v-else
+          text="プロジェクトはありません"
+          label="新規プロジェクト作成"
+          icon="mdi:plus-circle-outline"
+          link="/create-project"
+        />
       </TabsContent>
-      <TabsContent value="draft" class="w-full">
+      <TabsContent value="draft" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myDraftProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
@@ -100,9 +112,15 @@ try {
             :project="project"
           />
         </div>
-        <EmptyProjectCard v-else />
+        <EmptyProjectCard
+          v-else
+          text="プロジェクトはありません"
+          label="新規プロジェクト作成"
+          icon="mdi:plus-circle-outline"
+          link="/create-project"
+        />
       </TabsContent>
-      <TabsContent value="completed" class="w-full">
+      <TabsContent value="completed" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myCompletedProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
@@ -113,7 +131,13 @@ try {
             :project="project"
           />
         </div>
-        <EmptyProjectCard v-else />
+        <EmptyProjectCard
+          v-else
+          text="プロジェクトはありません"
+          label="新規プロジェクト作成"
+          icon="mdi:plus-circle-outline"
+          link="/create-project"
+        />
       </TabsContent>
     </Tabs>
   </div>

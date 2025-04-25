@@ -53,7 +53,7 @@ async function getAllProjects() {
         </span>
       </div>
 
-      <div>
+      <div class="min-h-[calc(100vh-300px)] flex flex-col gap-4">
         <div
           v-if="projects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
@@ -64,6 +64,7 @@ async function getAllProjects() {
             :project="project"
           />
         </div>
+
         <EmptyProjectCard v-else />
       </div>
     </div>

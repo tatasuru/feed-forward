@@ -1,35 +1,146 @@
 <script setup lang="ts">
+import type { MyProjectWithFeedback } from "@/types/my-projects.types";
 definePageMeta({
   middleware: "auth",
 });
 
+type DashboardContent = {
+  title: string;
+  description: string;
+  icon: string;
+  value: number;
+};
+
 const supabase = useSupabaseClient();
-const dashboardContents = [
-  {
-    title: "アクティブプロジェクト",
-    description: "先月比 +1 (50%)",
-    icon: "mdi:file-document",
-    value: 3,
-  },
-  {
-    title: "受け取ったフィードバック",
-    description: "先月比 -8 (20%)",
-    icon: "mdi:comment-check-outline",
-    value: 10,
-  },
-  {
-    title: "平均評価",
-    description: "先月比 +0.3 (7.7%)",
-    icon: "mdi:star-check",
-    value: 4.5,
-  },
-  {
-    title: "フィードバック完了率",
-    description: "先月比 +5% (6.8%)",
-    icon: "mdi:file-document-check-outline",
-    value: 75,
-  },
-];
+const user = useSupabaseUser();
+const projects = ref<MyProjectWithFeedback[]>([]);
+const dashboardContents = ref<DashboardContent[]>([]);
+
+try {
+  const { data, error } = await supabase.rpc(
+    "get_my_projects_with_feedback_ratings",
+    {
+      user_id: user.value?.id,
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  projects.value = data;
+  initDashboardContents(projects.value);
+} catch (error) {
+  console.error("Error fetching projects:", error);
+}
+
+/*********************
+ * HELPER FUNCTIONS
+ *********************/
+function initDashboardContents(projects: MyProjectWithFeedback[]) {
+  // 今月のデータを計算
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+
+  // 期限切れプロジェクト
+  const overdueProjects = projects.filter(
+    (project) =>
+      project.deadline &&
+      new Date(project.deadline) < today &&
+      project.status !== "completed"
+  );
+
+  // 今月作成されたプロジェクト
+  const thisMonthProjects = projects.filter(
+    (project) => new Date(project.created_at) >= firstDayOfMonth
+  );
+
+  // 先月作成されたプロジェクト
+  const lastMonthProjects = projects.filter(
+    (project) =>
+      new Date(project.created_at) >= lastMonthStart &&
+      new Date(project.created_at) <= lastMonthEnd
+  );
+
+  // 今月受け取ったフィードバック
+  const thisMonthFeedbacks = projects.reduce((acc, project) => {
+    const feedbacks = project.feedback || [];
+    const count = feedbacks.filter(
+      (fb) => new Date(fb.created_at) >= firstDayOfMonth
+    ).length;
+    return acc + count;
+  }, 0);
+
+  // 先月受け取ったフィードバック
+  const lastMonthFeedbacks = projects.reduce((acc, project) => {
+    const feedbacks = project.feedback || [];
+    const count = feedbacks.filter(
+      (fb) =>
+        new Date(fb.created_at) >= lastMonthStart &&
+        new Date(fb.created_at) <= lastMonthEnd
+    ).length;
+    return acc + count;
+  }, 0);
+
+  // 増加率計算のヘルパー関数
+  const calculateIncreasePercent = (
+    current: number,
+    previous: number
+  ): string => {
+    if (previous === 0) return current > 0 ? "+100%" : "0%";
+    const percent = ((current - previous) / previous) * 100;
+    return percent > 0 ? `+${percent.toFixed(0)}%` : `${percent.toFixed(0)}%`;
+  };
+
+  dashboardContents.value = [
+    {
+      title: "アクティブプロジェクト",
+      description: `今月 ${calculateIncreasePercent(
+        thisMonthProjects.length,
+        lastMonthProjects.length
+      )} 増加`,
+      icon: "mdi:file-document",
+      value: projects.length,
+    },
+    {
+      title: "受け取ったフィードバック",
+      description: `今月 ${calculateIncreasePercent(
+        thisMonthFeedbacks,
+        lastMonthFeedbacks
+      )} 増加`,
+      icon: "mdi:comment-check-outline",
+      value: projects.reduce((acc, project) => acc + project.feedback_count, 0),
+    },
+    {
+      title: "平均評価",
+      description: `先月比 ±0%`, // 平均評価の変化計算は複雑なので簡略化
+      icon: "mdi:star-check",
+      value:
+        projects.reduce(
+          (acc, project) =>
+            acc +
+            (project.average_ratings
+              ? project.average_ratings.reduce(
+                  (sum, item) => sum + item.average_rating,
+                  0
+                ) / (project.average_ratings.length || 1)
+              : 0),
+          0
+        ) / (projects.length || 1),
+    },
+    {
+      title: "期限切れプロジェクト",
+      description: `今月 ${
+        overdueProjects.filter((p) => new Date(p.deadline!) >= firstDayOfMonth)
+          .length
+      } 件追加`,
+      icon: "mdi:alert-clock",
+      value: overdueProjects.length,
+    },
+  ];
+}
 </script>
 
 <template>

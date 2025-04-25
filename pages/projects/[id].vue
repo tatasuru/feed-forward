@@ -26,6 +26,12 @@ const hoverStarIndexObj = ref<{
 });
 const isAlreadyRated = ref<boolean>(false);
 const currentFeedbackId = ref<string | null>(null);
+const ratingPerCriteria = ref<
+  {
+    criteria_id: string;
+    rating: number;
+  }[]
+>([]);
 
 /******************************
  * form setup
@@ -84,6 +90,8 @@ try {
   const initialRatings: Record<number, number> = {};
 
   const userFeedBack = await checkExistingFeedback();
+
+  getRatingPerCriteria();
 
   if (userFeedBack?.exists) {
     userFeedBack.feedback.ratings.forEach(
@@ -276,20 +284,26 @@ async function getUserFeedback() {
 }
 
 async function getRatingPerCriteria() {
-  const ratings = projectWithFeedback.value.feedback;
-  console.log("Ratings:", ratings);
+  const feedbacks = projectWithFeedback.value.feedback;
 
-  // if (!ratings || ratings.length === 0) {
-  //   return "0.0";
-  // }
+  feedbacks.map((feedback: any) => {
+    feedback.ratings.map((rating: any) => {
+      const existingRating = ratingPerCriteria.value.find(
+        (r) => r.criteria_id === rating.criteria_id
+      );
 
-  // const totalRating = ratings.reduce((acc, rating) => {
-  //   return acc + rating.ratings[criteriaId];
-  // }, 0);
+      if (existingRating) {
+        existingRating.rating += rating.rating;
+      } else {
+        ratingPerCriteria.value.push({
+          criteria_id: rating.criteria_id,
+          rating: rating.rating / feedbacks.length,
+        });
+      }
+    });
+  });
 
-  // const average = totalRating / ratings.length;
-
-  // return average.toFixed(1);
+  console.log("ratingPerCriteria", ratingPerCriteria.value);
 }
 </script>
 
@@ -464,10 +478,13 @@ async function getRatingPerCriteria() {
               >
                 <div class="flex justify-between items-center">
                   <p class="text-sm">{{ criteria.name }}</p>
-                  <p class="text-sm">平均: 4.2/5</p>
+                  <p class="text-sm">
+                    平均: {{ ratingPerCriteria[index].rating.toFixed(1) }} / 5
+                  </p>
                 </div>
+
                 <Progress
-                  :model-value="33"
+                  :model-value="(ratingPerCriteria[index].rating / 5) * 100"
                   :indicator-color="progressBarColors[index]"
                   class="w-full"
                 />

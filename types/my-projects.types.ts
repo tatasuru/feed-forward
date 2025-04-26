@@ -99,3 +99,21 @@ export type MyProjectWithFeedback = {
     email: string | null;
   };
 };
+
+export type FeedbackContents = {
+  id: Feedback["project_id"];
+  title: MyProject["title"];
+  description: MyProject["description"];
+  created_at: string;
+  feedback_ratings: {
+    rating: number;
+    created_at: string;
+    user_id: string | null;
+  }[];
+  project_type: MyProject["project_type"];
+  user: {
+    id: FeedbackUserProfile["id"];
+    display_name: FeedbackUserProfile["display_name"];
+    avatar_url: FeedbackUserProfile["avatar_url"];
+  };
+};

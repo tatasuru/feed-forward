@@ -1,19 +1,21 @@
 <script setup lang="ts">
+import type { FeedbackContents } from "@/types/my-projects.types";
 const props = defineProps<{
   feedback: {
+    id: string;
     title: string;
     description: string;
     created_at: string;
     feedback_ratings: Array<{
       rating: number;
       created_at: string;
-      user_id: string;
+      user_id: string | null;
     }>;
     project_type: string;
     user: {
       id: string;
-      display_name: string;
-      avatar_url: string;
+      display_name: string | null;
+      avatar_url: string | null;
     };
   };
 }>();
@@ -25,7 +27,10 @@ const props = defineProps<{
   >
     <div class="flex items-center gap-1">
       <Avatar class="!size-10">
-        <AvatarImage :src="props.feedback.user.avatar_url" alt="User Avatar" />
+        <AvatarImage
+          :src="props.feedback?.user.avatar_url!"
+          alt="User Avatar"
+        />
         <AvatarFallback>U</AvatarFallback>
       </Avatar>
     </div>

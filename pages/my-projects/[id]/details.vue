@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { MyProjectWithFeedback } from "@/types/my-projects.types";
+import type {
+  MyProjectWithFeedback,
+  FeedbackContents,
+} from "@/types/my-projects.types";
 import type { ProjectWithFeedback } from "@/types/projects.types";
 import { constructNow, format } from "date-fns";
 import { toTypedSchema } from "@vee-validate/zod";
@@ -33,24 +36,7 @@ const ratingPerCriteria = ref<
     rating: number;
   }[]
 >([]);
-const feedbackContents = ref<
-  {
-    title: string;
-    description: string;
-    created_at: string;
-    feedback_ratings: Array<{
-      rating: number;
-      created_at: string;
-      user_id: string;
-    }>;
-    project_type: string;
-    user: {
-      id: string;
-      display_name: string;
-      avatar_url: string;
-    };
-  }[]
->([]);
+const feedbackContents = ref<FeedbackContents[]>([]);
 
 const dashboardContents = [
   {
@@ -253,6 +239,7 @@ function initFeedbackContents(projects: MyProjectWithFeedback[]) {
   feedbackContents.value = projects.map((project) => {
     const feedbacks = project.feedback || [];
     return {
+      id: project.id,
       title: project.title,
       description: project.description,
       created_at: project.created_at.toString(),

@@ -88,4 +88,14 @@ export type MyProjectWithFeedback = {
     average_rating: number;
     rating_count: number;
   }[];
+
+  user: {
+    id: string;
+    name: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    website: string | null;
+    email: string | null;
+  };
 };

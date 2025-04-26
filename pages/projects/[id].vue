@@ -506,7 +506,7 @@ async function getRatingPerCriteria() {
 
       <!-- right -->
       <div
-        class="md:sticky top-[90px] flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8 min-h-fit h-[calc(100vh-110px)] w-full"
+        class="md:sticky md:top-[90px] flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8 min-h-fit h-[calc(100vh-110px)] w-full"
       >
         <PageTitle
           title="フィードバックを送る"

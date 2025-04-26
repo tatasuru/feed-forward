@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MyProjectWithFeedback } from "@/types/my-projects.types";
 import type { ProjectWithFeedback } from "@/types/projects.types";
 import { constructNow, format } from "date-fns";
 import { toTypedSchema } from "@vee-validate/zod";
@@ -32,6 +33,24 @@ const ratingPerCriteria = ref<
     rating: number;
   }[]
 >([]);
+const feedbackContents = ref<
+  {
+    title: string;
+    description: string;
+    created_at: string;
+    feedback_ratings: Array<{
+      rating: number;
+      created_at: string;
+      user_id: string;
+    }>;
+    project_type: string;
+    user: {
+      id: string;
+      display_name: string;
+      avatar_url: string;
+    };
+  }[]
+>([]);
 
 const dashboardContents = [
   {
@@ -57,6 +76,20 @@ try {
   preview.value = await getLinkPreview(
     projectWithFeedback.value.project.resource_url
   );
+
+  const { data, error } = await supabase.rpc(
+    "get_my_projects_with_feedback_ratings",
+    {
+      user_id: supabaseUser.value?.id,
+    }
+  );
+
+  if (error) {
+    console.error("Error fetching projects:", error);
+    throw error;
+  }
+
+  initFeedbackContents(data);
 
   const initialRatings: Record<number, number> = {};
 
@@ -215,6 +248,28 @@ async function getRatingPerCriteria() {
 
   console.log("ratingPerCriteria", ratingPerCriteria.value);
 }
+
+function initFeedbackContents(projects: MyProjectWithFeedback[]) {
+  feedbackContents.value = projects.map((project) => {
+    const feedbacks = project.feedback || [];
+    return {
+      title: project.title,
+      description: project.description,
+      created_at: project.created_at.toString(),
+      feedback_ratings: feedbacks.map((fb) => ({
+        rating: Number(fb.ratings),
+        created_at: fb.created_at.toString(),
+        user_id: fb.user_id || "",
+      })),
+      project_type: project.project_type,
+      user: {
+        id: project.user.id,
+        display_name: project.user.display_name || "Unknown User",
+        avatar_url: project.user.avatar_url || "",
+      },
+    };
+  });
+}
 </script>
 
 <template>
@@ -231,7 +286,7 @@ async function getRatingPerCriteria() {
     </Button>
     <div
       v-if="projectWithFeedback.project"
-      class="flex items-start justify-between"
+      class="flex flex-col md:flex-row gap-4 items-start justify-between"
     >
       <div class="flex flex-col items-start gap-4">
         <PageTitle :title="projectWithFeedback.project.title" size="large" />
@@ -282,13 +337,24 @@ async function getRatingPerCriteria() {
         </div>
       </div>
       <!-- settings -->
-      <div class="flex items-center gap-4">
-        <Button as-child variant="outline">
+      <div
+        class="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-fit"
+      >
+        <Button
+          as-child
+          variant="outline"
+          class="w-full md:w-fit cursor-pointer"
+        >
           <NuxtLink :to="`/my-projects/${projectWithFeedback.project.id}/edit`">
+            <Icon
+              name="mdi:text-box-edit-outline"
+              class="!size-4 text-muted-foreground"
+            />
             プロジェクトを編集
           </NuxtLink>
         </Button>
-        <Button variant="destructive" class="cursor-pointer">
+        <Button variant="destructive" class="w-full md:w-fit cursor-pointer">
+          <Icon name="mdi:delete-outline" class="!size-4 text-white" />
           プロジェクトを削除
         </Button>
       </div>
@@ -462,12 +528,15 @@ async function getRatingPerCriteria() {
           class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8"
         >
           <PageTitle title="フィードバック" size="medium" />
-          <FeedbackCard />
-          <Separator />
-          <FeedbackCard />
-          <Separator />
-          <FeedbackCard />
-          <Separator />
+          <div
+            v-for="(feedback, index) in feedbackContents"
+            :key="index"
+            class="flex flex-col gap-8"
+          >
+            <FeedbackCard :feedback="feedback" />
+            <Separator />
+          </div>
+
           <Button as-child variant="main" class="w-full cursor-pointer">
             <NuxtLink
               :to="`/my-projects/${projectWithFeedback.project.id}/feedback`"

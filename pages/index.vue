@@ -18,7 +18,7 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const projects = ref<MyProjectWithFeedback[]>([]);
 const dashboardContents = ref<DashboardContent[]>([]);
-const feedbackContents = ref<FeedbackContents[]>([]);
+const feedbackContents = ref<any[]>([]);
 
 /**********************
  * LIFECYCLE HOOKS
@@ -74,7 +74,7 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
 
   // 今月受け取ったフィードバック
   const thisMonthFeedbacks = projects.reduce((acc, project) => {
-    const feedbacks = project.feedback || [];
+    const feedbacks = project.feedbacks || [];
     const count = feedbacks.filter(
       (fb) => new Date(fb.created_at) >= firstDayOfMonth
     ).length;
@@ -83,7 +83,7 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
 
   // 先月受け取ったフィードバック
   const lastMonthFeedbacks = projects.reduce((acc, project) => {
-    const feedbacks = project.feedback || [];
+    const feedbacks = project.feedbacks || [];
     const count = feedbacks.filter(
       (fb) =>
         new Date(fb.created_at) >= lastMonthStart &&
@@ -150,24 +150,27 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
   ];
 }
 
-function initFeedbackContents(projects: MyProjectWithFeedback[]) {
+function initFeedbackContents(projects: any[]) {
   feedbackContents.value = projects.map((project) => {
-    const feedbacks = project.feedback || [];
+    const feedbacks = project.feedbacks || [];
+    console.log("project", project);
     return {
       id: project.id,
       title: project.title,
       description: project.description,
       created_at: project.created_at.toString(),
-      feedback_ratings: feedbacks.map((fb) => ({
-        rating: Number(fb.ratings),
-        created_at: fb.created_at.toString(),
+      feedback_ratings: feedbacks[0]?.ratings.map((fb: any, index: number) => ({
+        title: feedbacks[0]?.ratings[index]?.name,
+        rating: Number(fb.rating),
+        created_at: feedbacks[0]?.created_at.toString(),
         user_id: fb.user_id || "",
       })),
+      overall_comment: feedbacks.length ? feedbacks[0].overall_comment : "",
       project_type: project.project_type,
       user: {
-        id: project.user.id,
-        display_name: project.user.display_name || "Unknown User",
-        avatar_url: project.user.avatar_url || "",
+        id: feedbacks[0]?.user.id,
+        display_name: feedbacks[0]?.user.display_name || "Unknown User",
+        avatar_url: feedbacks[0]?.user.avatar_url || "",
       },
     };
   });
@@ -225,13 +228,16 @@ function initFeedbackContents(projects: MyProjectWithFeedback[]) {
             size="small"
           />
           <div class="p-0 md:p-5 flex flex-col gap-8">
-            <div
-              v-for="(feedback, index) in feedbackContents"
-              :key="index"
-              class="flex flex-col gap-8"
-            >
-              <FeedbackCard :feedback="feedback" />
-              <Separator />
+            <div class="flex flex-col gap-8">
+              <FeedbackCard
+                v-for="(feedback, index) in feedbackContents"
+                :key="index"
+                :feedback="feedback"
+                :isDashboard="true"
+              />
+              <template v-for="(_, index) in feedbackContents" :key="index">
+                <Separator v-if="index < feedbackContents.length - 1" />
+              </template>
             </div>
 
             <Button variant="outline" class="w-full cursor-pointer">

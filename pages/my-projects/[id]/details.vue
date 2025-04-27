@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import type {
-  MyProjectWithFeedback,
-  FeedbackContents,
-} from "@/types/my-projects.types";
 import type { ProjectWithFeedback } from "@/types/projects.types";
-import { constructNow, format } from "date-fns";
-import { toTypedSchema } from "@vee-validate/zod";
-import { useForm } from "vee-validate";
-import * as z from "zod";
+import { format } from "date-fns";
 
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
@@ -36,7 +29,7 @@ const ratingPerCriteria = ref<
     rating: number;
   }[]
 >([]);
-const feedbackContents = ref<FeedbackContents[]>([]);
+const feedbackContents = ref<any[]>([]);
 
 const dashboardContents = [
   {
@@ -63,19 +56,7 @@ try {
     projectWithFeedback.value.project.resource_url
   );
 
-  const { data, error } = await supabase.rpc(
-    "get_my_projects_with_feedback_ratings",
-    {
-      user_id: supabaseUser.value?.id,
-    }
-  );
-
-  if (error) {
-    console.error("Error fetching projects:", error);
-    throw error;
-  }
-
-  initFeedbackContents(data);
+  initFeedbackContents(projectWithFeedback.value);
 
   const initialRatings: Record<number, number> = {};
 
@@ -213,7 +194,7 @@ async function getUserFeedback() {
 }
 
 async function getRatingPerCriteria() {
-  const feedbacks = projectWithFeedback.value.feedback;
+  const feedbacks = projectWithFeedback.value.feedbacks || [];
 
   feedbacks.map((feedback: any) => {
     feedback.ratings.map((rating: any) => {
@@ -231,31 +212,33 @@ async function getRatingPerCriteria() {
       }
     });
   });
-
-  console.log("ratingPerCriteria", ratingPerCriteria.value);
 }
 
-function initFeedbackContents(projects: MyProjectWithFeedback[]) {
-  feedbackContents.value = projects.map((project) => {
-    const feedbacks = project.feedback || [];
-    return {
-      id: project.id,
-      title: project.title,
-      description: project.description,
-      created_at: project.created_at.toString(),
-      feedback_ratings: feedbacks.map((fb) => ({
-        rating: Number(fb.ratings),
-        created_at: fb.created_at.toString(),
+function initFeedbackContents(projectWithFeedback: any) {
+  const project = projectWithFeedback.project;
+  const feedbacks = projectWithFeedback.feedbacks || [];
+
+  feedbackContents.value = feedbacks.map((feedback: any, index: number) => ({
+    id: project.id,
+    title: project.title,
+    description: project.description,
+    created_at: project.created_at.toString(),
+    feedback_ratings: feedbacks[index].ratings.map(
+      (fb: any, index: number) => ({
+        title: feedbacks[0].ratings[index].criteria.name,
+        rating: Number(fb.rating),
+        created_at: feedbacks[0].created_at.toString(),
         user_id: fb.user_id || "",
-      })),
-      project_type: project.project_type,
-      user: {
-        id: project.user.id,
-        display_name: project.user.display_name || "Unknown User",
-        avatar_url: project.user.avatar_url || "",
-      },
-    };
-  });
+      })
+    ),
+    overall_comment: feedback.overall_comment,
+    project_type: project.project_type,
+    user: {
+      id: feedback.user?.id,
+      display_name: feedback.user?.display_name || "Unknown User",
+      avatar_url: feedback.user?.avatar_url || "default-avatar.png",
+    },
+  }));
 }
 </script>
 
@@ -520,7 +503,7 @@ function initFeedbackContents(projects: MyProjectWithFeedback[]) {
             :key="index"
             class="flex flex-col gap-8"
           >
-            <FeedbackCard :feedback="feedback" />
+            <FeedbackCard :feedback="feedback" :isDashboard="false" />
             <Separator />
           </div>
 

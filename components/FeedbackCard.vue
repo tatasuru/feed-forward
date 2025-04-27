@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FeedbackContents } from "@/types/my-projects.types";
+import { format } from "date-fns";
 const props = defineProps<{
   feedback: {
     id: string;
@@ -7,10 +7,12 @@ const props = defineProps<{
     description: string;
     created_at: string;
     feedback_ratings: Array<{
+      title: string;
       rating: number;
       created_at: string;
       user_id: string | null;
     }>;
+    overall_comment: string | null;
     project_type: string;
     user: {
       id: string;
@@ -18,13 +20,16 @@ const props = defineProps<{
       avatar_url: string | null;
     };
   };
+  isDashboard?: boolean;
 }>();
 </script>
 
 <template>
   <div
+    v-if="props.feedback.feedback_ratings"
     class="flex items-start gap-4 hover:scale-103 transition-transform duration-200 ease-in-out cursor-pointer"
   >
+    <!-- avatar -->
     <div class="flex items-center gap-1">
       <Avatar class="!size-10">
         <AvatarImage
@@ -35,51 +40,66 @@ const props = defineProps<{
       </Avatar>
     </div>
     <div class="flex flex-col gap-4 w-full">
+      <!-- description -->
       <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base md:text-lg font-bold">
+            {{ props.feedback.user.display_name }}
+          </h3>
+        </div>
+
+        <p class="text-sm text-muted-foreground line-clamp-2">
+          {{ props.feedback.description }}
+        </p>
+      </div>
+
+      <!-- rating -->
+      <div
+        v-if="props.feedback.feedback_ratings.length"
+        class="flex flex-col gap-2"
+      >
         <div
-          class="flex flex-col gap-1 md:gap-0 md:flex-row md:items-center justify-between"
+          v-for="(rating, index) in props.feedback.feedback_ratings"
+          :key="index"
+          class="flex items-center gap-1"
         >
-          <div class="flex items-center gap-2">
-            <h3 class="text-base md:text-lg font-bold">
-              {{ props.feedback.title }}
-            </h3>
-            <Badge
-              variant="outline"
-              class="gradient-bg text-white rounded-full"
-            >
-              {{ props.feedback.project_type }}
-            </Badge>
-          </div>
-          <div class="flex items-center gap-px">
+          <span class="text-sm text-muted-foreground">{{ rating.title }}:</span>
+          <div class="flex items-center gap-1">
             <Icon
-              v-for="(item, index) in [1, 2, 3, 4, 5]"
-              name="mdi:star-outline"
-              class="!size-5 text-yellow-500"
+              v-for="i in rating.rating"
+              name="mdi:star"
+              :class="`!size-4 text-${i > 0 ? 'yellow' : 'gray'}-500`"
             />
           </div>
         </div>
-        <!-- TODO -->
-        <!-- <p class="text-sm text-muted-foreground">
-          ナビゲーションの動線が分かりやすくなりました。モバイル表示の最適化がさらに必要かもしれません。
-        </p> -->
       </div>
+
+      <!-- date and user -->
       <div class="flex flex-row items-center gap-4">
-        <!-- TODO -->
-        <!-- <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1">
           <Icon
             name="mdi:clock-outline"
             class="!size-4 text-muted-foreground"
           />
-          <span class="text-sm text-muted-foreground">2日前</span>
-        </div> -->
+          <span class="text-sm text-muted-foreground">
+            {{ format(new Date(props.feedback.created_at), "yyyy/MM/dd") }}
+          </span>
+        </div>
         <div class="flex items-center gap-1">
           <Icon
-            name="mdi:account-outline"
+            name="mdi:file-document-outline"
             class="!size-4 text-muted-foreground"
           />
           <span class="text-sm text-muted-foreground">
-            {{ props.feedback.user.display_name }}
+            {{ props.feedback.title }}
           </span>
+          <Badge
+            v-if="isDashboard"
+            variant="outline"
+            class="gradient-bg text-white rounded-full"
+          >
+            {{ props.feedback.project_type }}
+          </Badge>
         </div>
       </div>
     </div>

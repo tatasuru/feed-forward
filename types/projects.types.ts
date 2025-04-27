@@ -79,7 +79,7 @@ export type ProjectWithFeedback = {
     status: "draft" | "active" | "completed" | "archived";
     evaluation_type: string | null;
   };
-  feedback: Feedback[];
+  feedbacks: Feedback[];
   evaluation_criteria: EvaluationCriteria[];
   owner: User;
 };

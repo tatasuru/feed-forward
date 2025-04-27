@@ -284,7 +284,7 @@ async function getUserFeedback() {
 }
 
 async function getRatingPerCriteria() {
-  const feedbacks = projectWithFeedback.value.feedback;
+  const feedbacks = projectWithFeedback.value.feedbacks || [];
 
   feedbacks.map((feedback: any) => {
     feedback.ratings.map((rating: any) => {
@@ -302,8 +302,6 @@ async function getRatingPerCriteria() {
       }
     });
   });
-
-  console.log("ratingPerCriteria", ratingPerCriteria.value);
 }
 </script>
 

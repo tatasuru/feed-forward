@@ -79,7 +79,8 @@ export type MyProjectWithFeedback = {
   // フィードバック関連情報
   feedback_count: number;
   evaluation_criteria: EvaluationCriteria[];
-  feedback: Feedback[];
+  feedbacks: Feedback[];
+  project: MyProject;
 
   // 平均評価情報（集計データ）
   average_ratings?: {
@@ -110,6 +111,7 @@ export type FeedbackContents = {
     created_at: string;
     user_id: string | null;
   }[];
+  overall_comment: string | null;
   project_type: MyProject["project_type"];
   user: {
     id: FeedbackUserProfile["id"];

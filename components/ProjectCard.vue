@@ -41,7 +41,7 @@ const statusType = {
           <CardTitle>{{ props.project.title }}</CardTitle>
         </div>
       </div>
-      <CardDescription class="line-clamp-3">
+      <CardDescription class="line-clamp-2">
         {{ props.project.description }}
       </CardDescription>
     </CardHeader>

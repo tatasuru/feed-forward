@@ -49,7 +49,7 @@ const props = defineProps<{
         </div>
 
         <p class="text-sm text-muted-foreground line-clamp-2">
-          {{ props.feedback.description }}
+          {{ props.feedback.overall_comment }}
         </p>
       </div>
 

@@ -61,7 +61,7 @@ const averageRating = computed(() => {
           class="!size-4 text-muted-foreground"
         />
       </div>
-      <CardDescription class="line-clamp-3">
+      <CardDescription class="line-clamp-2">
         {{ props.project.description }}
       </CardDescription>
     </CardHeader>

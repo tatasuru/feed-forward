@@ -228,16 +228,13 @@ function initFeedbackContents(projects: any[]) {
             size="small"
           />
           <div class="p-0 md:p-5 flex flex-col gap-8">
-            <div class="flex flex-col gap-8">
-              <FeedbackCard
-                v-for="(feedback, index) in feedbackContents"
-                :key="index"
-                :feedback="feedback"
-                :isDashboard="true"
-              />
-              <template v-for="(_, index) in feedbackContents" :key="index">
-                <Separator v-if="index < feedbackContents.length - 1" />
-              </template>
+            <div
+              v-for="(feedback, index) in feedbackContents"
+              :key="index"
+              class="flex flex-col gap-8"
+            >
+              <FeedbackCard :feedback="feedback" :isDashboard="true" />
+              <Separator />
             </div>
 
             <Button variant="outline" class="w-full cursor-pointer">

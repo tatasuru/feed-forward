@@ -89,29 +89,45 @@ try {
 
   const initialRatings: Record<number, number> = {};
 
-  const userFeedBack = await checkExistingFeedback();
+  // まず全ての評価項目にデフォルト値を設定
+  projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
+    initialRatings[index] = -1;
+    hoverStarIndexObj.value[index] = -1;
+  });
 
+  const userFeedBack = await checkExistingFeedback();
   await getRatingPerCriteria();
 
-  if (userFeedBack?.exists) {
-    userFeedBack.feedback.ratings.forEach(
-      (rating: { rating: number }, index: number) => {
+  if (userFeedBack?.exists && userFeedBack.feedback.ratings) {
+    // 評価基準IDごとの評価値マップを作成
+    const ratingsByCriteriaId: Record<string, any> = {};
+    userFeedBack.feedback.ratings.forEach((rating: any) => {
+      ratingsByCriteriaId[rating.criteria_id] = rating;
+    });
+
+    // 評価基準の順序に従って評価値を設定
+    projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
+      const rating = ratingsByCriteriaId[criteria.id];
+      if (rating) {
         initialRatings[index] = rating.rating;
         hoverStarIndexObj.value[index] = rating.rating - 1;
       }
-    );
+    });
+
     isAlreadyRated.value = true;
   } else {
-    projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
-      initialRatings[index] = -1;
-      hoverStarIndexObj.value[index] = -1;
-    });
     isAlreadyRated.value = false;
   }
 
   // Set initial values for ratings
-  form.setFieldValue("overallComment", userFeedBack?.feedback.overall_comment);
-  form.setFieldValue("isAnonymous", userFeedBack?.feedback.is_anonymous);
+  form.setFieldValue(
+    "overallComment",
+    userFeedBack?.feedback.overall_comment || ""
+  );
+  form.setFieldValue(
+    "isAnonymous",
+    userFeedBack?.feedback.is_anonymous || false
+  );
   form.setFieldValue("ratings", initialRatings);
 } catch (error) {
   console.error("Error fetching project details or link preview:", error);
@@ -262,9 +278,20 @@ async function getUserFeedback() {
       };
 
       if (feedback.ratings && feedback.ratings.length > 0) {
-        feedback.ratings.forEach((rating: any) => {
-          initialValues.ratings[rating.criteria_id] = rating.rating;
-        });
+        // 各評価基準のインデックスと評価値のマッピングを作成
+        projectWithFeedback.value.evaluation_criteria.forEach(
+          (criteria, index) => {
+            const matchingRating = feedback.ratings.find(
+              (rating: any) => rating.criteria_id === criteria.id
+            );
+
+            if (matchingRating) {
+              initialValues.ratings[index] = matchingRating.rating;
+            } else {
+              initialValues.ratings[index] = -1;
+            }
+          }
+        );
       }
 
       return {
@@ -284,24 +311,37 @@ async function getUserFeedback() {
 }
 
 async function getRatingPerCriteria() {
+  const ratingAvgByCriteriaId: Record<string, number> = {};
   const feedbacks = projectWithFeedback.value.feedbacks || [];
 
-  feedbacks.map((feedback: any) => {
-    feedback.ratings.map((rating: any) => {
-      const existingRating = ratingPerCriteria.value.find(
-        (r) => r.criteria_id === rating.criteria_id
-      );
+  const ratingCountByCriteriaId: Record<string, number> = {};
 
-      if (existingRating) {
-        existingRating.rating += rating.rating;
-      } else {
-        ratingPerCriteria.value.push({
-          criteria_id: rating.criteria_id,
-          rating: rating.rating / feedbacks.length,
-        });
+  feedbacks.forEach((feedback) => {
+    feedback.ratings.forEach((rating) => {
+      if (!ratingAvgByCriteriaId[rating.criteria_id]) {
+        ratingAvgByCriteriaId[rating.criteria_id] = 0;
+        ratingCountByCriteriaId[rating.criteria_id] = 0;
       }
+      ratingAvgByCriteriaId[rating.criteria_id] += rating.rating;
+      ratingCountByCriteriaId[rating.criteria_id]++;
     });
   });
+
+  Object.keys(ratingAvgByCriteriaId).forEach((criteriaId) => {
+    if (ratingCountByCriteriaId[criteriaId] > 0) {
+      ratingAvgByCriteriaId[criteriaId] =
+        ratingAvgByCriteriaId[criteriaId] / ratingCountByCriteriaId[criteriaId];
+    }
+  });
+
+  ratingPerCriteria.value = projectWithFeedback.value.evaluation_criteria.map(
+    (criteria) => {
+      return {
+        criteria_id: criteria.id,
+        rating: ratingAvgByCriteriaId[criteria.id] || 0,
+      };
+    }
+  );
 }
 </script>
 

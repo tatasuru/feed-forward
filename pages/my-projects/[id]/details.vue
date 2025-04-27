@@ -194,24 +194,37 @@ async function getUserFeedback() {
 }
 
 async function getRatingPerCriteria() {
+  const ratingAvgByCriteriaId: Record<string, number> = {};
   const feedbacks = projectWithFeedback.value.feedbacks || [];
 
-  feedbacks.map((feedback: any) => {
-    feedback.ratings.map((rating: any) => {
-      const existingRating = ratingPerCriteria.value.find(
-        (r) => r.criteria_id === rating.criteria_id
-      );
+  const ratingCountByCriteriaId: Record<string, number> = {};
 
-      if (existingRating) {
-        existingRating.rating += rating.rating;
-      } else {
-        ratingPerCriteria.value.push({
-          criteria_id: rating.criteria_id,
-          rating: rating.rating / feedbacks.length,
-        });
+  feedbacks.forEach((feedback) => {
+    feedback.ratings.forEach((rating) => {
+      if (!ratingAvgByCriteriaId[rating.criteria_id]) {
+        ratingAvgByCriteriaId[rating.criteria_id] = 0;
+        ratingCountByCriteriaId[rating.criteria_id] = 0;
       }
+      ratingAvgByCriteriaId[rating.criteria_id] += rating.rating;
+      ratingCountByCriteriaId[rating.criteria_id]++;
     });
   });
+
+  Object.keys(ratingAvgByCriteriaId).forEach((criteriaId) => {
+    if (ratingCountByCriteriaId[criteriaId] > 0) {
+      ratingAvgByCriteriaId[criteriaId] =
+        ratingAvgByCriteriaId[criteriaId] / ratingCountByCriteriaId[criteriaId];
+    }
+  });
+
+  ratingPerCriteria.value = projectWithFeedback.value.evaluation_criteria.map(
+    (criteria) => {
+      return {
+        criteria_id: criteria.id,
+        rating: ratingAvgByCriteriaId[criteria.id] || 0,
+      };
+    }
+  );
 }
 
 function initFeedbackContents(projectWithFeedback: any) {

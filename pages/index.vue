@@ -168,9 +168,9 @@ function initFeedbackContents(projects: any[]) {
       overall_comment: feedbacks.length ? feedbacks[0].overall_comment : "",
       project_type: project.project_type,
       user: {
-        id: feedbacks[0]?.user.id,
-        display_name: feedbacks[0]?.user.display_name || "Unknown User",
-        avatar_url: feedbacks[0]?.user.avatar_url || "",
+        id: feedbacks[0]?.user?.id || "",
+        display_name: feedbacks[0]?.user?.display_name || "Unknown User",
+        avatar_url: feedbacks[0]?.user?.avatar_url || "",
       },
     };
   });

@@ -153,7 +153,6 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
 function initFeedbackContents(projects: any[]) {
   feedbackContents.value = projects.map((project) => {
     const feedbacks = project.feedbacks || [];
-    console.log("project", project);
     return {
       id: project.id,
       title: project.title,

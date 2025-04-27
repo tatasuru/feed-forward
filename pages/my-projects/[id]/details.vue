@@ -34,15 +34,15 @@ const feedbackContents = ref<any[]>([]);
 const dashboardContents = [
   {
     title: "受け取ったフィードバック",
-    description: "先月比 -8 (20%)",
+    description: "",
     icon: "mdi:comment-check-outline",
-    value: 10,
+    value: "",
   },
   {
     title: "平均評価",
-    description: "先月比 +0.3 (7.7%)",
+    description: "",
     icon: "mdi:star-check",
-    value: 4.5,
+    value: "",
   },
 ];
 
@@ -63,6 +63,17 @@ try {
   const userFeedBack = await checkExistingFeedback();
 
   await getRatingPerCriteria();
+
+  // TODO: Add a function to get the average rating per criteria
+  dashboardContents[0].value = String(
+    projectWithFeedback.value.feedbacks.length
+  );
+
+  // TODO: Add a function to get the average rating
+  dashboardContents[1].value = (
+    ratingPerCriteria.value.reduce((acc, curr) => acc + curr.rating, 0) /
+    ratingPerCriteria.value.length
+  ).toFixed(1);
 
   if (userFeedBack?.exists) {
     userFeedBack.feedback.ratings.forEach(

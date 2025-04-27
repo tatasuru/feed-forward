@@ -85,7 +85,7 @@ const props = defineProps<{
             {{ format(new Date(props.feedback.created_at), "yyyy/MM/dd") }}
           </span>
         </div>
-        <div class="flex items-center gap-1">
+        <div v-if="isDashboard" class="flex items-center gap-1">
           <Icon
             name="mdi:file-document-outline"
             class="!size-4 text-muted-foreground"
@@ -93,11 +93,7 @@ const props = defineProps<{
           <span class="text-sm text-muted-foreground">
             {{ props.feedback.title }}
           </span>
-          <Badge
-            v-if="isDashboard"
-            variant="outline"
-            class="gradient-bg text-white rounded-full"
-          >
+          <Badge variant="outline" class="gradient-bg text-white rounded-full">
             {{ props.feedback.project_type }}
           </Badge>
         </div>

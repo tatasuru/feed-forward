@@ -75,7 +75,7 @@ const props = defineProps<{
       </div>
 
       <!-- date and user -->
-      <div class="flex flex-row items-center gap-4">
+      <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
         <div class="flex items-center gap-1">
           <Icon
             name="mdi:clock-outline"

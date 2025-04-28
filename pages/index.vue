@@ -14,6 +14,7 @@ type DashboardContent = {
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const projects = ref<MyProjectWithFeedback[]>([]);
+const activeProjects = ref<MyProjectWithFeedback[]>([]);
 const dashboardContents = ref<DashboardContent[]>([]);
 const feedbackContents = ref<any[]>([]);
 
@@ -33,6 +34,9 @@ try {
   }
 
   projects.value = data;
+  activeProjects.value = projects.value.filter(
+    (project) => project.status === "active"
+  );
   initDashboardContents(projects.value);
   initFeedbackContents(projects.value);
 } catch (error) {
@@ -200,10 +204,10 @@ function initFeedbackContents(projects: any[]) {
     <Tabs default-value="overview" class="w-full">
       <TabsList>
         <TabsTrigger value="overview" class="cursor-pointer">概要</TabsTrigger>
-        <TabsTrigger value="project" class="cursor-pointer">
+        <TabsTrigger value="project" class="cursor-pointer" disabled>
           プロジェクト
         </TabsTrigger>
-        <TabsTrigger value="feedback" class="cursor-pointer">
+        <TabsTrigger value="feedback" class="cursor-pointer" disabled>
           フィードバック
         </TabsTrigger>
       </TabsList>
@@ -216,32 +220,34 @@ function initFeedbackContents(projects: any[]) {
             description="過去7日間に受け取ったフィードバック"
             size="small"
           />
-          <div
-            v-if="feedbackContents.length"
-            class="p-0 md:p-5 flex flex-col gap-8"
-          >
-            <div
-              v-for="(feedback, index) in feedbackContents"
-              :key="index"
-              class="flex flex-col gap-8"
-            >
-              <FeedbackCard :feedback="feedback" :isDashboard="true" />
-              <Separator />
-            </div>
 
-            <Button variant="outline" class="w-full cursor-pointer">
-              すべてのフィードバックを表示
-            </Button>
+          <div
+            v-for="(feedback, index) in feedbackContents"
+            :key="index"
+            class="flex flex-col gap-6"
+            :class="feedback.feedback_ratings ? '' : 'hidden'"
+          >
+            <FeedbackCard :feedback="feedback" :isDashboard="true" />
+            <Separator />
           </div>
 
           <EmptyProjectCard
-            v-else
+            v-if="feedbackContents.length === 0"
             class="h-[300px] md:h-[400px] flex items-center justify-center"
             text="最近のフィードバックはありません"
             label="プロジェクトを作成してフィードバックを受け取る"
             icon="mdi:plus-circle-outline"
             link="/create-project"
           />
+
+          <Button
+            v-if="feedbackContents.length > 0"
+            variant="outline"
+            class="w-full cursor-pointer"
+            as-child
+          >
+            <NuxtLink to="/"> すべてのフィードバックを表示 </NuxtLink>
+          </Button>
         </div>
         <div
           class="border rounded-md md:p-6 p-4 flex flex-col gap-6 w-full md:w-2/5"
@@ -251,6 +257,33 @@ function initFeedbackContents(projects: any[]) {
             description="現在フィードバック募集中のプロジェクト"
             size="small"
           />
+
+          <div
+            v-for="(project, index) in activeProjects"
+            :key="index"
+            class="flex flex-col gap-6"
+          >
+            <ActiveProjectCard :project="project" />
+            <Separator />
+          </div>
+
+          <EmptyProjectCard
+            v-if="activeProjects.length === 0"
+            class="h-[300px] md:h-[400px] flex items-center justify-center"
+            text="進行中のプロジェクトはありません"
+            label="プロジェクトを作成してフィードバックを受け取る"
+            icon="mdi:plus-circle-outline"
+            link="/create-project"
+          />
+
+          <Button
+            v-if="activeProjects.length > 0"
+            variant="outline"
+            class="w-full cursor-pointer"
+            as-child
+          >
+            <NuxtLink to="/my-projects"> すべてのプロジェクトを表示 </NuxtLink>
+          </Button>
         </div>
       </TabsContent>
       <TabsContent value="project"> プロジェクト一覧 </TabsContent>

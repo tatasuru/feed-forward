@@ -531,7 +531,18 @@ function initFeedbackContents(projectWithFeedback: any) {
             <Separator />
           </div>
 
-          <Button as-child variant="main" class="w-full cursor-pointer">
+          <EmptyProjectCard
+            v-if="!projectWithFeedback.feedbacks.length"
+            class="h-[200px] md:h-[200px] flex items-center justify-center"
+            text="最近のフィードバックはありません"
+          />
+
+          <Button
+            v-if="projectWithFeedback.feedbacks.length > 3"
+            as-child
+            variant="main"
+            class="w-full cursor-pointer"
+          >
             <NuxtLink
               :to="`/my-projects/${projectWithFeedback.project.id}/feedback`"
               class="w-full"

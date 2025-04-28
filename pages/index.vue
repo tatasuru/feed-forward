@@ -226,7 +226,10 @@ function initFeedbackContents(projects: any[]) {
             description="過去7日間に受け取ったフィードバック"
             size="small"
           />
-          <div class="p-0 md:p-5 flex flex-col gap-8">
+          <div
+            v-if="feedbackContents.length"
+            class="p-0 md:p-5 flex flex-col gap-8"
+          >
             <div
               v-for="(feedback, index) in feedbackContents"
               :key="index"
@@ -240,6 +243,15 @@ function initFeedbackContents(projects: any[]) {
               すべてのフィードバックを表示
             </Button>
           </div>
+
+          <EmptyProjectCard
+            v-else
+            class="h-[300px] md:h-[400px] flex items-center justify-center"
+            text="最近のフィードバックはありません"
+            label="プロジェクトを作成してフィードバックを受け取る"
+            icon="mdi:plus-circle-outline"
+            link="/create-project"
+          />
         </div>
         <div
           class="border rounded-md md:p-6 p-4 flex flex-col gap-6 w-full md:w-2/5"

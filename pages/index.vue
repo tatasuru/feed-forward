@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type {
-  MyProjectWithFeedback,
-  FeedbackContents,
-} from "@/types/my-projects.types";
+import type { MyProjectWithFeedback } from "@/types/my-projects.types";
 definePageMeta({
   middleware: "auth",
 });
@@ -46,13 +43,11 @@ try {
  * HELPER FUNCTIONS
  *********************/
 function initDashboardContents(projects: MyProjectWithFeedback[]) {
-  // 今月のデータを計算
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
   const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
 
-  // 期限切れプロジェクト
   const overdueProjects = projects.filter(
     (project) =>
       project.deadline &&
@@ -60,19 +55,16 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
       project.status !== "completed"
   );
 
-  // 今月作成されたプロジェクト
   const thisMonthProjects = projects.filter(
     (project) => new Date(project.created_at) >= firstDayOfMonth
   );
 
-  // 先月作成されたプロジェクト
   const lastMonthProjects = projects.filter(
     (project) =>
       new Date(project.created_at) >= lastMonthStart &&
       new Date(project.created_at) <= lastMonthEnd
   );
 
-  // 今月受け取ったフィードバック
   const thisMonthFeedbacks = projects.reduce((acc, project) => {
     const feedbacks = project.feedbacks || [];
     const count = feedbacks.filter(
@@ -81,7 +73,6 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
     return acc + count;
   }, 0);
 
-  // 先月受け取ったフィードバック
   const lastMonthFeedbacks = projects.reduce((acc, project) => {
     const feedbacks = project.feedbacks || [];
     const count = feedbacks.filter(
@@ -92,7 +83,6 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
     return acc + count;
   }, 0);
 
-  // 増加率計算のヘルパー関数
   const calculateIncreasePercent = (
     current: number,
     previous: number
@@ -123,7 +113,7 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
     },
     {
       title: "平均評価",
-      description: `先月比 ±0%`, // 平均評価の変化計算は複雑なので簡略化
+      description: `先月比 ±0%`,
       icon: "mdi:star-check",
       value:
         projects.reduce(

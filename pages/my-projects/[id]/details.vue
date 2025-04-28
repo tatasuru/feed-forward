@@ -14,17 +14,11 @@ const badgeColors = {
   plan: "bg-purple/20 text-purple",
 };
 const progressBarColors = ["bg-pink", "bg-blue", "bg-purple"];
-const hoverStarIndexObj = ref<{
-  [key: number]: number;
-}>({
-  0: -1,
-  1: -1,
-  2: -1,
-});
 const isAlreadyRated = ref<boolean>(false);
 const currentFeedbackId = ref<string | null>(null);
 const ratingPerCriteria = ref<
   {
+    title: string;
     criteria_id: string;
     rating: number;
   }[]
@@ -49,47 +43,48 @@ const dashboardContents = [
 /******************************
  * Lifecycle Hooks
  ******************************/
-// Fetch project details and link preview
 try {
+  // Fetch project details and link preview
   projectWithFeedback.value = await getProjectDetails(id as string);
   preview.value = await getLinkPreview(
     projectWithFeedback.value.project.resource_url
   );
 
-  initFeedbackContents(projectWithFeedback.value);
-
+  // initialize ratings
   const initialRatings: Record<number, number> = {};
+  projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
+    initialRatings[index] = -1;
+  });
 
+  // Check if the user has already given feedback
   const userFeedBack = await checkExistingFeedback();
 
-  await getRatingPerCriteria();
+  // Get feedback ratings
+  ratingPerCriteria.value = await getRatingPerCriteria();
 
-  // TODO: Add a function to get the average rating per criteria
-  dashboardContents[0].value = String(
-    projectWithFeedback.value.feedbacks.length
-  );
+  if (userFeedBack?.exists && userFeedBack.feedback.ratings) {
+    const ratingsByCriteriaId: Record<string, any> = {};
+    userFeedBack.feedback.ratings.forEach((rating: any) => {
+      ratingsByCriteriaId[rating.criteria_id] = rating;
+    });
 
-  // TODO: Add a function to get the average rating
-  dashboardContents[1].value = (
-    ratingPerCriteria.value.reduce((acc, curr) => acc + curr.rating, 0) /
-    ratingPerCriteria.value.length
-  ).toFixed(1);
-
-  if (userFeedBack?.exists) {
-    userFeedBack.feedback.ratings.forEach(
-      (rating: { rating: number }, index: number) => {
+    projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
+      const rating = ratingsByCriteriaId[criteria.id];
+      if (rating) {
         initialRatings[index] = rating.rating;
-        hoverStarIndexObj.value[index] = rating.rating - 1;
       }
-    );
+    });
+
     isAlreadyRated.value = true;
   } else {
-    projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
-      initialRatings[index] = -1;
-      hoverStarIndexObj.value[index] = -1;
-    });
     isAlreadyRated.value = false;
   }
+
+  // initialize feedback analytics contents
+  initDashboardContents();
+
+  // initialize feedback contents
+  initFeedbackContents();
 } catch (error) {
   console.error("Error fetching project details or link preview:", error);
 }
@@ -205,11 +200,11 @@ async function getUserFeedback() {
 }
 
 async function getRatingPerCriteria() {
-  const ratingAvgByCriteriaId: Record<string, number> = {};
   const feedbacks = projectWithFeedback.value.feedbacks || [];
-
+  const ratingAvgByCriteriaId: Record<string, number> = {};
   const ratingCountByCriteriaId: Record<string, number> = {};
 
+  // 1. insert feedbacks into each criteria variable
   feedbacks.forEach((feedback) => {
     feedback.ratings.forEach((rating) => {
       if (!ratingAvgByCriteriaId[rating.criteria_id]) {
@@ -221,6 +216,7 @@ async function getRatingPerCriteria() {
     });
   });
 
+  // 2. calculate average rating for each criteria
   Object.keys(ratingAvgByCriteriaId).forEach((criteriaId) => {
     if (ratingCountByCriteriaId[criteriaId] > 0) {
       ratingAvgByCriteriaId[criteriaId] =
@@ -228,41 +224,50 @@ async function getRatingPerCriteria() {
     }
   });
 
-  ratingPerCriteria.value = projectWithFeedback.value.evaluation_criteria.map(
-    (criteria) => {
+  // 3. set the average rating to the ratingPerCriteria
+  return projectWithFeedback.value.evaluation_criteria.map((criteria) => {
+    return {
+      title: criteria.name,
+      criteria_id: criteria.id,
+      rating: ratingAvgByCriteriaId[criteria.id] || 0,
+    };
+  });
+}
+
+function initDashboardContents() {
+  dashboardContents[0].value = String(
+    projectWithFeedback.value.feedbacks.length
+  );
+  dashboardContents[1].value = (
+    ratingPerCriteria.value.reduce((acc, curr) => acc + curr.rating, 0) /
+    ratingPerCriteria.value.length
+  ).toFixed(1);
+}
+
+function initFeedbackContents() {
+  feedbackContents.value = projectWithFeedback.value.feedbacks.map(
+    (feedback) => {
       return {
-        criteria_id: criteria.id,
-        rating: ratingAvgByCriteriaId[criteria.id] || 0,
+        id: feedback.id,
+        title: feedback.overall_comment,
+        description: feedback.overall_comment,
+        created_at: feedback.created_at.toString(),
+        feedback_ratings: feedback.ratings.map((fb: any, index: number) => ({
+          title: ratingPerCriteria.value[index].title,
+          rating: ratingPerCriteria.value[index].rating || 0,
+          created_at: feedback.created_at.toString(),
+          user_id: fb.user_id || "",
+        })),
+        overall_comment: feedback.overall_comment,
+        project_type: projectWithFeedback.value.project.project_type,
+        user: {
+          id: feedback.user?.id || "",
+          display_name: feedback.user?.display_name || "Unknown User",
+          avatar_url: feedback.user?.avatar_url || "",
+        },
       };
     }
   );
-}
-
-function initFeedbackContents(projectWithFeedback: any) {
-  const project = projectWithFeedback.project;
-  const feedbacks = projectWithFeedback.feedbacks || [];
-
-  feedbackContents.value = feedbacks.map((feedback: any, index: number) => ({
-    id: project.id,
-    title: project.title,
-    description: project.description,
-    created_at: project.created_at.toString(),
-    feedback_ratings: feedbacks[index].ratings.map(
-      (fb: any, index: number) => ({
-        title: feedbacks[0].ratings[index].criteria.name,
-        rating: Number(fb.rating),
-        created_at: feedbacks[0].created_at.toString(),
-        user_id: fb.user_id || "",
-      })
-    ),
-    overall_comment: feedback.overall_comment,
-    project_type: project.project_type,
-    user: {
-      id: feedback.user?.id,
-      display_name: feedback.user?.display_name || "Unknown User",
-      avatar_url: feedback.user?.avatar_url || "default-avatar.png",
-    },
-  }));
 }
 </script>
 
@@ -459,7 +464,9 @@ function initFeedbackContents(projectWithFeedback: any) {
                 class="flex flex-col gap-2"
               >
                 <div class="flex justify-between items-center">
-                  <p class="text-sm">{{ criteria.name }}</p>
+                  <p class="text-sm">
+                    {{ criteria.name }}
+                  </p>
                   <p class="text-sm">
                     平均:
                     {{

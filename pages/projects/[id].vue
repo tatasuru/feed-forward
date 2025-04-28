@@ -80,32 +80,32 @@ const onSubmit = form.handleSubmit(async (values) => {
 /******************************
  * Lifecycle Hooks
  ******************************/
-// Fetch project details and link preview
 try {
+  // Fetch project details and link preview
   projectWithFeedback.value = await getProjectDetails(id as string);
   preview.value = await getLinkPreview(
     projectWithFeedback.value.project.resource_url
   );
 
+  // initialize ratings
   const initialRatings: Record<number, number> = {};
-
-  // まず全ての評価項目にデフォルト値を設定
   projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
     initialRatings[index] = -1;
     hoverStarIndexObj.value[index] = -1;
   });
 
+  // Check if the user has already given feedback
   const userFeedBack = await checkExistingFeedback();
-  await getRatingPerCriteria();
+
+  // Get feedback ratings
+  ratingPerCriteria.value = await getRatingPerCriteria();
 
   if (userFeedBack?.exists && userFeedBack.feedback.ratings) {
-    // 評価基準IDごとの評価値マップを作成
     const ratingsByCriteriaId: Record<string, any> = {};
     userFeedBack.feedback.ratings.forEach((rating: any) => {
       ratingsByCriteriaId[rating.criteria_id] = rating;
     });
 
-    // 評価基準の順序に従って評価値を設定
     projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
       const rating = ratingsByCriteriaId[criteria.id];
       if (rating) {
@@ -224,6 +224,7 @@ async function submitFeedback(values: {
         throw error;
       }
 
+      isAlreadyRated.value = true;
       return data.feedback_id;
     }
   } catch (error) {
@@ -277,8 +278,8 @@ async function getUserFeedback() {
         ratings: {},
       };
 
+      // set initial values for ratings
       if (feedback.ratings && feedback.ratings.length > 0) {
-        // 各評価基準のインデックスと評価値のマッピングを作成
         projectWithFeedback.value.evaluation_criteria.forEach(
           (criteria, index) => {
             const matchingRating = feedback.ratings.find(
@@ -311,11 +312,11 @@ async function getUserFeedback() {
 }
 
 async function getRatingPerCriteria() {
-  const ratingAvgByCriteriaId: Record<string, number> = {};
   const feedbacks = projectWithFeedback.value.feedbacks || [];
-
+  const ratingAvgByCriteriaId: Record<string, number> = {};
   const ratingCountByCriteriaId: Record<string, number> = {};
 
+  // 1. insert feedbacks into each criteria variable
   feedbacks.forEach((feedback) => {
     feedback.ratings.forEach((rating) => {
       if (!ratingAvgByCriteriaId[rating.criteria_id]) {
@@ -327,6 +328,7 @@ async function getRatingPerCriteria() {
     });
   });
 
+  // 2. calculate average rating for each criteria
   Object.keys(ratingAvgByCriteriaId).forEach((criteriaId) => {
     if (ratingCountByCriteriaId[criteriaId] > 0) {
       ratingAvgByCriteriaId[criteriaId] =
@@ -334,14 +336,13 @@ async function getRatingPerCriteria() {
     }
   });
 
-  ratingPerCriteria.value = projectWithFeedback.value.evaluation_criteria.map(
-    (criteria) => {
-      return {
-        criteria_id: criteria.id,
-        rating: ratingAvgByCriteriaId[criteria.id] || 0,
-      };
-    }
-  );
+  // 3. set the average rating to the ratingPerCriteria
+  return projectWithFeedback.value.evaluation_criteria.map((criteria) => {
+    return {
+      criteria_id: criteria.id,
+      rating: ratingAvgByCriteriaId[criteria.id] || 0,
+    };
+  });
 }
 </script>
 

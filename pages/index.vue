@@ -259,7 +259,13 @@ watch(
           class="w-full cursor-pointer"
           as-child
         >
-          <NuxtLink to="/"> すべてのフィードバックを表示 </NuxtLink>
+          <NuxtLink
+            :to="{
+              path: '/my-projects/feedbacks',
+            }"
+          >
+            すべてのフィードバックを表示
+          </NuxtLink>
         </Button>
       </div>
 

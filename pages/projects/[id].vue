@@ -317,9 +317,9 @@ async function checkExistingFeedback() {
 
 async function getUserFeedback() {
   try {
-    const { data, error } = await supabase.rpc("get_user_feedback", {
-      p_project_id: id,
+    const { data, error } = await supabase.rpc("get_user_provided_feedback", {
       p_user_id: supabaseUser.value?.id,
+      p_project_id: id,
     });
 
     if (error) {
@@ -328,7 +328,7 @@ async function getUserFeedback() {
     }
 
     if (data) {
-      const feedback = data[0];
+      const feedback = data.feedbacks[0];
 
       const initialValues: Record<string, any> = {
         overallComment: feedback.overall_comment || "",

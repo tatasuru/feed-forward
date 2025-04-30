@@ -6,10 +6,14 @@ const user = useSupabaseUser();
 const { project_id } = useRoute().query;
 
 const isLoading = ref<boolean>(false);
-const projectWithFeedback = computed<AllProjectWithFeedback>(() => {
-  return projectsData.value as AllProjectWithFeedback;
-});
-const feedbackContents = ref<any[]>([]);
+const selectItems = ref<{ value: string; label: string }[]>([
+  {
+    value: "all",
+    label: "すべて",
+  },
+]);
+const projectWithFeedback = ref<AllProjectWithFeedback>();
+const feedbackContents = ref<any>();
 const ratingPerCriteria = ref<
   {
     title: string;
@@ -21,6 +25,32 @@ const ratingPerCriteria = ref<
 /******************************
  * Lifecycle Hooks
  ******************************/
+const { data: selectItem } = await useAsyncData(
+  "myProjectSelectItems",
+  async () => {
+    try {
+      isLoading.value = true;
+
+      // 1. get project data
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, title")
+        .eq("user_id", user.value?.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw new Error(error.message);
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      return [];
+    }
+  },
+  {
+    server: true,
+  }
+);
+
 const { data: projectsData } = await useAsyncData(
   "myProjectDetails",
   async () => {
@@ -30,10 +60,11 @@ const { data: projectsData } = await useAsyncData(
       // 1. get project data
       const { data, error } = await supabase.rpc("get_user_feedback", {
         p_user_id: user.value?.id,
-        p_project_id: project_id ? project_id : "",
+        p_project_id: project_id,
       });
 
       if (error) throw new Error(error.message);
+
       return data as AllProjectWithFeedback;
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -49,6 +80,11 @@ const { data: relatedData } = await useAsyncData(
   "myProjectRelatedData",
   async () => {
     try {
+      projectWithFeedback.value =
+        projectsData.value && Array.isArray(projectsData.value) === false
+          ? projectsData.value
+          : undefined;
+
       const ratingPerCriteria = await getRatingPerCriteria();
 
       return ratingPerCriteria;
@@ -77,17 +113,34 @@ watch(
   }
 );
 
+watch(
+  selectItem,
+  (newData) => {
+    if (!newData) return;
+
+    selectItems.value.push(
+      ...newData.map((item: { id: string; title: string }) => ({
+        value: item.id,
+        label: item.title,
+      }))
+    );
+  },
+  {
+    immediate: true,
+  }
+);
+
 /*****************************
  * HELPER FUNCTIONS
  *****************************/
 async function getRatingPerCriteria() {
-  const projects = projectWithFeedback.value.projects;
-  const feedbacks = projectWithFeedback.value.feedbacks;
+  const projects = projectWithFeedback.value?.projects;
+  const feedbacks = projectWithFeedback.value?.feedbacks;
   const ratingAvgByCriteriaId: Record<string, number> = {};
   const ratingCountByCriteriaId: Record<string, number> = {};
 
   // 1. insert feedbacks into each criteria variable
-  feedbacks.map((feedback) => {
+  feedbacks?.map((feedback) => {
     feedback.ratings.forEach((rating) => {
       if (!ratingAvgByCriteriaId[rating.criteria_id]) {
         ratingAvgByCriteriaId[rating.criteria_id] = 0;
@@ -107,7 +160,7 @@ async function getRatingPerCriteria() {
   });
 
   // 3. set the average rating to the ratingPerCriteria
-  return projects.map((project) => {
+  return projects?.map((project) => {
     return project.evaluation_criteria.map((criteria) => {
       return {
         title: criteria.name,
@@ -119,23 +172,23 @@ async function getRatingPerCriteria() {
 }
 
 function initFeedbackContents() {
-  const projects = projectWithFeedback.value.projects;
-  const feedbacks = projectWithFeedback.value.feedbacks;
+  const projects = projectWithFeedback.value?.projects;
+  const feedbacks = projectWithFeedback.value?.feedbacks;
 
-  feedbackContents.value = feedbacks.map((feedback, feedbackIndex) => {
+  feedbackContents.value = feedbacks?.map((feedback, feedbackIndex) => {
     return {
       id: feedback.id,
-      title: projects[feedbackIndex].project.title,
+      title: projects?.[feedbackIndex]?.project?.title,
       description: feedback.overall_comment,
       created_at: feedback.created_at.toString(),
       feedback_ratings: feedback.ratings.map((fb: any, index: number) => ({
-        title: projects[feedbackIndex].evaluation_criteria[index].name,
+        title: projects?.[feedbackIndex].evaluation_criteria[index].name,
         rating: fb.rating,
         created_at: feedback.created_at.toString(),
         user_id: feedback.user?.id || null,
       })),
       overall_comment: feedback.overall_comment,
-      project_type: projects[feedbackIndex].project.project_type,
+      project_type: projects?.[feedbackIndex].project.project_type,
       user: {
         id: feedback.user?.id || "",
         display_name: feedback.user?.display_name || "Unknown User",
@@ -143,6 +196,25 @@ function initFeedbackContents() {
       },
     };
   });
+}
+
+async function selectProject(projectId: string) {
+  // 1. get project data
+  const { data, error } = await supabase.rpc("get_user_feedback", {
+    p_user_id: user.value?.id,
+    p_project_id: projectId !== "all" ? projectId : null,
+  });
+
+  if (error) throw new Error(error.message);
+
+  projectWithFeedback.value = data;
+
+  // 2. get the rating per criteria
+  const criteriaRatings = await getRatingPerCriteria();
+  ratingPerCriteria.value = criteriaRatings?.flat() || [];
+
+  // 3. set the project data to the feedbackContents
+  initFeedbackContents();
 }
 </script>
 
@@ -155,7 +227,9 @@ function initFeedbackContents() {
     />
 
     <Tabs default-value="all" class="w-full gap-8">
-      <div class="flex items-center justify-between">
+      <div
+        class="flex flex-col-reverse md:flex-row md:items-center gap-4 justify-between"
+      >
         <TabsList class="w-full md:w-[400px]">
           <TabsTrigger value="all" class="cursor-pointer"> すべて </TabsTrigger>
           <TabsTrigger value="high-evaluation" class="cursor-pointer">
@@ -168,19 +242,22 @@ function initFeedbackContents() {
             最近のフィードバック
           </TabsTrigger>
         </TabsList>
-        <Select>
-          <SelectTrigger class="cursor-pointer">
+        <Select
+          :default-value="project_id ? project_id : 'all'"
+          @update:model-value="selectProject"
+        >
+          <SelectTrigger class="cursor-pointer w-full md:w-[200px]">
             <SelectValue placeholder="プロジェクトを選択" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectItem
-                v-for="(project, index) in projectWithFeedback?.projects"
+                v-for="(item, index) in selectItems"
                 :key="index"
-                :value="project.project.id"
+                :value="item.value"
                 class="cursor-pointer"
               >
-                {{ project.project.title }}
+                {{ item.label }}
               </SelectItem>
             </SelectGroup>
           </SelectContent>

@@ -58,7 +58,9 @@ const visibilityTypes = [
       "プライベート（招待した人のみ閲覧・フィードバック可能） (有料版のみ)",
   },
 ];
-const evaluationTypes = ref<CriteriaTemplate[]>([]);
+const evaluationTypes = computed<CriteriaTemplate[]>(() => {
+  return criteriaTemplates.value as CriteriaTemplate[];
+});
 const criteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
 const dateValue = ref<string>("");
 const selectedDateValue = ref<DateValue>();
@@ -74,11 +76,25 @@ const formRef = ref<HTMLElement | null>(null);
 /********************************
  * Lifecycle hooks
  ********************************/
-try {
-  evaluationTypes.value = await getCriteriaTemplate(true);
-} catch (error) {
-  console.error("Error fetching evaluation types:", error);
-}
+const { data: criteriaTemplates } = useAsyncData(
+  "criteriaTemplates",
+  async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_criteria_templates", {
+        p_evaluation_type: "",
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching criteria templates:", error);
+      return [];
+    }
+  }
+);
 
 // for form initialization by using existing project data
 onMounted(async () => {
@@ -167,22 +183,6 @@ async function updateProject(projectId: string, projectData: ProjectData) {
 /********************************
  * HELPER FUNCTIONS
  ********************************/
-async function getCriteriaTemplate(isAll: boolean) {
-  try {
-    const { data, error } = await supabase.rpc("get_criteria_templates", {
-      p_evaluation_type: isAll ? "" : form.values.evaluationType,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching criteria templates:", error);
-  }
-}
-
 function selectCriteriaTemplate() {
   const selectedTemplate = evaluationTypes.value.find(
     (template) => template.evaluation_type === form.values.evaluationType

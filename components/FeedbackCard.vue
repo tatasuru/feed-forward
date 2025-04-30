@@ -13,7 +13,7 @@ const props = defineProps<{
       user_id: string | null;
     }>;
     overall_comment: string | null;
-    project_type: string;
+    project_type: "design" | "demo" | "plan";
     user: {
       id: string;
       display_name: string | null;
@@ -22,6 +22,12 @@ const props = defineProps<{
   };
   isDashboard?: boolean;
 }>();
+
+const badgeColors = {
+  design: "bg-blue/20 text-blue",
+  demo: "bg-pink/20 text-pink",
+  plan: "bg-purple/20 text-purple",
+};
 </script>
 
 <template>
@@ -93,7 +99,11 @@ const props = defineProps<{
           <span class="text-sm text-muted-foreground">
             {{ props.feedback.title }}
           </span>
-          <Badge variant="outline" class="gradient-bg text-white rounded-full">
+          <Badge
+            variant="default"
+            class="text-xs rounded-full border"
+            :class="badgeColors[props.feedback.project_type]"
+          >
             {{ props.feedback.project_type }}
           </Badge>
         </div>

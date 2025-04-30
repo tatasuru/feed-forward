@@ -68,7 +68,7 @@ const { data: projectsData } = await useAsyncData(
   }
 );
 
-const { data: relatedData } = useAsyncData(
+const { data: relatedData } = await useAsyncData(
   "myProjectRelatedData",
   async () => {
     if (!projectsData.value)
@@ -111,28 +111,32 @@ const { data: relatedData } = useAsyncData(
   }
 );
 
-watch(relatedData, (newData) => {
-  if (!newData) return;
+watch(
+  relatedData,
+  (newData) => {
+    if (!newData) return;
 
-  // 1. set preview data
-  preview.value = newData.preview;
+    // 1. set preview data
+    preview.value = newData.preview;
 
-  // 2. check if user feedback exists
-  if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
-    isAlreadyRated.value = true;
-  } else {
-    isAlreadyRated.value = false;
-  }
+    // 2. check if user feedback exists
+    if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
+      isAlreadyRated.value = true;
+    } else {
+      isAlreadyRated.value = false;
+    }
 
-  // 3. set rating per criteria
-  ratingPerCriteria.value = newData.ratingPerCriteria || [];
+    // 3. set rating per criteria
+    ratingPerCriteria.value = newData.ratingPerCriteria || [];
 
-  // 4.initialize feedback analytics contents
-  initDashboardContents();
+    // 4.initialize feedback analytics contents
+    initDashboardContents();
 
-  // 5.initialize feedback contents
-  initFeedbackContents();
-});
+    // 5.initialize feedback contents
+    initFeedbackContents();
+  },
+  { immediate: true }
+);
 
 /******************************
  * HELPER FUNCTIONS
@@ -489,7 +493,7 @@ function initFeedbackContents() {
               <div
                 v-for="(
                   criteria, index
-                ) in projectWithFeedback.evaluation_criteria"
+                ) in projectWithFeedback?.evaluation_criteria"
                 class="flex flex-col gap-2"
               >
                 <div class="flex justify-between items-center">

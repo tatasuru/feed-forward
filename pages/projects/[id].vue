@@ -83,7 +83,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 /******************************
  * Lifecycle Hooks
  ******************************/
-const { data: projectDetails } = useAsyncData(
+const { data: projectDetails } = await useAsyncData(
   "projectDetails",
   async () => {
     try {
@@ -103,7 +103,7 @@ const { data: projectDetails } = useAsyncData(
   }
 );
 
-const { data: relatedData } = useAsyncData(
+const { data: relatedData } = await useAsyncData(
   "projectRelatedData",
   async () => {
     if (!projectDetails.value)
@@ -147,61 +147,65 @@ const { data: relatedData } = useAsyncData(
   }
 );
 
-watch(relatedData, (newData) => {
-  if (!newData) return;
+watch(
+  relatedData,
+  (newData) => {
+    if (!newData) return;
 
-  // 1. set preview data
-  preview.value = newData.preview;
+    // 1. set preview data
+    preview.value = newData.preview;
 
-  // 2. check if user feedback exists
-  if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
-    isAlreadyRated.value = true;
-  } else {
-    isAlreadyRated.value = false;
-  }
+    // 2. check if user feedback exists
+    if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
+      isAlreadyRated.value = true;
+    } else {
+      isAlreadyRated.value = false;
+    }
 
-  // 3. set rating per criteria
-  ratingPerCriteria.value = newData.ratingPerCriteria || [];
+    // 3. set rating per criteria
+    ratingPerCriteria.value = newData.ratingPerCriteria || [];
 
-  // 4. set initial values for ratings
-  const initialRatings: Record<number, number> = {};
-  projectWithFeedback.value?.evaluation_criteria.forEach((_, index) => {
-    initialRatings[index] = -1;
-    hoverStarIndexObj.value[index] = -1;
-  });
-
-  if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
-    const ratingsByCriteriaId: Record<string, any> = {};
-    newData.userFeedBack.feedback.ratings.forEach((rating: any) => {
-      ratingsByCriteriaId[rating.criteria_id] = rating;
+    // 4. set initial values for ratings
+    const initialRatings: Record<number, number> = {};
+    projectWithFeedback.value?.evaluation_criteria.forEach((_, index) => {
+      initialRatings[index] = -1;
+      hoverStarIndexObj.value[index] = -1;
     });
 
-    projectWithFeedback.value?.evaluation_criteria.forEach(
-      (criteria, index) => {
-        const rating = ratingsByCriteriaId[criteria.id];
-        if (rating) {
-          initialRatings[index] = rating.rating;
-          hoverStarIndexObj.value[index] = rating.rating - 1;
+    if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
+      const ratingsByCriteriaId: Record<string, any> = {};
+      newData.userFeedBack.feedback.ratings.forEach((rating: any) => {
+        ratingsByCriteriaId[rating.criteria_id] = rating;
+      });
+
+      projectWithFeedback.value?.evaluation_criteria.forEach(
+        (criteria, index) => {
+          const rating = ratingsByCriteriaId[criteria.id];
+          if (rating) {
+            initialRatings[index] = rating.rating;
+            hoverStarIndexObj.value[index] = rating.rating - 1;
+          }
         }
-      }
+      );
+
+      isAlreadyRated.value = true;
+    } else {
+      isAlreadyRated.value = false;
+    }
+
+    // Set initial values for ratings
+    form.setFieldValue(
+      "overallComment",
+      newData.userFeedBack?.feedback.overall_comment || ""
     );
-
-    isAlreadyRated.value = true;
-  } else {
-    isAlreadyRated.value = false;
-  }
-
-  // Set initial values for ratings
-  form.setFieldValue(
-    "overallComment",
-    newData.userFeedBack?.feedback.overall_comment || ""
-  );
-  form.setFieldValue(
-    "isAnonymous",
-    newData.userFeedBack?.feedback.is_anonymous || false
-  );
-  form.setFieldValue("ratings", initialRatings);
-});
+    form.setFieldValue(
+      "isAnonymous",
+      newData.userFeedBack?.feedback.is_anonymous || false
+    );
+    form.setFieldValue("ratings", initialRatings);
+  },
+  { immediate: true }
+);
 
 /******************************
  * HELPER FUNCTIONS
@@ -566,7 +570,7 @@ async function getRatingPerCriteria() {
               <div
                 v-for="(
                   criteria, index
-                ) in projectWithFeedback.evaluation_criteria"
+                ) in projectWithFeedback?.evaluation_criteria"
                 class="flex flex-col gap-2"
               >
                 <div class="flex justify-between items-center">
@@ -622,7 +626,7 @@ async function getRatingPerCriteria() {
           <FormField
             v-for="(
               criteria, criteriaIndex
-            ) in projectWithFeedback.evaluation_criteria"
+            ) in projectWithFeedback?.evaluation_criteria"
             v-slot="{ componentField }"
             :name="`ratings.${criteriaIndex}`"
           >

@@ -43,7 +43,7 @@ const averageRating = computed(() => {
 </script>
 
 <template>
-  <Card class="grid grid-template-subgrid row-span-3">
+  <Card class="grid grid-rows-[1fr_auto_auto] row-span-3">
     <CardHeader>
       <div class="flex items-start justify-between">
         <div class="flex flex-col gap-2">

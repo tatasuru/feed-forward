@@ -171,7 +171,7 @@ async function updateProject(projectId: string, projectData: ProjectData) {
       throw error;
     }
 
-    navigateTo(`/my-projects/${projectId}`);
+    navigateTo(`/my-projects/${projectId}/details`);
 
     return data;
   } catch (error) {

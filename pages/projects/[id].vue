@@ -437,7 +437,7 @@ async function getRatingPerCriteria() {
             name="mdi:calendar-month"
             class="!size-4 text-muted-foreground"
           />
-          <span class="text-sm text-muted-foreground">
+          <span class="text-xs md:text-sm text-muted-foreground">
             作成日:
             {{
               format(
@@ -456,7 +456,7 @@ async function getRatingPerCriteria() {
             name="mdi:clock-remove-outline"
             class="!size-4 text-muted-foreground"
           />
-          <span class="text-sm text-muted-foreground">
+          <span class="text-xs md:text-sm text-muted-foreground">
             期限:
             {{
               format(

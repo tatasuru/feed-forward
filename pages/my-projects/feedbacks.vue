@@ -270,13 +270,13 @@ async function selectProject(projectId: string) {
           v-if="feedbackContents?.length"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
-          <div
+          <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
+            :feedback="feedback"
+            :isDashboard="true"
             class="border rounded-lg p-4"
-          >
-            <FeedbackCard :feedback="feedback" :isDashboard="true" />
-          </div>
+          />
         </div>
 
         <EmptyProjectCard
@@ -294,13 +294,13 @@ async function selectProject(projectId: string) {
           v-if="feedbackContents?.length"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
-          <div
+          <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
+            :feedback="feedback"
+            :isDashboard="true"
             class="border rounded-lg p-4"
-          >
-            <FeedbackCard :feedback="feedback" :isDashboard="true" />
-          </div>
+          />
         </div>
 
         <EmptyProjectCard
@@ -315,13 +315,13 @@ async function selectProject(projectId: string) {
           v-if="feedbackContents?.length"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
-          <div
+          <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
+            :feedback="feedback"
+            :isDashboard="true"
             class="border rounded-lg p-4"
-          >
-            <FeedbackCard :feedback="feedback" :isDashboard="true" />
-          </div>
+          />
         </div>
 
         <EmptyProjectCard
@@ -339,13 +339,13 @@ async function selectProject(projectId: string) {
           v-if="feedbackContents?.length"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
-          <div
+          <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
+            :feedback="feedback"
+            :isDashboard="true"
             class="border rounded-lg p-4"
-          >
-            <FeedbackCard :feedback="feedback" :isDashboard="true" />
-          </div>
+          />
         </div>
 
         <EmptyProjectCard

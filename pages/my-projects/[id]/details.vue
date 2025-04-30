@@ -80,10 +80,10 @@ const { data: relatedData } = await useAsyncData(
         projectWithFeedback.value.project.resource_url
       );
 
-      // 3.get rating per criteria
+      // 2.get rating per criteria
       const ratingPerCriteria = await getRatingPerCriteria();
 
-      // 4. set loading to false
+      // 3. set loading to false
       isLoading.value = false;
 
       return {
@@ -255,7 +255,7 @@ function initFeedbackContents() {
               name="mdi:calendar-month"
               class="!size-4 text-muted-foreground"
             />
-            <span class="text-sm text-muted-foreground">
+            <span class="text-xs md:text-sm text-muted-foreground">
               作成日:
               {{
                 format(
@@ -274,7 +274,7 @@ function initFeedbackContents() {
               name="mdi:clock-remove-outline"
               class="!size-4 text-muted-foreground"
             />
-            <span class="text-sm text-muted-foreground">
+            <span class="text-xs md:text-sm text-muted-foreground">
               期限:
               {{
                 format(

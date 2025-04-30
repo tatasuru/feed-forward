@@ -33,20 +33,17 @@ const badgeColors = {
 <template>
   <div
     v-if="props.feedback.feedback_ratings"
-    class="flex items-start gap-4 cursor-pointer"
+    class="grid grid-cols-[40px_1fr] gap-4 cursor-pointer grid-rows-[1fr_auto_auto] h-full"
   >
-    <!-- avatar -->
-    <div class="flex items-center gap-1">
-      <Avatar class="!size-10">
-        <AvatarImage
-          :src="props.feedback?.user.avatar_url!"
-          alt="User Avatar"
-        />
-        <AvatarFallback>U</AvatarFallback>
-      </Avatar>
-    </div>
-    <div class="flex flex-col gap-4 w-full">
-      <!-- description -->
+    <!-- avatar - spans all 3 rows -->
+    <Avatar class="!size-10 self-start row-span-3">
+      <AvatarImage :src="props.feedback?.user.avatar_url!" alt="User Avatar" />
+      <AvatarFallback>U</AvatarFallback>
+    </Avatar>
+
+    <!-- Main content - uses subgrid -->
+    <div class="grid grid-rows-subgrid row-span-3 gap-4">
+      <!-- description - first row -->
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <h3 class="text-base md:text-lg font-bold">
@@ -59,7 +56,7 @@ const badgeColors = {
         </p>
       </div>
 
-      <!-- rating -->
+      <!-- rating - second row -->
       <div
         v-if="props.feedback.feedback_ratings.length"
         class="flex flex-col gap-2"
@@ -69,18 +66,23 @@ const badgeColors = {
           :key="index"
           class="flex items-center gap-1"
         >
-          <span class="text-sm text-muted-foreground">{{ rating.title }}:</span>
+          <span class="text-sm text-muted-foreground min-w-24">
+            {{ rating.title }}:
+          </span>
           <div class="flex items-center gap-1">
             <Icon
-              v-for="i in rating.rating"
+              v-for="i in 5"
+              :key="i"
               name="mdi:star"
-              :class="`!size-4 text-${i > 0 ? 'yellow' : 'gray'}-500`"
+              :class="`!size-4 text-${
+                i <= rating.rating ? 'yellow-500' : 'muted-foreground'
+              }`"
             />
           </div>
         </div>
       </div>
 
-      <!-- date and user -->
+      <!-- date and user - third row -->
       <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
         <div class="flex items-center gap-1">
           <Icon

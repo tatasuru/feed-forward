@@ -6,34 +6,38 @@ definePageMeta({
 });
 
 const supabase = useSupabaseClient();
-const myProjects = ref<MyProject[]>([]);
-const myActiveProjects = ref<MyProject[]>([]);
-const myDraftProjects = ref<MyProject[]>([]);
-const myCompletedProjects = ref<MyProject[]>([]);
-const myContributedProjects = ref<MyProject[]>([]);
-
-try {
-  const { data, error } = await supabase.rpc("get_my_projects");
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  // set the data to the ref variables
-  myProjects.value = data.created_projects;
-  myContributedProjects.value = data.contributed_projects;
-  myActiveProjects.value = myProjects.value.filter(
-    (project: MyProject) => project.status === "active"
-  );
-  myDraftProjects.value = myProjects.value.filter(
-    (project: MyProject) => project.status === "draft"
-  );
-  myCompletedProjects.value = myProjects.value.filter(
+const myProjects = computed<MyProject[]>(
+  () => projectsData.value.created_projects || []
+);
+const myActiveProjects = computed<MyProject[]>(() =>
+  myProjects.value.filter((project: MyProject) => project.status === "active")
+);
+const myDraftProjects = computed<MyProject[]>(() =>
+  myProjects.value.filter((project: MyProject) => project.status === "draft")
+);
+const myCompletedProjects = computed<MyProject[]>(() =>
+  myProjects.value.filter(
     (project: MyProject) => project.status === "completed"
-  );
-} catch (error) {
-  console.error("Error fetching projects:", error);
-}
+  )
+);
+
+const { data: projectsData } = await useAsyncData(
+  "myProjectsList",
+  async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_my_projects");
+
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      return [];
+    }
+  },
+  {
+    server: true,
+  }
+);
 </script>
 
 <template>

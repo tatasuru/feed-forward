@@ -7,7 +7,9 @@ const supabase = useSupabaseClient();
 const supabaseUser = useSupabaseUser();
 const preview = ref();
 
-const projectWithFeedback = ref<ProjectWithFeedback>({} as ProjectWithFeedback);
+const projectWithFeedback = computed<ProjectWithFeedback>(() => {
+  return projectsData.value as ProjectWithFeedback;
+});
 const badgeColors = {
   design: "bg-blue/20 text-blue",
   demo: "bg-pink/20 text-pink",
@@ -24,90 +26,117 @@ const ratingPerCriteria = ref<
   }[]
 >([]);
 const feedbackContents = ref<any[]>([]);
-
 const dashboardContents = [
   {
     title: "受け取ったフィードバック",
     description: "",
     icon: "mdi:comment-check-outline",
-    value: "",
+    value: "---",
   },
   {
     title: "平均評価",
     description: "",
     icon: "mdi:star-check",
-    value: "",
+    value: "---",
   },
 ];
+const isLoading = ref<boolean>(false);
 
 /******************************
  * Lifecycle Hooks
  ******************************/
-try {
-  // Fetch project details and link preview
-  projectWithFeedback.value = await getProjectDetails(id as string);
-  preview.value = await getLinkPreview(
-    projectWithFeedback.value.project.resource_url
-  );
+const { data: projectsData } = await useAsyncData(
+  "myProjectDetails",
+  async () => {
+    try {
+      isLoading.value = true;
 
-  // initialize ratings
-  const initialRatings: Record<number, number> = {};
-  projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
-    initialRatings[index] = -1;
-  });
+      // 1. get project data
+      const { data, error } = await supabase.rpc("get_project_with_feedback", {
+        p_project_id: id,
+      });
 
-  // Check if the user has already given feedback
-  const userFeedBack = await checkExistingFeedback();
+      if (error) throw new Error(error.message);
+      return data as ProjectWithFeedback;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      return [];
+    }
+  },
+  {
+    server: true,
+  }
+);
 
-  // Get feedback ratings
-  ratingPerCriteria.value = await getRatingPerCriteria();
+const { data: relatedData } = useAsyncData(
+  "myProjectRelatedData",
+  async () => {
+    if (!projectsData.value)
+      return {
+        preview: null,
+        userFeedback: null,
+        criteriaRatings: [],
+      };
+    try {
+      // 1.get preview data
+      const preview = await getLinkPreview(
+        projectWithFeedback.value.project.resource_url
+      );
 
-  if (userFeedBack?.exists && userFeedBack.feedback.ratings) {
-    const ratingsByCriteriaId: Record<string, any> = {};
-    userFeedBack.feedback.ratings.forEach((rating: any) => {
-      ratingsByCriteriaId[rating.criteria_id] = rating;
-    });
+      // 2.get user feedback
+      const userFeedBack = await checkExistingFeedback();
 
-    projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
-      const rating = ratingsByCriteriaId[criteria.id];
-      if (rating) {
-        initialRatings[index] = rating.rating;
-      }
-    });
+      // 3.get rating per criteria
+      const ratingPerCriteria = await getRatingPerCriteria();
 
+      // 4. set loading to false
+      isLoading.value = false;
+
+      return {
+        preview,
+        userFeedBack,
+        ratingPerCriteria,
+      };
+    } catch (error) {
+      console.error("Error fetching related data:", error);
+      return {
+        preview: null,
+        userFeedback: null,
+        ratingPerCriteria: [],
+      };
+    }
+  },
+  {
+    server: false,
+  }
+);
+
+watch(relatedData, (newData) => {
+  if (!newData) return;
+
+  // 1. set preview data
+  preview.value = newData.preview;
+
+  // 2. check if user feedback exists
+  if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
     isAlreadyRated.value = true;
   } else {
     isAlreadyRated.value = false;
   }
 
-  // initialize feedback analytics contents
+  // 3. set rating per criteria
+  ratingPerCriteria.value = newData.ratingPerCriteria || [];
+
+  // 4.initialize feedback analytics contents
   initDashboardContents();
 
-  // initialize feedback contents
+  // 5.initialize feedback contents
   initFeedbackContents();
-} catch (error) {
-  console.error("Error fetching project details or link preview:", error);
-}
+});
 
 /******************************
  * HELPER FUNCTIONS
  ******************************/
-async function getProjectDetails(id: string) {
-  try {
-    const { data, error } = await supabase.rpc("get_project_with_feedback", {
-      p_project_id: id,
-    });
-
-    if (error) {
-      throw new Error(`Error fetching project details: ${error.message}`);
-    }
-
-    return data as ProjectWithFeedback;
-  } catch (error) {
-    console.error("Error fetching project details:", error);
-    throw error;
-  }
-}
 
 async function getLinkPreview(url: string) {
   try {
@@ -425,13 +454,13 @@ function initFeedbackContents() {
               target="_blank"
             >
               <NuxtImg
-                v-if="preview.images?.[0]"
+                v-if="preview?.images?.[0]"
                 :src="preview?.images?.[0] || 'no-image.png'"
                 :alt="preview?.title || ''"
                 class="object-cover object-center h-52 md:h-96 rounded-t-sm"
               />
               <NuxtImg
-                v-else="!preview.images?.[0]"
+                v-else="!preview?.images?.[0]"
                 src="no-image.png"
                 :alt="preview?.title || ''"
                 class="object-contain object-center h-52 md:h-96 rounded-t-sm bg-muted-foreground/22"
@@ -529,13 +558,18 @@ function initFeedbackContents() {
           class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8"
         >
           <PageTitle title="フィードバック" size="medium" />
+
           <div
-            v-for="(feedback, index) in feedbackContents"
+            v-for="(feedback, index) in feedbackContents.slice(0, 2)"
             :key="index"
             class="flex flex-col gap-8"
           >
             <FeedbackCard :feedback="feedback" :isDashboard="false" />
             <Separator />
+          </div>
+
+          <div v-if="isLoading" class="flex flex-col gap-8">
+            <FeedbackCardSkeleton />
           </div>
 
           <EmptyProjectCard
@@ -544,12 +578,7 @@ function initFeedbackContents() {
             text="最近のフィードバックはありません"
           />
 
-          <Button
-            v-if="projectWithFeedback.feedbacks.length > 3"
-            as-child
-            variant="main"
-            class="w-full cursor-pointer"
-          >
+          <Button as-child variant="main" class="w-full cursor-pointer">
             <NuxtLink
               :to="`/my-projects/${projectWithFeedback.project.id}/feedback`"
               class="w-full"

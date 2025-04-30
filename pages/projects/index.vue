@@ -5,26 +5,25 @@ definePageMeta({
 });
 
 const supabase = useSupabaseClient();
-const projects = ref<Project[]>([]);
+const projects = computed<Project[]>(() => projectsData.value || []);
 
-try {
-  projects.value = await getAllProjects();
-} catch (err) {
-  console.error("Error fetching projects:", err);
-} finally {
-}
+const { data: projectsData } = await useAsyncData(
+  "projectsList",
+  async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_others_projects");
 
-async function getAllProjects() {
-  // get all projects from the database without own projects excepted private
-  const { data, error } = await supabase.rpc("get_others_projects");
-
-  if (error) {
-    console.error("Error fetching projects:", error);
-    return [];
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      return [];
+    }
+  },
+  {
+    server: true,
   }
-
-  return data || [];
-}
+);
 </script>
 
 <template>

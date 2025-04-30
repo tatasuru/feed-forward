@@ -13,35 +13,41 @@ type DashboardContent = {
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
-const projects = ref<MyProjectWithFeedback[]>([]);
-const activeProjects = ref<MyProjectWithFeedback[]>([]);
+const projects = computed<MyProjectWithFeedback[]>(
+  () => projectsData.value || []
+);
+const activeProjects = computed<MyProjectWithFeedback[]>(() =>
+  projects.value.filter((project) => project.status === "active")
+);
 const dashboardContents = ref<DashboardContent[]>([]);
 const feedbackContents = ref<any[]>([]);
 
 /**********************
  * LIFECYCLE HOOKS
  *********************/
-try {
-  const { data, error } = await supabase.rpc(
-    "get_my_projects_with_feedback_ratings",
-    {
-      user_id: user.value?.id,
+const { data: projectsData } = await useAsyncData(
+  "myProjects",
+  async () => {
+    try {
+      const { data, error } = await supabase.rpc(
+        "get_my_projects_with_feedback_ratings",
+        {
+          user_id: user.value?.id,
+        }
+      );
+
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      return [];
     }
-  );
-
-  if (error) {
-    throw new Error(error.message);
+  },
+  {
+    watch: [() => user.value?.id],
+    server: true,
   }
-
-  projects.value = data;
-  activeProjects.value = projects.value.filter(
-    (project) => project.status === "active"
-  );
-  initDashboardContents(projects.value);
-  initFeedbackContents(projects.value);
-} catch (error) {
-  console.error("Error fetching projects:", error);
-}
+);
 
 /*********************
  * HELPER FUNCTIONS
@@ -168,6 +174,17 @@ function initFeedbackContents(projects: any[]) {
     };
   });
 }
+
+watch(
+  projects,
+  (newProjects) => {
+    if (newProjects.length > 0) {
+      initDashboardContents(newProjects);
+      initFeedbackContents(newProjects);
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>

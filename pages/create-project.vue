@@ -56,7 +56,9 @@ const visibilityTypes = [
       "プライベート（招待した人のみ閲覧・フィードバック可能） (有料版のみ)",
   },
 ];
-const evaluationTypes = ref<CriteriaTemplate[]>([]);
+const evaluationTypes = computed<CriteriaTemplate[]>(() => {
+  return criteriaTemplates.value;
+});
 const criteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
 const dateValue = ref<string>("");
 const selectedDateValue = ref<DateValue>();
@@ -72,12 +74,20 @@ const formRef = ref<HTMLElement | null>(null);
 /********************************
  * Lifecycle hooks
  ********************************/
-try {
-  evaluationTypes.value = await getCriteriaTemplate(true);
-} catch (error) {
-  console.error("Error fetching evaluation types:", error);
-}
+const { data: criteriaTemplates } = useAsyncData(
+  "criteriaTemplates",
+  async () => {
+    const { data, error } = await supabase.rpc("get_criteria_templates", {
+      p_evaluation_type: "",
+    });
 
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+);
 /********************************
  * Form setup
  ********************************/

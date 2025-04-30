@@ -9,8 +9,11 @@ const { id } = useRoute().params;
 const supabase = useSupabaseClient();
 const supabaseUser = useSupabaseUser();
 const preview = ref();
+const isLoading = ref<boolean>(true);
 
-const projectWithFeedback = ref<ProjectWithFeedback>({} as ProjectWithFeedback);
+const projectWithFeedback = computed<ProjectWithFeedback>(() => {
+  return projectDetails.value as ProjectWithFeedback;
+});
 const badgeColors = {
   design: "bg-blue/20 text-blue",
   demo: "bg-pink/20 text-pink",
@@ -80,39 +83,108 @@ const onSubmit = form.handleSubmit(async (values) => {
 /******************************
  * Lifecycle Hooks
  ******************************/
-try {
-  // Fetch project details and link preview
-  projectWithFeedback.value = await getProjectDetails(id as string);
-  preview.value = await getLinkPreview(
-    projectWithFeedback.value.project.resource_url
-  );
+const { data: projectDetails } = useAsyncData(
+  "projectDetails",
+  async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_project_with_feedback", {
+        p_project_id: id,
+      });
 
-  // initialize ratings
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (error) {
+      console.error("Error fetching project details:", error);
+      return null;
+    }
+  },
+  {
+    server: true,
+  }
+);
+
+const { data: relatedData } = useAsyncData(
+  "projectRelatedData",
+  async () => {
+    if (!projectDetails.value)
+      return {
+        preview: null,
+        userFeedback: null,
+        ratingPerCriteria: [],
+      };
+
+    try {
+      // 1.get preview data
+      const preview = await getLinkPreview(
+        projectWithFeedback.value.project.resource_url
+      );
+
+      // 2.get user feedback
+      const userFeedBack = await checkExistingFeedback();
+
+      // 3.get rating per criteria
+      const ratingPerCriteria = await getRatingPerCriteria();
+
+      // 4. set loading to false
+      isLoading.value = false;
+
+      return {
+        preview,
+        userFeedBack,
+        ratingPerCriteria,
+      };
+    } catch (error) {
+      console.error("Error fetching related data:", error);
+      return {
+        preview: null,
+        userFeedback: null,
+        ratingPerCriteria: [],
+      };
+    }
+  },
+  {
+    server: false,
+  }
+);
+
+watch(relatedData, (newData) => {
+  if (!newData) return;
+
+  // 1. set preview data
+  preview.value = newData.preview;
+
+  // 2. check if user feedback exists
+  if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
+    isAlreadyRated.value = true;
+  } else {
+    isAlreadyRated.value = false;
+  }
+
+  // 3. set rating per criteria
+  ratingPerCriteria.value = newData.ratingPerCriteria || [];
+
+  // 4. set initial values for ratings
   const initialRatings: Record<number, number> = {};
-  projectWithFeedback.value.evaluation_criteria.forEach((_, index) => {
+  projectWithFeedback.value?.evaluation_criteria.forEach((_, index) => {
     initialRatings[index] = -1;
     hoverStarIndexObj.value[index] = -1;
   });
 
-  // Check if the user has already given feedback
-  const userFeedBack = await checkExistingFeedback();
-
-  // Get feedback ratings
-  ratingPerCriteria.value = await getRatingPerCriteria();
-
-  if (userFeedBack?.exists && userFeedBack.feedback.ratings) {
+  if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
     const ratingsByCriteriaId: Record<string, any> = {};
-    userFeedBack.feedback.ratings.forEach((rating: any) => {
+    newData.userFeedBack.feedback.ratings.forEach((rating: any) => {
       ratingsByCriteriaId[rating.criteria_id] = rating;
     });
 
-    projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
-      const rating = ratingsByCriteriaId[criteria.id];
-      if (rating) {
-        initialRatings[index] = rating.rating;
-        hoverStarIndexObj.value[index] = rating.rating - 1;
+    projectWithFeedback.value?.evaluation_criteria.forEach(
+      (criteria, index) => {
+        const rating = ratingsByCriteriaId[criteria.id];
+        if (rating) {
+          initialRatings[index] = rating.rating;
+          hoverStarIndexObj.value[index] = rating.rating - 1;
+        }
       }
-    });
+    );
 
     isAlreadyRated.value = true;
   } else {
@@ -122,36 +194,18 @@ try {
   // Set initial values for ratings
   form.setFieldValue(
     "overallComment",
-    userFeedBack?.feedback.overall_comment || ""
+    newData.userFeedBack?.feedback.overall_comment || ""
   );
   form.setFieldValue(
     "isAnonymous",
-    userFeedBack?.feedback.is_anonymous || false
+    newData.userFeedBack?.feedback.is_anonymous || false
   );
   form.setFieldValue("ratings", initialRatings);
-} catch (error) {
-  console.error("Error fetching project details or link preview:", error);
-}
+});
 
 /******************************
  * HELPER FUNCTIONS
  ******************************/
-async function getProjectDetails(id: string) {
-  try {
-    const { data, error } = await supabase.rpc("get_project_with_feedback", {
-      p_project_id: id,
-    });
-
-    if (error) {
-      throw new Error(`Error fetching project details: ${error.message}`);
-    }
-
-    return data as ProjectWithFeedback;
-  } catch (error) {
-    console.error("Error fetching project details:", error);
-    throw error;
-  }
-}
 
 async function getLinkPreview(url: string) {
   try {
@@ -349,7 +403,7 @@ async function getRatingPerCriteria() {
 <template>
   <div id="projects" class="grid w-full gap-8">
     <div
-      v-if="projectWithFeedback.project"
+      v-if="projectWithFeedback?.project"
       class="flex flex-col gap-4 items-start justify-between"
     >
       <Button
@@ -414,7 +468,7 @@ async function getRatingPerCriteria() {
     <div class="grid md:grid-cols-[1fr_500px] gap-4">
       <!-- left -->
       <div
-        v-if="projectWithFeedback.project"
+        v-if="projectWithFeedback?.project"
         class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8 w-full"
       >
         <PageTitle
@@ -477,13 +531,13 @@ async function getRatingPerCriteria() {
               target="_blank"
             >
               <NuxtImg
-                v-if="preview.images?.[0]"
+                v-if="preview?.images?.[0]"
                 :src="preview?.images?.[0] || 'no-image.png'"
                 :alt="preview?.title || ''"
                 class="object-cover object-center h-52 md:h-96 rounded-t-sm"
               />
               <NuxtImg
-                v-else="!preview.images?.[0]"
+                v-else="!preview?.images?.[0]"
                 src="no-image.png"
                 :alt="preview?.title || ''"
                 class="object-contain object-center h-52 md:h-96 rounded-t-sm bg-muted-foreground/22"

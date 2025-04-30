@@ -4,7 +4,6 @@ import { format } from "date-fns";
 
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
-const supabaseUser = useSupabaseUser();
 const preview = ref();
 
 const projectWithFeedback = computed<ProjectWithFeedback>(() => {
@@ -503,7 +502,12 @@ function initFeedbackContents() {
 
           <Button as-child variant="main" class="w-full cursor-pointer">
             <NuxtLink
-              :to="`/my-projects/${projectWithFeedback.project?.id}/feedback`"
+              :to="{
+                path: `/my-projects/feedbacks`,
+                query: {
+                  project_id: projectWithFeedback.project.id,
+                },
+              }"
               class="w-full"
             >
               フィードバックをもっと見る

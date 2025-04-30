@@ -83,3 +83,11 @@ export type ProjectWithFeedback = {
   evaluation_criteria: EvaluationCriteria[];
   owner: User;
 };
+
+export type AllProjectWithFeedback = {
+  projects: {
+    project: Project;
+    evaluation_criteria: EvaluationCriteria[];
+  }[];
+  feedbacks: Feedback[];
+};

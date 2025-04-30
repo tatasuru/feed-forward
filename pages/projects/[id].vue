@@ -196,11 +196,11 @@ watch(
     // Set initial values for ratings
     form.setFieldValue(
       "overallComment",
-      newData.userFeedBack?.feedback.overall_comment || ""
+      newData.userFeedBack?.feedback?.overall_comment || ""
     );
     form.setFieldValue(
       "isAnonymous",
-      newData.userFeedBack?.feedback.is_anonymous || false
+      newData.userFeedBack?.feedback?.is_anonymous || false
     );
     form.setFieldValue("ratings", initialRatings);
   },
@@ -327,8 +327,8 @@ async function getUserFeedback() {
       throw error;
     }
 
-    if (data.status === "success") {
-      const feedback = data.feedback;
+    if (data) {
+      const feedback = data[0];
 
       const initialValues: Record<string, any> = {
         overallComment: feedback.overall_comment || "",

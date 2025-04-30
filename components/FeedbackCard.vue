@@ -33,7 +33,7 @@ const badgeColors = {
 <template>
   <div
     v-if="props.feedback.feedback_ratings"
-    class="flex items-start gap-4 hover:scale-103 transition-transform duration-200 ease-in-out cursor-pointer"
+    class="flex items-start gap-4 cursor-pointer"
   >
     <!-- avatar -->
     <div class="flex items-center gap-1">

@@ -234,7 +234,7 @@ watch(
 
         <div class="w-full flex flex-col gap-6">
           <div
-            v-for="(feedback, index) in feedbackContents"
+            v-for="(feedback, index) in feedbackContents.slice(0, 2)"
             :key="index"
             class="flex flex-col gap-6"
             :class="feedback.feedback_ratings ? '' : 'hidden'"
@@ -275,7 +275,7 @@ watch(
 
         <div class="w-full flex flex-col gap-6">
           <div
-            v-for="(project, index) in activeProjects"
+            v-for="(project, index) in activeProjects.slice(0, 2)"
             :key="index"
             class="flex flex-col gap-6"
           >

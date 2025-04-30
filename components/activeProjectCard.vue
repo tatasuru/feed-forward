@@ -14,9 +14,7 @@ const badgeColors = {
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-4 hover:scale-103 transition-transform duration-200 ease-in-out cursor-pointer"
-  >
+  <div class="flex flex-col gap-4 cursor-pointer">
     <div class="flex items-center justify-between">
       <NuxtLink
         @mouseover="isHover = true"

@@ -16,8 +16,6 @@ const badgeColors = {
   plan: "bg-purple/20 text-purple",
 };
 const progressBarColors = ["bg-pink", "bg-blue", "bg-purple"];
-const isAlreadyRated = ref<boolean>(false);
-const currentFeedbackId = ref<string | null>(null);
 const ratingPerCriteria = ref<
   {
     title: string;
@@ -83,9 +81,6 @@ const { data: relatedData } = await useAsyncData(
         projectWithFeedback.value.project.resource_url
       );
 
-      // 2.get user feedback
-      const userFeedBack = await checkExistingFeedback();
-
       // 3.get rating per criteria
       const ratingPerCriteria = await getRatingPerCriteria();
 
@@ -94,7 +89,6 @@ const { data: relatedData } = await useAsyncData(
 
       return {
         preview,
-        userFeedBack,
         ratingPerCriteria,
       };
     } catch (error) {
@@ -119,20 +113,13 @@ watch(
     // 1. set preview data
     preview.value = newData.preview;
 
-    // 2. check if user feedback exists
-    if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
-      isAlreadyRated.value = true;
-    } else {
-      isAlreadyRated.value = false;
-    }
-
-    // 3. set rating per criteria
+    // 2. set rating per criteria
     ratingPerCriteria.value = newData.ratingPerCriteria || [];
 
-    // 4.initialize feedback analytics contents
+    // 3.initialize feedback analytics contents
     initDashboardContents();
 
-    // 5.initialize feedback contents
+    // 4.initialize feedback contents
     initFeedbackContents();
   },
   { immediate: true }
@@ -141,7 +128,6 @@ watch(
 /******************************
  * HELPER FUNCTIONS
  ******************************/
-
 async function getLinkPreview(url: string) {
   try {
     const encodedUrl = encodeURIComponent(url);
@@ -161,73 +147,6 @@ async function getLinkPreview(url: string) {
     return data.value;
   } catch (error) {
     console.error("Error fetching link preview:", error);
-    throw error;
-  }
-}
-
-async function checkExistingFeedback() {
-  try {
-    const { data, error } = await supabase.rpc("check_user_feedback", {
-      p_project_id: id,
-      p_user_id: supabaseUser.value?.id,
-    });
-
-    if (error) {
-      console.error("フィードバック確認エラー:", error);
-      throw error;
-    }
-
-    if (data.exists) {
-      currentFeedbackId.value = data.feedback_id;
-      return await getUserFeedback();
-    }
-
-    return null;
-  } catch (error) {
-    console.error("フィードバック確認中にエラーが発生しました:", error);
-    throw error;
-  }
-}
-
-async function getUserFeedback() {
-  try {
-    const { data, error } = await supabase.rpc("get_user_feedback", {
-      p_project_id: id,
-      p_user_id: supabaseUser.value?.id,
-    });
-
-    if (error) {
-      console.error("フィードバック取得エラー:", error);
-      throw error;
-    }
-
-    if (data.status === "success") {
-      const feedback = data.feedback;
-
-      const initialValues: Record<string, any> = {
-        overallComment: feedback.overall_comment || "",
-        isAnonymous: feedback.is_anonymous || false,
-        ratings: {},
-      };
-
-      if (feedback.ratings && feedback.ratings.length > 0) {
-        feedback.ratings.forEach((rating: any) => {
-          initialValues.ratings[rating.criteria_id] = rating.rating;
-        });
-      }
-
-      return {
-        exists: true,
-        feedback: feedback,
-        initialValues: initialValues,
-      };
-    }
-
-    return {
-      exists: false,
-    };
-  } catch (error) {
-    console.error("フィードバック取得中にエラーが発生しました:", error);
     throw error;
   }
 }
@@ -577,14 +496,14 @@ function initFeedbackContents() {
           </div>
 
           <EmptyProjectCard
-            v-if="!projectWithFeedback.feedbacks.length"
+            v-if="projectWithFeedback.feedbacks.length === 0"
             class="h-[200px] md:h-[200px] flex items-center justify-center"
             text="最近のフィードバックはありません"
           />
 
           <Button as-child variant="main" class="w-full cursor-pointer">
             <NuxtLink
-              :to="`/my-projects/${projectWithFeedback.project.id}/feedback`"
+              :to="`/my-projects/${projectWithFeedback.project?.id}/feedback`"
               class="w-full"
             >
               フィードバックをもっと見る

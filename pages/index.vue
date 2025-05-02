@@ -228,21 +228,31 @@ watch(
 
       <!-- projects -->
       <TabsContent value="projects">
-        <div class="grid grid-rows-[auto_1fr_auto] min-h-[300px] gap-6 w-full">
-          <div class="w-full flex flex-col gap-6">
+        <div
+          class="min-h-[500px] gap-6 w-full"
+          :class="
+            activeProjects.length > 0
+              ? 'grid grid-rows-[1fr_auto]'
+              : 'grid grid-rows-1'
+          "
+        >
+          <div
+            v-if="activeProjects.length > 0"
+            class="w-full flex flex-col gap-6 p-8 border rounded-md"
+          >
             <div
               v-for="(project, index) in activeProjects.slice(0, 2)"
               :key="index"
               class="flex flex-col gap-6"
             >
               <ActiveProjectCard :project="project" />
-              <Separator />
+              <Separator v-if="index < activeProjects.length - 1" />
             </div>
           </div>
 
           <EmptyProjectCard
             v-if="activeProjects.length === 0"
-            class="h-[300px] md:h-[400px] flex items-center justify-center"
+            class="h-full flex items-center justify-center"
             text="進行中のプロジェクトはありません"
             label="プロジェクトを作成してフィードバックを受け取る"
             icon="mdi:plus-circle-outline"
@@ -262,8 +272,18 @@ watch(
 
       <!-- feedbacks -->
       <TabsContent value="feedbacks">
-        <div class="grid grid-rows-[auto_1fr_auto] min-h-[300px] gap-6 w-full">
-          <div class="w-full flex flex-col gap-6">
+        <div
+          class="min-h-[500px] gap-6 w-full"
+          :class="
+            activeProjects.length > 0
+              ? 'grid grid-rows-[auto_1fr_auto]'
+              : 'grid grid-rows-1'
+          "
+        >
+          <div
+            v-if="feedbackContents.length > 0"
+            class="w-full flex flex-col gap-6 p-8 border rounded-md"
+          >
             <div
               v-for="(feedback, index) in feedbackContents.slice(0, 2)"
               :key="index"
@@ -271,13 +291,13 @@ watch(
               :class="feedback.feedback_ratings ? '' : 'hidden'"
             >
               <FeedbackCard :feedback="feedback" :isDashboard="true" />
-              <Separator />
+              <Separator v-if="index < feedbackContents.length - 1" />
             </div>
           </div>
 
           <EmptyProjectCard
             v-if="feedbackContents.length === 0"
-            class="h-[300px] md:h-[400px] flex items-center justify-center"
+            class="h-full flex items-center justify-center"
             text="最近のフィードバックはありません"
             label="プロジェクトを作成してフィードバックを受け取る"
             icon="mdi:plus-circle-outline"

@@ -16,9 +16,12 @@ type formValues = {
 };
 
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 const isFirstLogin = ref<boolean>(false);
 const profile = ref<any>(null);
 const isSubmitting = ref<boolean>(false);
+const uploadedImageUrl = ref<string>("");
+const isUploading = ref<boolean>(false);
 const store = useStore();
 const { isMobile } = useDevice();
 
@@ -52,6 +55,8 @@ const steps = [
 /********************************
  * Form setup
  ********************************/
+// const form = useForm();
+
 const formSchema = [
   z.object({
     displayName: z
@@ -89,8 +94,6 @@ const formSchema = [
   }),
 ];
 
-const form = useForm();
-
 function onSubmit(values: formValues) {
   try {
     isSubmitting.value = true;
@@ -111,6 +114,7 @@ function onSubmit(values: formValues) {
 async function checkFirstLogin() {
   const { data: userData, error } = await supabase.rpc("get_current_user");
   profile.value = userData;
+  uploadedImageUrl.value = userData?.avatar_url;
 
   if (error) {
     console.error("ユーザー情報取得エラー:", error);
@@ -135,7 +139,7 @@ async function registrationProfile(values: formValues) {
     .from("profiles")
     .update({
       display_name: displayName,
-      avatar_url: avatarUrl,
+      avatar_url: uploadedImageUrl.value || avatarUrl,
       email: profile.value.email,
       bio: bio,
       website: website,
@@ -145,7 +149,7 @@ async function registrationProfile(values: formValues) {
   store.profile = {
     ...store.profile,
     display_name: displayName,
-    avatar_url: avatarUrl,
+    avatar_url: uploadedImageUrl.value || avatarUrl,
     bio: bio,
     website: website,
   };
@@ -154,6 +158,127 @@ async function registrationProfile(values: formValues) {
     console.error("プロフィール登録エラー:", error);
   } else {
     window.location.href = "/";
+  }
+}
+
+/********************************
+ * Image upload
+ ********************************/
+const dropZoneRef = ref<HTMLDivElement>();
+const { isOverDropZone } = useDropZone(dropZoneRef, {
+  onDrop,
+  dataTypes: ["image/jpeg", "image/png"],
+  multiple: false,
+  preventDefaultForUnhandled: false,
+});
+
+// Handle drag and drop
+async function onDrop(files: File[] | null) {
+  if (!files || files.length === 0) {
+    return;
+  }
+
+  try {
+    uploadedImageUrl.value = (await uploadImage(files[0])) || "";
+
+    setTimeout(() => {
+      isUploading.value = false;
+    }, 1000);
+  } catch (error) {
+    console.error("Error uploading image:", error);
+  }
+}
+
+// Handle file input change
+async function handleMainImageUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  try {
+    uploadedImageUrl.value = (await uploadImage(file)) || "";
+
+    setTimeout(() => {
+      isUploading.value = false;
+    }, 1000);
+  } catch (error) {
+    console.error("Error uploading image:", error);
+  }
+}
+
+// uploadImage function
+async function uploadImage(file: File | null): Promise<string | null> {
+  isUploading.value = true;
+
+  if (!file) {
+    isUploading.value = false;
+    return null;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error(
+      "サイズ制限を超えています。2MB以下の画像をアップロードしてください。"
+    );
+  }
+  if (file.type !== "image/jpeg" && file.type !== "image/png") {
+    throw new Error(
+      "無効なファイル形式です。JPEGまたはPNG形式の画像をアップロードしてください。"
+    );
+  }
+
+  const fileExt = file.name.split(".").pop();
+  const filename = `${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(2, 15)}.${fileExt}`;
+  const filePath = `${user.value?.id}/${filename}`;
+
+  try {
+    // 1. Check if a file already exists
+    const { data: existingFile } = await supabase.storage
+      .from("profile-images")
+      .list(user.value?.id, {
+        limit: 1,
+        offset: 0,
+        sortBy: { column: "created_at", order: "desc" },
+      });
+
+    // 2. If a file exists, delete it
+    if (existingFile && existingFile.length > 0) {
+      const { error: deleteError } = await supabase.storage
+        .from("profile-images")
+        .remove([`${user.value?.id}/${existingFile[0].name}`]);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+    }
+
+    // 3. Upload the new file
+    const { data, error } = await supabase.storage
+      .from("profile-images")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    // 4. Get the public URL of the uploaded file
+    const publicUrl = supabase.storage
+      .from("profile-images")
+      .getPublicUrl(filePath).data.publicUrl;
+
+    return publicUrl;
+  } catch (error) {
+    console.error("Error in uploadImage function:", error);
+    isUploading.value = false;
+    throw new Error(
+      "画像のアップロード中にエラーが発生しました。再度お試しください。"
+    );
   }
 }
 </script>
@@ -292,15 +417,71 @@ async function registrationProfile(values: formValues) {
                 <FormItem>
                   <FormLabel>プロフィール画像</FormLabel>
                   <FormControl>
+                    <Label
+                      ref="dropZoneRef"
+                      for="dropzone-file"
+                      class="border border-dashed border-muted-foreground rounded-md p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-muted-foreground/10 transition-colors"
+                      :class="isOverDropZone && 'bg-muted-foreground/10'"
+                    >
+                      <Input
+                        type="file"
+                        id="dropzone-file"
+                        accept="image/jpeg,image/png"
+                        class="hidden"
+                        @change="
+                          (e: Event) => {
+                            handleMainImageUpload(e);
+                          }
+                        "
+                      />
+
+                      <!-- preview -->
+                      <div class="flex items-center justify-center">
+                        <Avatar class="!size-10 self-start row-span-3">
+                          <AvatarImage
+                            :src="uploadedImageUrl"
+                            alt="User Avatar"
+                          />
+                          <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                      </div>
+
+                      <!-- description -->
+                      <div
+                        v-if="!isUploading"
+                        class="flex flex-col items-center gap-2"
+                      >
+                        <span class="text-sm text-muted-foreground">
+                          クリックかドラック&ドロップで画像をアップロードできます。
+                        </span>
+                        <span class="text-sm text-muted-foreground">
+                          画像をアップロードしない場合は、そのまま次へ進んでください。
+                        </span>
+                      </div>
+                      <div
+                        v-if="isUploading"
+                        class="flex flex-col items-center gap-2"
+                      >
+                        <span class="text-sm text-muted-foreground">
+                          画像をアップロード中...
+                        </span>
+                        <span class="text-sm text-muted-foreground">
+                          しばらくお待ちください。
+                        </span>
+                      </div>
+                    </Label>
+
                     <Input
                       type="text"
                       placeholder="https://example.com/image.jpg"
                       v-bind="componentField"
-                      :default-value="profile.avatar_url"
+                      disabled
+                      v-model="uploadedImageUrl"
+                      class="hidden"
                     />
                   </FormControl>
                   <FormDescription>
-                    プロフィール画像のURLを入力してください。
+                    初期値は仮のプロフィール画像です。
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -178,10 +178,8 @@ function initFeedbackContents(projects: any[]) {
 watch(
   projects,
   (newProjects) => {
-    if (newProjects.length > 0) {
-      initDashboardContents(newProjects);
-      initFeedbackContents(newProjects);
-    }
+    initDashboardContents(newProjects);
+    initFeedbackContents(newProjects);
   },
   { immediate: true }
 );
@@ -218,96 +216,90 @@ watch(
       </Card>
     </div>
 
-    <div
-      value="overview"
-      class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(600px,1fr))] gap-6"
-    >
-      <!-- left -->
-      <div
-        class="border rounded-md md:p-6 p-4 grid grid-rows-[auto_1fr_auto] min-h-[300px] gap-6 w-full"
-      >
-        <PageTitle
-          title="最近のフィードバック"
-          description="過去7日間に受け取ったフィードバック"
-          size="small"
-        />
+    <Tabs default-value="projects" class="w-full">
+      <TabsList>
+        <TabsTrigger value="projects" class="cursor-pointer">
+          進行中のプロジェクト
+        </TabsTrigger>
+        <TabsTrigger value="feedbacks" class="cursor-pointer">
+          最近のフィードバック
+        </TabsTrigger>
+      </TabsList>
 
-        <div class="w-full flex flex-col gap-6">
-          <div
-            v-for="(feedback, index) in feedbackContents.slice(0, 2)"
-            :key="index"
-            class="flex flex-col gap-6"
-            :class="feedback.feedback_ratings ? '' : 'hidden'"
-          >
-            <FeedbackCard :feedback="feedback" :isDashboard="true" />
-            <Separator />
+      <!-- projects -->
+      <TabsContent value="projects">
+        <div class="grid grid-rows-[auto_1fr_auto] min-h-[300px] gap-6 w-full">
+          <div class="w-full flex flex-col gap-6">
+            <div
+              v-for="(project, index) in activeProjects.slice(0, 2)"
+              :key="index"
+              class="flex flex-col gap-6"
+            >
+              <ActiveProjectCard :project="project" />
+              <Separator />
+            </div>
           </div>
+
+          <EmptyProjectCard
+            v-if="activeProjects.length === 0"
+            class="h-[300px] md:h-[400px] flex items-center justify-center"
+            text="進行中のプロジェクトはありません"
+            label="プロジェクトを作成してフィードバックを受け取る"
+            icon="mdi:plus-circle-outline"
+            link="/create-project"
+          />
+
+          <Button
+            v-if="activeProjects.length > 0"
+            variant="outline"
+            class="w-full cursor-pointer"
+            as-child
+          >
+            <NuxtLink to="/my-projects"> すべてのプロジェクトを表示 </NuxtLink>
+          </Button>
         </div>
+      </TabsContent>
 
-        <EmptyProjectCard
-          v-if="feedbackContents.length === 0"
-          class="h-[300px] md:h-[400px] flex items-center justify-center"
-          text="最近のフィードバックはありません"
-          label="プロジェクトを作成してフィードバックを受け取る"
-          icon="mdi:plus-circle-outline"
-          link="/create-project"
-        />
-
-        <Button
-          v-if="feedbackContents.length > 0"
-          variant="outline"
-          class="w-full cursor-pointer"
-          as-child
-        >
-          <NuxtLink
-            :to="{
-              path: '/my-projects/feedbacks',
-            }"
-          >
-            すべてのフィードバックを表示
-          </NuxtLink>
-        </Button>
-      </div>
-
-      <!-- right -->
-      <div
-        class="border rounded-md md:p-6 p-4 grid grid-rows-[auto_1fr_auto] min-h-[300px] gap-6 w-full"
-      >
-        <PageTitle
-          title="進行中のプロジェクト"
-          description="現在フィードバック募集中のプロジェクト"
-          size="small"
-        />
-
-        <div class="w-full flex flex-col gap-6">
-          <div
-            v-for="(project, index) in activeProjects.slice(0, 2)"
-            :key="index"
-            class="flex flex-col gap-6"
-          >
-            <ActiveProjectCard :project="project" />
-            <Separator />
+      <!-- feedbacks -->
+      <TabsContent value="feedbacks">
+        <div class="grid grid-rows-[auto_1fr_auto] min-h-[300px] gap-6 w-full">
+          <div class="w-full flex flex-col gap-6">
+            <div
+              v-for="(feedback, index) in feedbackContents.slice(0, 2)"
+              :key="index"
+              class="flex flex-col gap-6"
+              :class="feedback.feedback_ratings ? '' : 'hidden'"
+            >
+              <FeedbackCard :feedback="feedback" :isDashboard="true" />
+              <Separator />
+            </div>
           </div>
+
+          <EmptyProjectCard
+            v-if="feedbackContents.length === 0"
+            class="h-[300px] md:h-[400px] flex items-center justify-center"
+            text="最近のフィードバックはありません"
+            label="プロジェクトを作成してフィードバックを受け取る"
+            icon="mdi:plus-circle-outline"
+            link="/create-project"
+          />
+
+          <Button
+            v-if="feedbackContents.length > 0"
+            variant="outline"
+            class="w-full cursor-pointer"
+            as-child
+          >
+            <NuxtLink
+              :to="{
+                path: '/my-projects/feedbacks',
+              }"
+            >
+              すべてのフィードバックを表示
+            </NuxtLink>
+          </Button>
         </div>
-
-        <EmptyProjectCard
-          v-if="activeProjects.length === 0"
-          class="h-[300px] md:h-[400px] flex items-center justify-center"
-          text="進行中のプロジェクトはありません"
-          label="プロジェクトを作成してフィードバックを受け取る"
-          icon="mdi:plus-circle-outline"
-          link="/create-project"
-        />
-
-        <Button
-          v-if="activeProjects.length > 0"
-          variant="outline"
-          class="w-full cursor-pointer"
-          as-child
-        >
-          <NuxtLink to="/my-projects"> すべてのプロジェクトを表示 </NuxtLink>
-        </Button>
-      </div>
-    </div>
+      </TabsContent>
+    </Tabs>
   </div>
 </template>

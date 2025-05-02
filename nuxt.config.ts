@@ -39,6 +39,7 @@ export default defineNuxtConfig({
     "@formkit/auto-animate/nuxt",
     "@pinia/nuxt",
     "@nuxtjs/device",
+    "@vueuse/nuxt",
   ],
 
   colorMode: {

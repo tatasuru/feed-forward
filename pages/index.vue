@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MyProjectWithFeedback } from "@/types/my-projects.types";
+import { object } from "zod";
 definePageMeta({
   middleware: "auth",
 });
@@ -153,6 +154,11 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
 function initFeedbackContents(projects: any[]) {
   feedbackContents.value = projects.map((project) => {
     const feedbacks = project.feedbacks || [];
+
+    if (feedbacks.length === 0) {
+      return {};
+    }
+
     return {
       id: project.id,
       title: project.title,
@@ -219,10 +225,10 @@ watch(
     <Tabs default-value="projects" class="w-full">
       <TabsList>
         <TabsTrigger value="projects" class="cursor-pointer">
-          進行中のプロジェクト
+          プロジェクト
         </TabsTrigger>
         <TabsTrigger value="feedbacks" class="cursor-pointer">
-          最近のフィードバック
+          フィードバック
         </TabsTrigger>
       </TabsList>
 
@@ -275,13 +281,16 @@ watch(
         <div
           class="min-h-[500px] gap-6 w-full"
           :class="
-            activeProjects.length > 0
-              ? 'grid grid-rows-[auto_1fr_auto]'
+            feedbackContents.length > 0 && feedbackContents[0].feedback_ratings
+              ? 'grid grid-rows-[1fr_auto]'
               : 'grid grid-rows-1'
           "
         >
           <div
-            v-if="feedbackContents.length > 0"
+            v-if="
+              feedbackContents.length > 0 &&
+              feedbackContents[0].feedback_ratings
+            "
             class="w-full flex flex-col gap-6 p-8 border rounded-md"
           >
             <div
@@ -296,7 +305,10 @@ watch(
           </div>
 
           <EmptyProjectCard
-            v-if="feedbackContents.length === 0"
+            v-if="
+              feedbackContents.length === 0 ||
+              !feedbackContents[0].feedback_ratings
+            "
             class="h-full flex items-center justify-center"
             text="最近のフィードバックはありません"
             label="プロジェクトを作成してフィードバックを受け取る"
@@ -305,7 +317,10 @@ watch(
           />
 
           <Button
-            v-if="feedbackContents.length > 0"
+            v-if="
+              feedbackContents.length > 0 &&
+              feedbackContents[0].feedback_ratings
+            "
             variant="outline"
             class="w-full cursor-pointer"
             as-child

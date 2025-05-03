@@ -1,7 +1,7 @@
 export type MyProject = {
   id: string;
   created_at: Date;
-  deadline: Date;
+  deadline: Date | null;
   description: string;
   feedback_count: number;
   project_type: "design" | "demo" | "plan";
@@ -13,6 +13,7 @@ export type MyProject = {
   // Added types for the new fields
   criteria?: EvaluationCriteria[];
   feedback_ratings?: FeedbackRating[];
+  avg_rating: number;
 };
 
 export type EvaluationCriteria = {
@@ -89,6 +90,8 @@ export type MyProjectWithFeedback = {
     average_rating: number;
     rating_count: number;
   }[];
+
+  avg_rating: number;
 
   user: {
     id: string;

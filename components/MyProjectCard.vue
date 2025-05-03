@@ -24,22 +24,6 @@ const statusType = {
   completed: "完了",
   archived: "アーカイブ",
 };
-
-const averageRating = computed(() => {
-  const ratings = props.project.feedback_ratings;
-
-  if (!ratings || ratings.length === 0) {
-    return "0.0";
-  }
-
-  const totalRating = ratings.reduce((acc, rating) => {
-    return acc + rating.rating;
-  }, 0);
-
-  const average = totalRating / ratings.length;
-
-  return average.toFixed(1);
-});
 </script>
 
 <template>
@@ -82,7 +66,9 @@ const averageRating = computed(() => {
         </div>
         <span class="text-2xl text-blue font-bold">
           <div class="flex items-center gap-2">
-            <div class="flex items-center gap-px">{{ averageRating }}</div>
+            <div class="flex items-center gap-px">
+              {{ props.project.avg_rating.toFixed(1) }}
+            </div>
           </div>
         </span>
       </div>
@@ -101,7 +87,7 @@ const averageRating = computed(() => {
             {{ format(new Date(props.project.created_at), "yyyy/MM/dd") }}
           </span>
         </div>
-        <div class="flex items-center gap-1">
+        <div v-if="props.project.deadline" class="flex items-center gap-1">
           <Icon
             name="mdi:clock-remove-outline"
             class="!size-4 text-muted-foreground"

@@ -226,7 +226,7 @@ async function selectProject(projectId: string) {
       size="large"
     />
 
-    <Tabs default-value="all" class="w-full gap-8">
+    <Tabs default-value="all" class="w-full gap-4 md:gap-8">
       <div
         class="flex flex-col-reverse md:flex-row md:items-center gap-4 justify-between"
       >
@@ -275,7 +275,6 @@ async function selectProject(projectId: string) {
             :key="index"
             :feedback="feedback"
             :isDashboard="true"
-            class="border rounded-lg p-4"
           />
         </div>
 

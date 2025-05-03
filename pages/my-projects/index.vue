@@ -6,9 +6,8 @@ definePageMeta({
 });
 
 const supabase = useSupabaseClient();
-const myProjects = computed<MyProject[]>(
-  () => projectsData.value.created_projects || []
-);
+const user = useSupabaseUser();
+const myProjects = computed<MyProject[]>(() => projectsData.value || []);
 const myActiveProjects = computed<MyProject[]>(() =>
   myProjects.value.filter((project: MyProject) => project.status === "active")
 );
@@ -22,10 +21,15 @@ const myCompletedProjects = computed<MyProject[]>(() =>
 );
 
 const { data: projectsData } = await useAsyncData(
-  "myProjectsList",
+  "myProjects",
   async () => {
     try {
-      const { data, error } = await supabase.rpc("get_my_projects");
+      const { data, error } = await supabase.rpc(
+        "get_my_projects_with_feedback_ratings",
+        {
+          user_id: user.value?.id,
+        }
+      );
 
       if (error) throw new Error(error.message);
       return data;
@@ -35,6 +39,7 @@ const { data: projectsData } = await useAsyncData(
     }
   },
   {
+    watch: [() => user.value?.id],
     server: true,
   }
 );

@@ -83,13 +83,7 @@ const { data: projectsData } = await useAsyncData(
         >
           <MyProjectCard v-for="project in myProjects" :project="project" />
         </div>
-        <EmptyProjectCard
-          v-else
-          text="プロジェクトはありません"
-          label="新規プロジェクト作成"
-          icon="mdi:plus-circle-outline"
-          link="/create-project"
-        />
+        <EmptyProjectCard v-else text="プロジェクトはありません" />
       </TabsContent>
       <TabsContent value="active" class="w-full min-h-[calc(100vh-300px)]">
         <div
@@ -102,13 +96,7 @@ const { data: projectsData } = await useAsyncData(
             :project="project"
           />
         </div>
-        <EmptyProjectCard
-          v-else
-          text="プロジェクトはありません"
-          label="新規プロジェクト作成"
-          icon="mdi:plus-circle-outline"
-          link="/create-project"
-        />
+        <EmptyProjectCard v-else text="プロジェクトはありません" />
       </TabsContent>
       <TabsContent value="draft" class="w-full min-h-[calc(100vh-300px)]">
         <div
@@ -121,13 +109,7 @@ const { data: projectsData } = await useAsyncData(
             :project="project"
           />
         </div>
-        <EmptyProjectCard
-          v-else
-          text="プロジェクトはありません"
-          label="新規プロジェクト作成"
-          icon="mdi:plus-circle-outline"
-          link="/create-project"
-        />
+        <EmptyProjectCard v-else text="プロジェクトはありません" />
       </TabsContent>
       <TabsContent value="completed" class="w-full min-h-[calc(100vh-300px)]">
         <div
@@ -140,13 +122,7 @@ const { data: projectsData } = await useAsyncData(
             :project="project"
           />
         </div>
-        <EmptyProjectCard
-          v-else
-          text="プロジェクトはありません"
-          label="新規プロジェクト作成"
-          icon="mdi:plus-circle-outline"
-          link="/create-project"
-        />
+        <EmptyProjectCard v-else text="プロジェクトはありません" />
       </TabsContent>
     </Tabs>
   </div>

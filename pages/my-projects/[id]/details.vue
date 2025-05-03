@@ -348,7 +348,7 @@ async function deleteProject() {
       <!-- left -->
       <div
         v-if="projectWithFeedback.project"
-        class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8 w-full"
+        class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-4 md:p-8 w-full"
       >
         <PageTitle
           title="プロジェクトの詳細"
@@ -481,7 +481,7 @@ async function deleteProject() {
       <div class="flex flex-col gap-4 w-full">
         <!-- analytics -->
         <div
-          class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8"
+          class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-4 md:p-8"
         >
           <PageTitle title="アナリティクス" size="medium" />
 
@@ -511,19 +511,20 @@ async function deleteProject() {
 
         <!-- feedback -->
         <div
-          class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-8"
+          class="flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-4 md:p-8"
         >
           <PageTitle title="フィードバック" size="medium" />
 
           <div
             v-if="projectWithFeedback.feedbacks.length > 0"
-            class="flex flex-col gap-4"
+            class="flex flex-col gap-4 w-full"
           >
             <FeedbackCard
               v-for="(feedback, index) in feedbackContents.slice(0, 2)"
               :key="index"
               :feedback="feedback"
               :isDashboard="false"
+              class="w-full"
             />
           </div>
 

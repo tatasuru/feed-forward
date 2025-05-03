@@ -276,7 +276,7 @@ watch(
           v-if="activeProjects.length === 0"
           class="min-h-[500px] flex items-center justify-center"
           text="進行中のプロジェクトはありません"
-          label="プロジェクトを作成してフィードバックを受け取る"
+          label="プロジェクトを作成する"
           icon="mdi:plus-circle-outline"
           link="/create-project"
         />
@@ -294,7 +294,9 @@ watch(
       <!-- feedbacks -->
       <TabsContent value="feedbacks" class="flex flex-col gap-6">
         <div
-          v-if="feedbackContents.length > 0"
+          v-if="
+            feedbackContents.length > 0 && feedbackContents[0].feedback_ratings
+          "
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <FeedbackCard
@@ -306,10 +308,13 @@ watch(
         </div>
 
         <EmptyProjectCard
-          v-if="feedbackContents.length === 0"
+          v-if="
+            feedbackContents.length === 0 ||
+            !feedbackContents[0].feedback_ratings
+          "
           class="min-h-[500px] flex items-center justify-center"
           text="最近のフィードバックはありません"
-          label="プロジェクトを作成してフィードバックを受け取る"
+          label="プロジェクトを作成する"
           icon="mdi:plus-circle-outline"
           link="/create-project"
         />

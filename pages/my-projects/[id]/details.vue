@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ProjectWithFeedback } from "@/types/projects.types";
 import { format } from "date-fns";
+import { toast } from "vue-sonner";
 
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
@@ -38,6 +39,7 @@ const dashboardContents = [
   },
 ];
 const isLoading = ref<boolean>(false);
+const isDeleting = ref<boolean>(false);
 
 /******************************
  * Lifecycle Hooks
@@ -220,6 +222,32 @@ function initFeedbackContents() {
     }
   );
 }
+
+async function deleteProject() {
+  try {
+    isDeleting.value = true;
+
+    const { data, error } = await supabase.rpc("delete_project", {
+      p_project_id: id,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    setTimeout(() => {
+      navigateTo("/my-projects");
+      toast.success("プロジェクトを削除しました", {
+        description: "プロジェクトは正常に削除されました",
+      });
+    }, 2000);
+  } catch (error) {
+    console.error("Error creating project:", error);
+    toast.error("プロジェクトの削除に失敗しました", {
+      description: "もう一度お試しください",
+    });
+  }
+}
 </script>
 
 <template>
@@ -294,6 +322,7 @@ function initFeedbackContents() {
           as-child
           variant="outline"
           class="w-full md:w-fit cursor-pointer"
+          :class="isDeleting ? 'pointer-events-none opacity-50' : ''"
         >
           <NuxtLink :to="`/my-projects/${projectWithFeedback.project.id}/edit`">
             <Icon
@@ -303,9 +332,14 @@ function initFeedbackContents() {
             プロジェクトを編集
           </NuxtLink>
         </Button>
-        <Button variant="destructive" class="w-full md:w-fit cursor-pointer">
+        <Button
+          variant="destructive"
+          class="w-full md:w-fit cursor-pointer"
+          :disabled="isDeleting"
+          @click="deleteProject"
+        >
           <Icon name="mdi:delete-outline" class="!size-4 text-white" />
-          プロジェクトを削除
+          {{ isDeleting ? "プロジェクトを削除中..." : "プロジェクトを削除" }}
         </Button>
       </div>
     </div>
@@ -503,7 +537,12 @@ function initFeedbackContents() {
             text="最近のフィードバックはありません"
           />
 
-          <Button as-child variant="main" class="w-full cursor-pointer">
+          <Button
+            as-child
+            variant="main"
+            class="w-full cursor-pointer"
+            :class="isDeleting ? 'pointer-events-none opacity-50' : ''"
+          >
             <NuxtLink
               :to="{
                 path: `/my-projects/feedbacks`,

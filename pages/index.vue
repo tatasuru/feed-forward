@@ -132,11 +132,12 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
       title: "平均評価",
       description: `先月比 ±0%`,
       icon: "mdi:star-check",
-      value: Number(
-        (totalAvgRating / projects.filter((p) => p.avg_rating).length).toFixed(
-          1
-        )
-      ),
+      value:
+        Number(
+          (
+            totalAvgRating / projects.filter((p) => p.avg_rating).length
+          ).toFixed(1)
+        ) || 0,
     },
     {
       title: "期限切れプロジェクト",
@@ -245,7 +246,14 @@ watch(
           as-child
           class="hidden md:flex"
         >
-          <NuxtLink to="/my-projects/feedbacks">
+          <NuxtLink
+            :to="{
+              path: '/my-projects/feedbacks',
+              query: {
+                project_id: 'all',
+              },
+            }"
+          >
             すべてのフィードバックを見る
           </NuxtLink>
         </Button>
@@ -254,6 +262,7 @@ watch(
       <!-- projects -->
       <TabsContent value="projects" class="flex flex-col gap-6">
         <div
+          v-if="activeProjects.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <MyProjectCard
@@ -265,7 +274,7 @@ watch(
 
         <EmptyProjectCard
           v-if="activeProjects.length === 0"
-          class="h-full flex items-center justify-center"
+          class="min-h-[500px] flex items-center justify-center"
           text="進行中のプロジェクトはありません"
           label="プロジェクトを作成してフィードバックを受け取る"
           icon="mdi:plus-circle-outline"
@@ -285,6 +294,7 @@ watch(
       <!-- feedbacks -->
       <TabsContent value="feedbacks" class="flex flex-col gap-6">
         <div
+          v-if="feedbackContents.length > 0"
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <FeedbackCard
@@ -297,7 +307,7 @@ watch(
 
         <EmptyProjectCard
           v-if="feedbackContents.length === 0"
-          class="h-full flex items-center justify-center"
+          class="min-h-[500px] flex items-center justify-center"
           text="最近のフィードバックはありません"
           label="プロジェクトを作成してフィードバックを受け取る"
           icon="mdi:plus-circle-outline"
@@ -310,7 +320,14 @@ watch(
           as-child
           class="w-full md:hidden flex"
         >
-          <NuxtLink to="/my-projects/feedbacks">
+          <NuxtLink
+            :to="{
+              path: '/my-projects/feedbacks',
+              query: {
+                project_id: 'all',
+              },
+            }"
+          >
             すべてのフィードバックを見る
           </NuxtLink>
         </Button>

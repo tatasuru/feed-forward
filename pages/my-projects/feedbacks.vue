@@ -21,6 +21,7 @@ const ratingPerCriteria = ref<
     rating: number;
   }[]
 >([]);
+const router = useRouter();
 
 /******************************
  * Lifecycle Hooks
@@ -60,7 +61,7 @@ const { data: projectsData } = await useAsyncData(
       // 1. get project data
       const { data, error } = await supabase.rpc("get_user_feedback", {
         p_user_id: user.value?.id,
-        p_project_id: project_id,
+        p_project_id: project_id !== "all" ? project_id : null,
       });
 
       if (error) throw new Error(error.message);
@@ -215,6 +216,11 @@ async function selectProject(projectId: string) {
 
   // 3. set the project data to the feedbackContents
   initFeedbackContents();
+
+  // 4. set query params
+  const query = useRoute().query;
+  const newQuery = { ...query, project_id: projectId };
+  router.push({ query: newQuery });
 }
 </script>
 

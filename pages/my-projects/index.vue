@@ -79,7 +79,7 @@ const { data: projectsData } = await useAsyncData(
       <TabsContent value="all" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myProjects.length > 0"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
+          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <MyProjectCard v-for="project in myProjects" :project="project" />
         </div>
@@ -94,7 +94,7 @@ const { data: projectsData } = await useAsyncData(
       <TabsContent value="active" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myActiveProjects.length > 0"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
+          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <MyProjectCard
             v-for="project in myActiveProjects"
@@ -113,7 +113,7 @@ const { data: projectsData } = await useAsyncData(
       <TabsContent value="draft" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myDraftProjects.length > 0"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
+          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <MyProjectCard
             v-for="project in myDraftProjects"
@@ -132,7 +132,7 @@ const { data: projectsData } = await useAsyncData(
       <TabsContent value="completed" class="w-full min-h-[calc(100vh-300px)]">
         <div
           v-if="myCompletedProjects.length > 0"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(500px,1fr))] gap-3"
+          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <MyProjectCard
             v-for="project in myCompletedProjects"

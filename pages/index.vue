@@ -104,6 +104,11 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
     return percent > 0 ? `+${percent.toFixed(0)}%` : `${percent.toFixed(0)}%`;
   };
 
+  const totalAvgRating = projects.reduce((acc, project) => {
+    acc += project.avg_rating || 0;
+    return acc;
+  }, 0);
+
   dashboardContents.value = [
     {
       title: "アクティブプロジェクト",
@@ -127,18 +132,7 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
       title: "平均評価",
       description: `先月比 ±0%`,
       icon: "mdi:star-check",
-      value:
-        projects.reduce(
-          (acc, project) =>
-            acc +
-            (project.average_ratings
-              ? project.average_ratings.reduce(
-                  (sum, item) => sum + item.average_rating,
-                  0
-                ) / (project.average_ratings.length || 1)
-              : 0),
-          0
-        ) / (projects.length || 1),
+      value: Number((totalAvgRating / projects.length).toFixed(1)),
     },
     {
       title: "期限切れプロジェクト",
@@ -256,7 +250,7 @@ watch(
       <!-- projects -->
       <TabsContent value="projects" class="flex flex-col gap-6">
         <div
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(480px,1fr))] gap-3"
+          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <MyProjectCard
             v-for="(project, index) in activeProjects.slice(0, 2)"

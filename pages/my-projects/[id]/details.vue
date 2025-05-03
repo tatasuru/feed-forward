@@ -482,12 +482,15 @@ function initFeedbackContents() {
           <PageTitle title="フィードバック" size="medium" />
 
           <div
-            v-for="(feedback, index) in feedbackContents.slice(0, 2)"
-            :key="index"
-            class="flex flex-col gap-8"
+            v-if="projectWithFeedback.feedbacks.length > 0"
+            class="flex flex-col gap-4"
           >
-            <FeedbackCard :feedback="feedback" :isDashboard="false" />
-            <Separator />
+            <FeedbackCard
+              v-for="(feedback, index) in feedbackContents.slice(0, 2)"
+              :key="index"
+              :feedback="feedback"
+              :isDashboard="false"
+            />
           </div>
 
           <div v-if="isLoading" class="flex flex-col gap-8">

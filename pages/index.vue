@@ -132,7 +132,11 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
       title: "平均評価",
       description: `先月比 ±0%`,
       icon: "mdi:star-check",
-      value: Number((totalAvgRating / projects.length).toFixed(1)),
+      value: Number(
+        (totalAvgRating / projects.filter((p) => p.avg_rating).length).toFixed(
+          1
+        )
+      ),
     },
     {
       title: "期限切れプロジェクト",
@@ -253,7 +257,7 @@ watch(
           class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
         >
           <MyProjectCard
-            v-for="(project, index) in activeProjects.slice(0, 2)"
+            v-for="(project, index) in activeProjects.slice(0, 6)"
             :key="index"
             :project="project"
           />
@@ -292,10 +296,7 @@ watch(
         </div>
 
         <EmptyProjectCard
-          v-if="
-            feedbackContents.length === 0 ||
-            !feedbackContents[0].feedback_ratings
-          "
+          v-if="feedbackContents.length === 0"
           class="h-full flex items-center justify-center"
           text="最近のフィードバックはありません"
           label="プロジェクトを作成してフィードバックを受け取る"

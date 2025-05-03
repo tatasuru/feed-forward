@@ -23,4 +23,8 @@ useHead({
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+
+  <ClientOnly>
+    <Toaster richColors />
+  </ClientOnly>
 </template>

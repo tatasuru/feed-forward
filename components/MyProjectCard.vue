@@ -46,12 +46,7 @@ const statusType = {
             {{ props.project.project_type }}
           </Badge>
           <CardTitle>
-            <NuxtLink
-              :to="`/my-projects/${props.project.id}/details`"
-              class="text-foreground hover:text-blue font-bold text-lg line-clamp-1"
-            >
-              {{ props.project.title }}
-            </NuxtLink>
+            {{ props.project.title }}
           </CardTitle>
         </div>
 
@@ -89,7 +84,7 @@ const statusType = {
       </div>
     </CardContent>
     <CardFooter
-      class="flex flex-col md:flex-col items-start justify-between gap-6"
+      class="flex flex-col md:flex-col items-start justify-between gap-4"
     >
       <div class="flex flex-col md:flex-row gap-2 md:gap-4 w-full">
         <div class="flex flex-row items-center gap-2">
@@ -121,6 +116,25 @@ const statusType = {
         >
           {{ statusType[props.project.status] }}
         </Badge>
+      </div>
+
+      <Separator />
+
+      <div
+        class="flex flex-col md:flex-row md:items-center md:justify-end w-full"
+      >
+        <Button
+          as-child
+          variant="main"
+          class="w-full md:w-fit h-fit md:py-1 md:px-6 rounded-sm"
+        >
+          <NuxtLink
+            :to="`/my-projects/${props.project.id}/details`"
+            class="text-sm text-purple dark:text-white"
+          >
+            詳細を見る
+          </NuxtLink>
+        </Button>
       </div>
     </CardFooter>
   </Card>

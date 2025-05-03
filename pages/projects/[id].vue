@@ -4,12 +4,14 @@ import { constructNow, format } from "date-fns";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
+import { toast } from "vue-sonner";
 
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
 const supabaseUser = useSupabaseUser();
 const preview = ref();
 const isLoading = ref<boolean>(true);
+const isSubmitting = ref<boolean>(false);
 
 const projectWithFeedback = computed<ProjectWithFeedback>(() => {
   return projectDetails.value as ProjectWithFeedback;
@@ -72,10 +74,20 @@ const form = useForm({
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {
+    isSubmitting.value = true;
+
     // submit feedback
     await submitFeedback(values);
+
+    setTimeout(() => {
+      toast.success("フィードバックを送信しました。");
+      isAlreadyRated.value = true;
+      isSubmitting.value = false;
+    }, 2000);
   } catch (error) {
     console.error("Form validation error:", error);
+    toast.error("フィードバックの送信に失敗しました。");
+    isSubmitting.value = false;
     return;
   }
 });
@@ -282,7 +294,6 @@ async function submitFeedback(values: {
         throw error;
       }
 
-      isAlreadyRated.value = true;
       return data.feedback_id;
     }
   } catch (error) {
@@ -711,7 +722,21 @@ async function getRatingPerCriteria() {
               <FormMessage />
             </FormItem>
           </FormField>
-          <Button variant="main" class="w-full cursor-pointer">送信する</Button>
+          <Button
+            variant="main"
+            class="w-full cursor-pointer"
+            :disabled="isSubmitting"
+          >
+            {{
+              isAlreadyRated
+                ? isSubmitting
+                  ? "フィードバックを更新中..."
+                  : "フィードバックを更新する"
+                : isSubmitting
+                ? "フィードバックを送信中..."
+                : "フィードバックを送信する"
+            }}
+          </Button>
         </form>
       </div>
     </div>

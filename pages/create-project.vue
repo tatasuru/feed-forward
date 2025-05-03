@@ -12,6 +12,7 @@ import {
   getLocalTimeZone,
 } from "@internationalized/date";
 import { CalendarIcon } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: "auth",
@@ -70,6 +71,7 @@ const borderColorPalette = [
 ];
 const status = ref<ProjectData["status"]>("active");
 const formRef = ref<HTMLElement | null>(null);
+const isSubmitting = ref<boolean>(false);
 
 /********************************
  * Lifecycle hooks
@@ -96,7 +98,10 @@ const form = useForm({
 });
 
 const onSubmit = form.handleSubmit(
-  (values) => {
+  async (values) => {
+    isSubmitting.value = true;
+
+    // Check if the form is valid
     const userId = user.value?.id;
 
     if (!userId) {
@@ -127,10 +132,26 @@ const onSubmit = form.handleSubmit(
     };
 
     try {
-      createProject(projectData);
-      form.resetForm();
+      await createProject(projectData);
+
+      toast.success("プロジェクトが作成されました", {
+        description: "プロジェクト一覧ページへ移動します",
+      });
+
+      setTimeout(() => {
+        navigateTo({
+          path: "/my-projects",
+        });
+
+        form.resetForm();
+        isSubmitting.value = false;
+      }, 2000);
     } catch (error) {
       console.error("Error creating project:", error);
+      toast.error("プロジェクトの作成に失敗しました", {
+        description: "もう一度お試しください",
+      });
+      isSubmitting.value = false;
     }
   },
   async (errors) => {
@@ -163,22 +184,6 @@ async function createProject(projectData: ProjectData) {
 /********************************
  * HELPER FUNCTIONS
  ********************************/
-async function getCriteriaTemplate(isAll: boolean) {
-  try {
-    const { data, error } = await supabase.rpc("get_criteria_templates", {
-      p_evaluation_type: isAll ? "" : form.values.evaluationType,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching criteria templates:", error);
-  }
-}
-
 function selectCriteriaTemplate() {
   const selectedTemplate = evaluationTypes.value.find(
     (template) => template.evaluation_type === form.values.evaluationType
@@ -665,6 +670,7 @@ function formatDate(newDate: DateValue) {
             type="button"
             class="text-sm text-destructive cursor-pointer w-full md:w-auto border-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive"
             @click="$router.back()"
+            :disabled="isSubmitting"
           >
             <Icon name="mdi:close" class="!size-4" />
             キャンセル
@@ -679,6 +685,7 @@ function formatDate(newDate: DateValue) {
               type="submit"
               @click="status = 'draft'"
               class="text-sm text-primary cursor-pointer w-full md:w-auto"
+              :disabled="isSubmitting"
             >
               <Icon name="mdi:content-save" class="!size-4" />
               下書きとして保存
@@ -689,9 +696,12 @@ function formatDate(newDate: DateValue) {
               type="submit"
               variant="main"
               class="text-sm text-white cursor-pointer w-full md:w-auto"
+              :disabled="isSubmitting"
             >
               <Icon name="mdi:plus" class="!size-4" />
-              プロジェクトを作成
+              {{
+                isSubmitting ? "プロジェクトを作成中..." : "プロジェクトを作成"
+              }}
             </Button>
           </div>
         </div>

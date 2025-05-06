@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import type { Notification } from "@/types/notifications.type";
+import { format } from "date-fns";
+
 const router = useRouter();
 const colorMode = useColorMode();
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 const store = useStore();
 const isOpen = ref<boolean>(false);
-
 const pageMenu = [
   {
     name: "ダッシュボード",
@@ -32,6 +35,7 @@ const pageMenu = [
     icon: "mdi:cog-outline",
   },
 ];
+const unreadNotifications = ref<Notification[]>([]);
 
 // for active link - changed to computed property for reactivity
 const isActive = (path: string) => {
@@ -51,6 +55,44 @@ const logout = async () => {
     window.location.href = "/login";
   }
 };
+
+// get unread notifications
+async function fetchUnreadNotifications() {
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", user.value?.id)
+    .eq("is_read", false)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("通知の取得に失敗しました:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// read notifications post
+async function markNotificationAsRead(notificationId: string) {
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("id", notificationId);
+
+  if (error) {
+    console.error("通知の既読処理に失敗しました:", error);
+    return false;
+  }
+
+  unreadNotifications.value = await fetchUnreadNotifications();
+
+  return true;
+}
+
+onMounted(async () => {
+  unreadNotifications.value = await fetchUnreadNotifications();
+});
 </script>
 
 <template>
@@ -87,16 +129,75 @@ const logout = async () => {
       </NavigationMenuList>
     </NavigationMenu>
     <div class="items-center gap-1 md:gap-2 flex">
-      <Button
-        :variant="'ghost'"
-        class="cursor-pointer rounded-full"
-        size="icon"
-      >
-        <Icon
-          name="solar:bell-line-duotone"
-          class="dark:text-white text-black !size-5 flex"
-        />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button
+            :variant="'ghost'"
+            class="cursor-pointer rounded-full relative"
+            size="icon"
+          >
+            <Icon
+              name="solar:bell-line-duotone"
+              class="dark:text-white text-black !size-5 flex"
+            />
+            <Badge
+              v-if="unreadNotifications.length > 0"
+              variant="destructive"
+              class="absolute top-0 right-0 rounded-full p-0 w-4 h-4 flex items-center justify-center text-xs text-white"
+            >
+              {{ unreadNotifications.length }}
+            </Badge>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          side="bottom"
+          align="end"
+          :side-offset="4"
+          :align-offset="0"
+          class="w-96"
+        >
+          <DropdownMenuLabel>通知一覧</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            v-for="notification in unreadNotifications"
+            :key="notification.id"
+            class="cursor-pointer"
+          >
+            <NuxtLink
+              :to="`/my-projects/${notification.project_id}/details`"
+              @click="markNotificationAsRead(notification.id)"
+            >
+              <div class="flex items-start gap-4">
+                <Avatar :size="'sm'" class="cursor-pointer">
+                  <AvatarImage
+                    v-if="notification.metadata.provider_avatar_url"
+                    :src="notification.metadata.provider_avatar_url"
+                    alt="avatar"
+                  />
+                  <AvatarFallback>U</AvatarFallback>
+                </Avatar>
+                <div class="flex flex-col gap-1">
+                  <p>
+                    {{
+                      notification.metadata.provider_display_name
+                        ? notification.metadata.provider_display_name
+                        : "Unknown User"
+                    }}
+                    さんから
+                    {{ notification.message }}
+                  </p>
+                  <span class="text-xs text-muted-foreground">
+                    {{ format(notification.created_at, "yyyy/MM/dd") }}
+                  </span>
+                </div>
+              </div>
+            </NuxtLink>
+          </DropdownMenuItem>
+          <DropdownMenuItem v-if="unreadNotifications.length === 0">
+            現在通知はありません
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <DropdownMenu>
         <DropdownMenuTrigger as-child>

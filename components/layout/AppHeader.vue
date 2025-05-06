@@ -154,7 +154,7 @@ onMounted(async () => {
           align="end"
           :side-offset="4"
           :align-offset="0"
-          class="w-96"
+          class="w-64 md:w-96"
         >
           <DropdownMenuLabel>通知一覧</DropdownMenuLabel>
           <DropdownMenuSeparator />

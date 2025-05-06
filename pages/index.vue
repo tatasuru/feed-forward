@@ -64,17 +64,20 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
     (project) =>
       project.deadline &&
       new Date(project.deadline) < today &&
-      project.status !== "completed"
+      project.status === "completed"
   );
 
   const thisMonthProjects = projects.filter(
-    (project) => new Date(project.created_at) >= firstDayOfMonth
+    (project) =>
+      new Date(project.created_at) >= firstDayOfMonth &&
+      project.status === "active"
   );
 
   const lastMonthProjects = projects.filter(
     (project) =>
       new Date(project.created_at) >= lastMonthStart &&
-      new Date(project.created_at) <= lastMonthEnd
+      new Date(project.created_at) <= lastMonthEnd &&
+      project.status === "active"
   );
 
   const thisMonthFeedbacks = projects.reduce((acc, project) => {
@@ -117,7 +120,7 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
         lastMonthProjects.length
       )} 増加`,
       icon: "mdi:file-document",
-      value: projects.length,
+      value: projects.filter((project) => project.status === "active").length,
     },
     {
       title: "受け取ったフィードバック",

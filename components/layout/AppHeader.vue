@@ -176,7 +176,21 @@ onMounted(async () => {
                   />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <div class="flex flex-col gap-1">
+                <div
+                  v-if="notification.type === 'deadline_expired'"
+                  class="flex flex-col gap-1"
+                >
+                  <p>
+                    {{ notification.message }}
+                  </p>
+                  <span class="text-xs text-muted-foreground">
+                    {{ format(notification.created_at, "yyyy/MM/dd") }}
+                  </span>
+                </div>
+                <div
+                  v-if="notification.type === 'feedback_received'"
+                  class="flex flex-col gap-1"
+                >
                   <p>
                     {{
                       notification.metadata.provider_display_name

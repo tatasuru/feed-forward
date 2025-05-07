@@ -20,8 +20,6 @@ const user = useSupabaseUser();
 const isFirstLogin = ref<boolean>(false);
 const profile = ref<any>(null);
 const isSubmitting = ref<boolean>(false);
-const uploadedImageUrl = ref<string>("");
-const isUploading = ref<boolean>(false);
 const store = useStore();
 const { isMobile } = useDevice();
 
@@ -164,123 +162,24 @@ async function registrationProfile(values: formValues) {
 /********************************
  * Image upload
  ********************************/
-const dropZoneRef = ref<HTMLDivElement>();
-const { isOverDropZone } = useDropZone(dropZoneRef, {
-  onDrop,
-  dataTypes: ["image/jpeg", "image/png"],
-  multiple: false,
-  preventDefaultForUnhandled: false,
+const {
+  dropZoneRef,
+  isOverDropZone,
+  uploadedImageUrl,
+  isUploading,
+  handleMainImageUpload,
+} = useImageUpload({
+  bucket: "profile-images",
+  folderPath: user.value?.id,
+  allowedTypes: ["image/jpeg", "image/png"],
+  maxSize: 2 * 1024 * 1024,
+  onSuccess: (url: string) => {
+    console.log("画像のアップロードに成功しました:", url);
+  },
+  onError: (err: Error) => {
+    console.error("アップロードに失敗しました:", err);
+  },
 });
-
-// Handle drag and drop
-async function onDrop(files: File[] | null) {
-  if (!files || files.length === 0) {
-    return;
-  }
-
-  try {
-    uploadedImageUrl.value = (await uploadImage(files[0])) || "";
-
-    setTimeout(() => {
-      isUploading.value = false;
-    }, 1000);
-  } catch (error) {
-    console.error("Error uploading image:", error);
-  }
-}
-
-// Handle file input change
-async function handleMainImageUpload(event: Event) {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-
-  if (!file) {
-    return;
-  }
-
-  try {
-    uploadedImageUrl.value = (await uploadImage(file)) || "";
-
-    setTimeout(() => {
-      isUploading.value = false;
-    }, 1000);
-  } catch (error) {
-    console.error("Error uploading image:", error);
-  }
-}
-
-// uploadImage function
-async function uploadImage(file: File | null): Promise<string | null> {
-  isUploading.value = true;
-
-  if (!file) {
-    isUploading.value = false;
-    return null;
-  }
-  if (file.size > 2 * 1024 * 1024) {
-    throw new Error(
-      "サイズ制限を超えています。2MB以下の画像をアップロードしてください。"
-    );
-  }
-  if (file.type !== "image/jpeg" && file.type !== "image/png") {
-    throw new Error(
-      "無効なファイル形式です。JPEGまたはPNG形式の画像をアップロードしてください。"
-    );
-  }
-
-  const fileExt = file.name.split(".").pop();
-  const filename = `${Date.now()}-${Math.random()
-    .toString(36)
-    .substring(2, 15)}.${fileExt}`;
-  const filePath = `${user.value?.id}/${filename}`;
-
-  try {
-    // 1. Check if a file already exists
-    const { data: existingFile } = await supabase.storage
-      .from("profile-images")
-      .list(user.value?.id, {
-        limit: 1,
-        offset: 0,
-        sortBy: { column: "created_at", order: "desc" },
-      });
-
-    // 2. If a file exists, delete it
-    if (existingFile && existingFile.length > 0) {
-      const { error: deleteError } = await supabase.storage
-        .from("profile-images")
-        .remove([`${user.value?.id}/${existingFile[0].name}`]);
-
-      if (deleteError) {
-        throw deleteError;
-      }
-    }
-
-    // 3. Upload the new file
-    const { data, error } = await supabase.storage
-      .from("profile-images")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    // 4. Get the public URL of the uploaded file
-    const publicUrl = supabase.storage
-      .from("profile-images")
-      .getPublicUrl(filePath).data.publicUrl;
-
-    return publicUrl;
-  } catch (error) {
-    console.error("Error in uploadImage function:", error);
-    isUploading.value = false;
-    throw new Error(
-      "画像のアップロード中にエラーが発生しました。再度お試しください。"
-    );
-  }
-}
 </script>
 
 <template>

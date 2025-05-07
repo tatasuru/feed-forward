@@ -11,7 +11,7 @@ definePageMeta({
   ogTitle: "Feed Forward ログイン",
   ogDescription:
     "Feed Forwardにログインして、フィードバックを受け取りましょう！",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

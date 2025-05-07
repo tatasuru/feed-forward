@@ -22,7 +22,7 @@ definePageMeta({
   ogTitle: "Feed Forward プロジェクト編集",
   ogDescription:
     "Feed Forwardのプロジェクト編集ページです。プロジェクトの詳細を編集できます。",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

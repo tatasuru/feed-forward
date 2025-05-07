@@ -10,7 +10,7 @@ definePageMeta({
   description: "Feed Forwardのパスワードリセット",
   ogTitle: "Feed Forward パスワードリセット",
   ogDescription: "Feed Forwardのパスワードリセット",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

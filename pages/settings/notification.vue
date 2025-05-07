@@ -7,7 +7,7 @@ definePageMeta({
   description: "Feed Forwardの通知設定ページです。通知の設定を行います。",
   ogTitle: "Feed Forward 通知設定",
   ogDescription: "Feed Forwardの通知設定ページです。通知の設定を行います。",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 </script>

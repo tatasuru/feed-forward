@@ -9,7 +9,7 @@ definePageMeta({
   ogTitle: "Feed Forward マイプロジェクト",
   ogDescription:
     "Feed Forwardのマイプロジェクトページです。あなたが作成したフィードバックプロジェクトを確認できます。",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

@@ -8,7 +8,7 @@ definePageMeta({
   ogTitle: "Feed Forward みんなのプロジェクト",
   ogDescription:
     "Feed Forwardのみんなのプロジェクトページです。みんなのプロジェクトを見てみましょう！",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

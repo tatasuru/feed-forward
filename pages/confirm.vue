@@ -11,7 +11,7 @@ definePageMeta({
   ogTitle: "Feed Forward ログイン確認",
   ogDescription:
     "Feed Forwardのログイン確認を行います。ログイン後、プロジェクトの詳細を入力してください。",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

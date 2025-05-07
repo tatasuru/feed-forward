@@ -7,7 +7,7 @@ definePageMeta({
   description: "プロジェクトとフィードバックの概要",
   ogTitle: "Feed Forward ダッシュボード",
   ogDescription: "チームの活動状況を一目で確認",
-  ogImage: "favicon.ico",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

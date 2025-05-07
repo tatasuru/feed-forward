@@ -191,16 +191,16 @@ onMounted(() => {
             :key="menu.name"
             class="min-w-fit md:w-full"
           >
-            <NavigationMenuLink
-              :href="menu.link"
-              class="w-full text-left rounded-md py-2 px-4 hover:bg-purple/10 hover:text-purple transition-colors flex items-center gap-2 flex-row dark:text-white"
+            <NuxtLink
+              :to="menu.link"
+              class="w-full text-left rounded-md py-2 px-4 hover:bg-purple/10 hover:text-purple transition-colors flex items-center gap-2 flex-row dark:text-white text-sm"
               :class="
                 currentPath === menu.link ? 'bg-purple text-background' : ''
               "
             >
               <Icon :name="menu.icon" class="!size-5" />
               {{ menu.name }}
-            </NavigationMenuLink>
+            </NuxtLink>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>

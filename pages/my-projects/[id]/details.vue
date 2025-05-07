@@ -540,7 +540,7 @@ async function deleteProject() {
             class="flex flex-col gap-4 w-full"
           >
             <FeedbackCard
-              v-for="(feedback, index) in feedbackContents.slice(0, 2)"
+              v-for="(feedback, index) in feedbackContents.slice(0, 3)"
               :key="index"
               :feedback="feedback"
               :isDashboard="false"

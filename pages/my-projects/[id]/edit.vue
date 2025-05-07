@@ -103,6 +103,9 @@ const { data: criteriaTemplates } = useAsyncData(
 onMounted(async () => {
   await nextTick();
   await getProjectData();
+
+  // Set the initial date value
+  publishStatus.value = project.value?.status === "active" ? true : false;
 });
 
 /********************************

@@ -96,7 +96,6 @@ async function markNotificationAsRead(notificationId: string) {
 
 onMounted(async () => {
   unreadNotifications.value = await fetchUnreadNotifications();
-  console.log("unreadNotifications.value", unreadNotifications.value);
 });
 </script>
 

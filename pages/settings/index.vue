@@ -178,7 +178,7 @@ onMounted(() => {
       size="large"
     />
 
-    <div class="flex flex-col md:flex-row gap-12 items-start">
+    <div class="flex flex-col md:flex-row gap-6 md:gap-12 items-start">
       <!-- left -->
       <NavigationMenu
         class="md:w-[200px] flex-none max-w-none items-start justify-start [&>div]:w-full"
@@ -193,7 +193,7 @@ onMounted(() => {
           >
             <NavigationMenuLink
               :href="menu.link"
-              class="w-full text-left rounded-md py-2 px-4 hover:bg-purple/10 hover:text-purple transition-colors flex items-center gap-2 flex-row"
+              class="w-full text-left rounded-md py-2 px-4 hover:bg-purple/10 hover:text-purple transition-colors flex items-center gap-2 flex-row dark:text-white"
               :class="
                 currentPath === menu.link ? 'bg-purple text-background' : ''
               "
@@ -341,7 +341,7 @@ onMounted(() => {
           <Button
             size="sm"
             type="submit"
-            class="cursor-pointer gradient-bg w-fit"
+            class="cursor-pointer gradient-bg md:w-fit w-full text-white"
             :disabled="isSubmitting || isUploading"
           >
             {{ isSubmitting ? "更新中..." : "更新する" }}

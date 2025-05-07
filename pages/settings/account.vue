@@ -138,8 +138,8 @@ onMounted(() => {
   form.setValues({
     displayName: store.profile.display_name,
     avatarUrl: store.profile.avatar_url,
-    bio: store.profile.bio,
-    website: store.profile.website,
+    bio: store.profile.bio || "",
+    website: store.profile.website || "",
   });
 });
 </script>

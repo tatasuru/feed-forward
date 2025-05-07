@@ -110,7 +110,12 @@ const onSubmit = form.handleSubmit(
     }
 
     const formattedDeadline = values.deadline
-      ? new Date(values.deadline).toISOString()
+      ? (() => {
+          const [year, month, day] = values.deadline.split("/").map(Number);
+          const date = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
+
+          return date.toISOString();
+        })()
       : null;
 
     const projectData: ProjectData = {

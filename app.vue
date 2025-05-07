@@ -24,7 +24,11 @@ watchEffect(() => {
       },
       {
         property: "og:image",
-        content: String(route.meta.ogImage ?? "/logo.png"),
+        content: String(
+          route.meta.ogImage
+            ? `${process.env.BASE_URL}${route.meta.ogImage}`
+            : `${process.env.BASE_URL}/logo.png`
+        ),
       },
       {
         name: "twitter:card",
@@ -32,7 +36,11 @@ watchEffect(() => {
       },
       {
         name: "twitter:image",
-        content: String(route.meta.ogImage ?? "/logo.png"),
+        content: String(
+          route.meta.ogImage
+            ? `${process.env.BASE_URL}${route.meta.ogImage}`
+            : `${process.env.BASE_URL}/logo.png`
+        ),
       },
       {
         name: "twitter:title",

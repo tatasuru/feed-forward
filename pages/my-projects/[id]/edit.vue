@@ -186,8 +186,6 @@ async function handleSubmit(userId: string) {
     status: publishStatus.value ? "active" : "draft",
   };
 
-  console.log("Project Data:", projectData);
-
   try {
     await updateProject(route.params.id as string, projectData);
 

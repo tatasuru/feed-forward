@@ -168,8 +168,6 @@ async function handleSubmit(userId: string) {
     status: publishStatus.value ? "active" : "draft",
   };
 
-  console.log("Project Data:", projectData);
-
   try {
     await createProject(projectData);
 
@@ -695,7 +693,9 @@ async function createProject(projectData: ProjectData) {
           <div
             class="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto"
           >
-            <div class="flex items-center space-x-2 justify-end md:justify-start">
+            <div
+              class="flex items-center space-x-2 justify-end md:justify-start"
+            >
               <Switch
                 id="publish-status"
                 :model-value="publishStatus"

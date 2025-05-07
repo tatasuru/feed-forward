@@ -14,7 +14,6 @@ definePageMeta({
   ogTitle: "Feed Forward アカウント設定",
   ogDescription:
     "Feed Forwardのアカウント設定ページです。アカウントの設定を行います。",
-  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

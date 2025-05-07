@@ -9,7 +9,6 @@ definePageMeta({
   ogTitle: "Feed Forward フィードバック一覧",
   ogDescription:
     "Feed Forwardのフィードバック一覧ページです。あなたが受けたフィードバックを確認できます。",
-  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

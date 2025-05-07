@@ -14,7 +14,6 @@ definePageMeta({
   ogTitle: "Feed Forward プロジェクト詳細",
   ogDescription:
     "Feed Forwardのプロジェクト詳細ページです。プロジェクトの詳細を確認できます。",
-  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

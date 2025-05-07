@@ -12,7 +12,6 @@ definePageMeta({
   ogTitle: "Feed Forward セキュリティ設定",
   ogDescription:
     "Feed Forwardのセキュリティ設定ページです。パスワードリセットやアカウント削除ができます。",
-  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

@@ -9,7 +9,6 @@ definePageMeta({
   ogTitle: "Feed Forward プラン設定",
   ogDescription:
     "Feed Forwardのプラン設定ページです。プラン変更や利用状況の確認ができます。",
-  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 </script>

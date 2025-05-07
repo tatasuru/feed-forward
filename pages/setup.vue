@@ -10,7 +10,6 @@ definePageMeta({
   description: "Feed Forwardのセットアップ",
   ogTitle: "Feed Forward セットアップ",
   ogDescription: "Feed Forwardのセットアップ",
-  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

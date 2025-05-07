@@ -22,7 +22,6 @@ definePageMeta({
   ogTitle: "Feed Forward 新規プロジェクト作成",
   ogDescription:
     "フィードバックを受け取りたいプロジェクトの詳細を入力してください",
-  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 

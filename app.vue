@@ -7,9 +7,8 @@ const config = useRuntimeConfig();
  *************************/
 watchEffect(() => {
   const baseUrl = config.public.baseUrl;
-  const ogImage = route.meta.ogImage
-    ? `${baseUrl}${route.meta.ogImage}`
-    : `${baseUrl}/logo.png`;
+  const ogImage = `${baseUrl}/logo.png`;
+  const twitterImage = `${baseUrl}/summary-image.png`;
 
   useHead({
     title: route.meta.title
@@ -38,7 +37,7 @@ watchEffect(() => {
       },
       {
         name: "twitter:image",
-        content: String(ogImage),
+        content: String(twitterImage),
       },
       {
         name: "twitter:title",

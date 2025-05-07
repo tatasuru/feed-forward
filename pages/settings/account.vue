@@ -218,9 +218,6 @@ onMounted(() => {
                   <span class="text-sm text-muted-foreground">
                     クリックかドラック&ドロップで画像をアップロードできます。
                   </span>
-                  <span class="text-sm text-muted-foreground">
-                    画像をアップロードしない場合は、そのまま次へ進んでください。
-                  </span>
                 </div>
                 <div
                   v-if="isUploading"

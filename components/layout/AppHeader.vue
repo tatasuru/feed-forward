@@ -240,7 +240,7 @@ onMounted(async () => {
           align="end"
           :side-offset="4"
           :align-offset="0"
-          class="w-56"
+          class="min-w-56"
         >
           <div class="flex flex-col gap-1 p-2">
             <p class="text-sm">{{ store.profile.display_name }}</p>
@@ -294,7 +294,6 @@ onMounted(async () => {
             <SheetTitle class="text-xl md:text-2xl font-bold gradient-text">
               FeedForward
             </SheetTitle>
-            <!-- <SheetDescription /> -->
           </SheetHeader>
 
           <nav class="space-y-4 w-full p-4">

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { AllProjectWithFeedback } from "@/types/projects.types";
 
+definePageMeta({
+  middleware: "auth",
+});
+
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const { project_id } = useRoute().query;
@@ -179,17 +183,17 @@ function initFeedbackContents() {
   feedbackContents.value = feedbacks?.map((feedback, feedbackIndex) => {
     return {
       id: feedback.id,
-      title: projects?.[feedbackIndex]?.project?.title,
+      title: projects?.[0]?.project?.title,
       description: feedback.overall_comment,
       created_at: feedback.created_at.toString(),
       feedback_ratings: feedback.ratings.map((fb: any, index: number) => ({
-        title: projects?.[feedbackIndex].evaluation_criteria[index].name,
+        title: projects?.[0].evaluation_criteria[index].name,
         rating: fb.rating,
         created_at: feedback.created_at.toString(),
         user_id: feedback.user?.id || null,
       })),
       overall_comment: feedback.overall_comment,
-      project_type: projects?.[feedbackIndex].project.project_type,
+      project_type: projects?.[0].project.project_type,
       user: {
         id: feedback.user?.id || "",
         display_name: feedback.user?.display_name || "Unknown User",

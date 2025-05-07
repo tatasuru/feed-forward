@@ -107,7 +107,7 @@ const { data: relatedData } = await useAsyncData(
     }
   },
   {
-    server: false,
+    server: true,
   }
 );
 
@@ -214,13 +214,13 @@ function initFeedbackContents() {
         description: feedback.overall_comment,
         created_at: feedback.created_at.toString(),
         feedback_ratings: feedback.ratings.map((fb: any, index: number) => ({
-          title: ratingPerCriteria.value[index].title,
-          rating: ratingPerCriteria.value[index].rating || 0,
+          title: ratingPerCriteria.value[index]?.title,
+          rating: ratingPerCriteria.value[index]?.rating || 0,
           created_at: feedback.created_at.toString(),
           user_id: fb.user_id || "",
         })),
         overall_comment: feedback.overall_comment,
-        project_type: projectWithFeedback.value.project.project_type,
+        project_type: projectWithFeedback.value.project?.project_type,
         user: {
           id: feedback.user?.id || "",
           display_name: feedback.user?.display_name || "Unknown User",
@@ -518,9 +518,9 @@ async function deleteProject() {
                 <Icon :name="item.icon" class="!size-5" />
               </CardHeader>
               <CardContent class="font-bold flex flex-col gap-1 px-5">
-                <span class="text-foreground text-3xl gradient-text">{{
-                  item.value
-                }}</span>
+                <span class="text-foreground text-3xl gradient-text">
+                  {{ item.value }}
+                </span>
                 <span class="text-muted-foreground text-sm">
                   {{ item.description }}
                 </span>
@@ -568,7 +568,7 @@ async function deleteProject() {
               :to="{
                 path: `/my-projects/feedbacks`,
                 query: {
-                  project_id: projectWithFeedback.project.id,
+                  project_id: projectWithFeedback?.project?.id,
                 },
               }"
               class="w-full"

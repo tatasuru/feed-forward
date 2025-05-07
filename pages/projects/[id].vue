@@ -6,6 +6,10 @@ import { useForm } from "vee-validate";
 import * as z from "zod";
 import { toast } from "vue-sonner";
 
+definePageMeta({
+  middleware: "auth",
+});
+
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
 const supabaseUser = useSupabaseUser();
@@ -155,7 +159,7 @@ const { data: relatedData } = await useAsyncData(
     }
   },
   {
-    server: false,
+    server: true,
   }
 );
 

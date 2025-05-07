@@ -1,10 +1,16 @@
 <script setup lang="ts">
 const route = useRoute();
+const config = useRuntimeConfig();
 
 /************************
  * SEO
  *************************/
 watchEffect(() => {
+  const baseUrl = config.public.baseUrl;
+  const ogImage = route.meta.ogImage
+    ? `${baseUrl}${route.meta.ogImage}`
+    : `${baseUrl}/logo.png`;
+
   useHead({
     title: route.meta.title
       ? `${route.meta.title} - Feed Forward`
@@ -24,11 +30,7 @@ watchEffect(() => {
       },
       {
         property: "og:image",
-        content: String(
-          route.meta.ogImage
-            ? `${process.env.BASE_URL}${route.meta.ogImage}`
-            : `${process.env.BASE_URL}/logo.png`
-        ),
+        content: String(ogImage),
       },
       {
         name: "twitter:card",
@@ -36,11 +38,7 @@ watchEffect(() => {
       },
       {
         name: "twitter:image",
-        content: String(
-          route.meta.ogImage
-            ? `${process.env.BASE_URL}${route.meta.ogImage}`
-            : `${process.env.BASE_URL}/logo.png`
-        ),
+        content: String(ogImage),
       },
       {
         name: "twitter:title",

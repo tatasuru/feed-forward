@@ -24,7 +24,7 @@ watchEffect(() => {
       },
       {
         property: "og:image",
-        content: String(route.meta.ogImage ?? "/favicon.ico"),
+        content: String(route.meta.ogImage ?? "/logo.png"),
       },
       {
         name: "twitter:card",
@@ -32,7 +32,7 @@ watchEffect(() => {
       },
       {
         name: "twitter:image",
-        content: String(route.meta.ogImage ?? "/favicon.ico"),
+        content: String(route.meta.ogImage ?? "/logo.png"),
       },
       {
         name: "twitter:title",

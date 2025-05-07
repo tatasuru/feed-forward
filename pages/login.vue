@@ -7,9 +7,10 @@ definePageMeta({
   middleware: "auth",
   layout: "custom",
   title: "ログイン",
-  description: "Feed Forwardにログイン",
+  description: "Feed Forwardにログインして、フィードバックを受け取りましょう！",
   ogTitle: "Feed Forward ログイン",
-  ogDescription: "Feed Forwardにログイン",
+  ogDescription:
+    "Feed Forwardにログインして、フィードバックを受け取りましょう！",
   ogImage: "favicon.ico",
   twitterCard: "summary_large_image",
 });

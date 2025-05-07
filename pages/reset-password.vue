@@ -9,7 +9,6 @@ definePageMeta({
 });
 
 const supabase = useSupabaseClient();
-const user = useSupabaseUser();
 const config = useRuntimeConfig();
 
 const loading = ref<boolean>(false);

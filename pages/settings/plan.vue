@@ -7,5 +7,16 @@ definePageMeta({
 </script>
 
 <template>
-  <SettingLayout> Plan </SettingLayout>
+  <SettingLayout>
+    <div class="flex flex-col gap-8 md:gap-12">
+      <div class="flex flex-col gap-4">
+        <PageTitle
+          title="プラン設定"
+          description="プランの設定を行います"
+          size="small"
+        />
+        <Separator />
+      </div>
+    </div>
+  </SettingLayout>
 </template>

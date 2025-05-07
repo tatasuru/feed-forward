@@ -43,6 +43,10 @@ const isActive = (path: string) => {
     return router.currentRoute.value.path === path;
   }
 
+  if (path.includes("settings")) {
+    return router.currentRoute.value.path.includes("settings");
+  }
+
   return router.currentRoute.value.path.includes(path);
 };
 

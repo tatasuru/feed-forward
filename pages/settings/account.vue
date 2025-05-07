@@ -146,136 +146,153 @@ onMounted(() => {
 
 <template>
   <SettingLayout>
-    <form @submit="onSubmit" class="flex flex-col gap-8 w-full">
-      <!-- display name -->
-      <FormField v-slot="{ componentField }" name="displayName">
-        <FormItem>
-          <FormLabel> 表示名 </FormLabel>
-          <FormControl>
-            <Input
-              type="text"
-              placeholder="たろうくん"
-              v-bind="componentField"
-              :default-value="store.profile.display_name"
-            />
-          </FormControl>
-          <FormDescription>
-            フィードバックした際に表示される名前です。
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-
-      <!-- avatar image -->
-      <FormField v-slot="{ componentField }" name="avatarUrl">
-        <FormItem>
-          <FormLabel>プロフィール画像</FormLabel>
-          <FormControl>
-            <Label
-              ref="dropZoneRef"
-              for="dropzone-file"
-              class="border border-dashed border-muted-foreground rounded-md p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-muted-foreground/10 transition-colors"
-              :class="isOverDropZone && 'bg-muted-foreground/10'"
-            >
-              <Input
-                type="file"
-                id="dropzone-file"
-                accept="image/jpeg,image/png"
-                class="hidden"
-                @change="(e: Event) => handleMainImageUpload(e)"
-              />
-
-              <!-- preview -->
-              <div class="flex items-center justify-center">
-                <Avatar class="!size-10 self-start row-span-3">
-                  <AvatarImage :src="uploadedImageUrl" alt="User Avatar" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-              </div>
-
-              <!-- description -->
-              <div v-if="!isUploading" class="flex flex-col items-center gap-2">
-                <span class="text-sm text-muted-foreground">
-                  クリックかドラック&ドロップで画像をアップロードできます。
-                </span>
-                <span class="text-sm text-muted-foreground">
-                  画像をアップロードしない場合は、そのまま次へ進んでください。
-                </span>
-              </div>
-              <div v-if="isUploading" class="flex flex-col items-center gap-2">
-                <span class="text-sm text-muted-foreground">
-                  画像をアップロード中...
-                </span>
-                <span class="text-sm text-muted-foreground">
-                  しばらくお待ちください。
-                </span>
-              </div>
-            </Label>
-
-            <Input
-              type="text"
-              placeholder="https://example.com/image.jpg"
-              v-bind="componentField"
-              disabled
-              v-model="uploadedImageUrl"
-              class="hidden"
-            />
-          </FormControl>
-          <FormDescription>
-            初期値は仮のプロフィール画像です。
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-
-      <!-- bio -->
-      <FormField v-slot="{ componentField }" name="bio">
-        <FormItem>
-          <FormLabel>ひとことあいさつ・自己紹介</FormLabel>
-          <FormControl>
-            <Textarea
-              type="text"
-              placeholder="こんにちは！よろしくお願いします！"
-              v-bind="componentField"
-              :default-value="store.profile.bio"
-            />
-          </FormControl>
-          <FormDescription>
-            自己紹介やひとことあいさつを入力してください。
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-
-      <!-- website -->
-      <FormField v-slot="{ componentField }" name="website">
-        <FormItem>
-          <FormLabel>ポートフォリオサイト</FormLabel>
-          <FormControl>
-            <Input
-              type="text"
-              placeholder="https://example.com"
-              v-bind="componentField"
-              :default-value="store.profile.website"
-            />
-          </FormControl>
-          <FormDescription>
-            自分のポートフォリオサイトやSNSのURLを入力してください。
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-
-      <div class="flex items-center justify-end">
-        <Button
-          size="sm"
-          type="submit"
-          class="cursor-pointer gradient-bg md:w-fit w-full text-white"
-          :disabled="isSubmitting || isUploading"
-        >
-          {{ isSubmitting ? "更新中..." : "更新する" }}
-        </Button>
+    <div class="flex flex-col gap-8 md:gap-12">
+      <div class="flex flex-col gap-4">
+        <PageTitle
+          title="アカウント設定"
+          description="アカウントの設定を行います"
+          size="small"
+        />
+        <Separator />
       </div>
-    </form>
+
+      <form @submit="onSubmit" class="flex flex-col gap-8 w-full">
+        <!-- display name -->
+        <FormField v-slot="{ componentField }" name="displayName">
+          <FormItem>
+            <FormLabel> 表示名 </FormLabel>
+            <FormControl>
+              <Input
+                type="text"
+                placeholder="たろうくん"
+                v-bind="componentField"
+                :default-value="store.profile.display_name"
+              />
+            </FormControl>
+            <FormDescription>
+              フィードバックした際に表示される名前です。
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <!-- avatar image -->
+        <FormField v-slot="{ componentField }" name="avatarUrl">
+          <FormItem>
+            <FormLabel>プロフィール画像</FormLabel>
+            <FormControl>
+              <Label
+                ref="dropZoneRef"
+                for="dropzone-file"
+                class="border border-dashed border-muted-foreground rounded-md p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-muted-foreground/10 transition-colors"
+                :class="isOverDropZone && 'bg-muted-foreground/10'"
+              >
+                <Input
+                  type="file"
+                  id="dropzone-file"
+                  accept="image/jpeg,image/png"
+                  class="hidden"
+                  @change="(e: Event) => handleMainImageUpload(e)"
+                />
+
+                <!-- preview -->
+                <div class="flex items-center justify-center">
+                  <Avatar class="!size-10 self-start row-span-3">
+                    <AvatarImage :src="uploadedImageUrl" alt="User Avatar" />
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                </div>
+
+                <!-- description -->
+                <div
+                  v-if="!isUploading"
+                  class="flex flex-col items-center gap-2"
+                >
+                  <span class="text-sm text-muted-foreground">
+                    クリックかドラック&ドロップで画像をアップロードできます。
+                  </span>
+                  <span class="text-sm text-muted-foreground">
+                    画像をアップロードしない場合は、そのまま次へ進んでください。
+                  </span>
+                </div>
+                <div
+                  v-if="isUploading"
+                  class="flex flex-col items-center gap-2"
+                >
+                  <span class="text-sm text-muted-foreground">
+                    画像をアップロード中...
+                  </span>
+                  <span class="text-sm text-muted-foreground">
+                    しばらくお待ちください。
+                  </span>
+                </div>
+              </Label>
+
+              <Input
+                type="text"
+                placeholder="https://example.com/image.jpg"
+                v-bind="componentField"
+                disabled
+                v-model="uploadedImageUrl"
+                class="hidden"
+              />
+            </FormControl>
+            <FormDescription>
+              初期値は仮のプロフィール画像です。
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <!-- bio -->
+        <FormField v-slot="{ componentField }" name="bio">
+          <FormItem>
+            <FormLabel>ひとことあいさつ・自己紹介</FormLabel>
+            <FormControl>
+              <Textarea
+                type="text"
+                placeholder="こんにちは！よろしくお願いします！"
+                v-bind="componentField"
+                :default-value="store.profile.bio"
+              />
+            </FormControl>
+            <FormDescription>
+              自己紹介やひとことあいさつを入力してください。
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <!-- website -->
+        <FormField v-slot="{ componentField }" name="website">
+          <FormItem>
+            <FormLabel>ポートフォリオサイト</FormLabel>
+            <FormControl>
+              <Input
+                type="text"
+                placeholder="https://example.com"
+                v-bind="componentField"
+                :default-value="store.profile.website"
+              />
+            </FormControl>
+            <FormDescription>
+              自分のポートフォリオサイトやSNSのURLを入力してください。
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <div class="flex items-center justify-end">
+          <Button
+            size="sm"
+            type="submit"
+            class="cursor-pointer gradient-bg md:w-fit w-full text-white"
+            :disabled="isSubmitting || isUploading"
+          >
+            {{ isSubmitting ? "更新中..." : "更新する" }}
+          </Button>
+        </div>
+      </form>
+    </div>
   </SettingLayout>
 </template>

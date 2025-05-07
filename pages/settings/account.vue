@@ -8,6 +8,14 @@ import SettingLayout from "@/components/layout/SettingLayout.vue";
 
 definePageMeta({
   middleware: "auth",
+  title: "アカウント設定",
+  description:
+    "Feed Forwardのアカウント設定ページです。アカウントの設定を行います。",
+  ogTitle: "Feed Forward アカウント設定",
+  ogDescription:
+    "Feed Forwardのアカウント設定ページです。アカウントの設定を行います。",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 type formValues = {

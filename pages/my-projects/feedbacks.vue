@@ -3,6 +3,14 @@ import type { AllProjectWithFeedback } from "@/types/projects.types";
 
 definePageMeta({
   middleware: "auth",
+  title: "フィードバック一覧",
+  description:
+    "Feed Forwardのフィードバック一覧ページです。あなたが受けたフィードバックを確認できます。",
+  ogTitle: "Feed Forward フィードバック一覧",
+  ogDescription:
+    "Feed Forwardのフィードバック一覧ページです。あなたが受けたフィードバックを確認できます。",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const supabase = useSupabaseClient();

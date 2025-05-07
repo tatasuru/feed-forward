@@ -16,6 +16,14 @@ import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: "auth",
+  title: "プロジェクト編集",
+  description:
+    "Feed Forwardのプロジェクト編集ページです。プロジェクトの詳細を編集できます。",
+  ogTitle: "Feed Forward プロジェクト編集",
+  ogDescription:
+    "Feed Forwardのプロジェクト編集ページです。プロジェクトの詳細を編集できます。",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const supabase = useSupabaseClient();

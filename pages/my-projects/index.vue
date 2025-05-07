@@ -3,6 +3,14 @@ import type { MyProject } from "@/types/my-projects.types";
 
 definePageMeta({
   middleware: "auth",
+  title: "マイプロジェクト",
+  description:
+    "Feed Forwardのマイプロジェクトページです。あなたが作成したフィードバックプロジェクトを確認できます。",
+  ogTitle: "Feed Forward マイプロジェクト",
+  ogDescription:
+    "Feed Forwardのマイプロジェクトページです。あなたが作成したフィードバックプロジェクトを確認できます。",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const supabase = useSupabaseClient();

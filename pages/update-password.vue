@@ -6,6 +6,12 @@ import * as z from "zod";
 definePageMeta({
   middleware: "auth",
   layout: "custom",
+  title: "パスワード更新",
+  description: "Feed Forwardのパスワード更新",
+  ogTitle: "Feed Forward パスワード更新",
+  ogDescription: "Feed Forwardのパスワード更新",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const supabase = useSupabaseClient();

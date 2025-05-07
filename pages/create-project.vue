@@ -16,6 +16,14 @@ import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: "auth",
+  title: "新規プロジェクト作成",
+  description:
+    "フィードバックを受け取りたいプロジェクトの詳細を入力してください",
+  ogTitle: "Feed Forward 新規プロジェクト作成",
+  ogDescription:
+    "フィードバックを受け取りたいプロジェクトの詳細を入力してください",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const supabase = useSupabaseClient();

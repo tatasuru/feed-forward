@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import type { MyProjectWithFeedback } from "@/types/my-projects.types";
-import { object } from "zod";
+
 definePageMeta({
   middleware: "auth",
+  title: "ダッシュボード",
+  description: "プロジェクトとフィードバックの概要",
+  ogTitle: "Feed Forward ダッシュボード",
+  ogDescription: "チームの活動状況を一目で確認",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 type DashboardContent = {

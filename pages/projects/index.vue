@@ -2,6 +2,14 @@
 import type { Project } from "@/types/projects.types";
 definePageMeta({
   middleware: "auth",
+  title: "みんなのプロジェクト",
+  description:
+    "Feed Forwardのみんなのプロジェクトページです。みんなのプロジェクトを見てみましょう！",
+  ogTitle: "Feed Forward みんなのプロジェクト",
+  ogDescription:
+    "Feed Forwardのみんなのプロジェクトページです。みんなのプロジェクトを見てみましょう！",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const supabase = useSupabaseClient();

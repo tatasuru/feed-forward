@@ -6,6 +6,12 @@ import * as z from "zod";
 definePageMeta({
   middleware: "auth",
   layout: "custom",
+  title: "セットアップ",
+  description: "Feed Forwardのセットアップ",
+  ogTitle: "Feed Forward セットアップ",
+  ogDescription: "Feed Forwardのセットアップ",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 type formValues = {

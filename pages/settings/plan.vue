@@ -3,6 +3,14 @@ import SettingLayout from "@/components/layout/SettingLayout.vue";
 
 definePageMeta({
   middleware: "auth",
+  title: "プラン設定",
+  description:
+    "Feed Forwardのプラン設定ページです。プラン変更や利用状況の確認ができます。",
+  ogTitle: "Feed Forward プラン設定",
+  ogDescription:
+    "Feed Forwardのプラン設定ページです。プラン変更や利用状況の確認ができます。",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 </script>
 

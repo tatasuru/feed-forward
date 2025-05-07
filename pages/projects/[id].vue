@@ -8,6 +8,14 @@ import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: "auth",
+  title: "プロジェクト詳細",
+  description:
+    "Feed Forwardのプロジェクト詳細ページです。プロジェクトの詳細を確認できます。",
+  ogTitle: "Feed Forward プロジェクト詳細",
+  ogDescription:
+    "Feed Forwardのプロジェクト詳細ページです。プロジェクトの詳細を確認できます。",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const { id } = useRoute().params;

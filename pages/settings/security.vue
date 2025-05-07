@@ -6,6 +6,14 @@ import * as z from "zod";
 
 definePageMeta({
   middleware: "auth",
+  title: "セキュリティ設定",
+  description:
+    "Feed Forwardのセキュリティ設定ページです。パスワードリセットやアカウント削除ができます。",
+  ogTitle: "Feed Forward セキュリティ設定",
+  ogDescription:
+    "Feed Forwardのセキュリティ設定ページです。パスワードリセットやアカウント削除ができます。",
+  ogImage: "favicon.ico",
+  twitterCard: "summary_large_image",
 });
 
 const supabase = useSupabaseClient();

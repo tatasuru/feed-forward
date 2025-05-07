@@ -30,7 +30,7 @@ const pageMenu = [
     icon: "mdi:earth",
   },
   {
-    name: "設定",
+    name: "各種設定",
     link: "/settings/account",
     icon: "mdi:cog-outline",
   },
@@ -96,6 +96,7 @@ async function markNotificationAsRead(notificationId: string) {
 
 onMounted(async () => {
   unreadNotifications.value = await fetchUnreadNotifications();
+  console.log("unreadNotifications.value", unreadNotifications.value);
 });
 </script>
 
@@ -202,6 +203,17 @@ onMounted(async () => {
                         : "Unknown User"
                     }}
                     さんから
+                    {{ notification.message }}
+                  </p>
+                  <span class="text-xs text-muted-foreground">
+                    {{ format(notification.created_at, "yyyy/MM/dd") }}
+                  </span>
+                </div>
+                <div
+                  v-if="notification.type === 'project_active'"
+                  class="flex flex-col gap-1"
+                >
+                  <p>
                     {{ notification.message }}
                   </p>
                   <span class="text-xs text-muted-foreground">

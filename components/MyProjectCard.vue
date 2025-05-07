@@ -39,24 +39,32 @@ const statusType = {
       <div class="flex items-start justify-between">
         <div class="flex flex-col gap-2">
           <Badge
+            v-if="props.project.project_type"
             variant="default"
             class="text-xs rounded-full border"
             :class="typeBadgeColors[props.project.project_type]"
           >
             {{ props.project.project_type }}
           </Badge>
+          <Badge v-else class="text-xs rounded-full border">未設定</Badge>
           <CardTitle>
-            {{ props.project.title }}
+            {{ props.project.title || "未設定" }}
           </CardTitle>
         </div>
 
         <Icon
+          v-if="props.project.visibility_type"
           :name="visibilityTypeIcon[`${props.project.visibility_type}`]"
+          class="!size-4 text-muted-foreground"
+        />
+        <Icon
+          v-else
+          name="mdi:block-helper"
           class="!size-4 text-muted-foreground"
         />
       </div>
       <CardDescription class="line-clamp-2">
-        {{ props.project.description }}
+        {{ props.project.description || "未設定" }}
       </CardDescription>
     </CardHeader>
     <CardContent class="flex items-center gap-12">
@@ -66,7 +74,7 @@ const statusType = {
           <span class="text-sm">フィードバック数</span>
         </div>
         <span class="text-2xl text-blue font-bold">
-          {{ props.project.feedback_count }}
+          {{ props.project.feedback_count || "0" }}
         </span>
       </div>
       <div class="flex flex-col gap-1">
@@ -77,7 +85,7 @@ const statusType = {
         <span class="text-2xl text-blue font-bold">
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-px">
-              {{ props.project.avg_rating.toFixed(1) }}
+              {{ props.project.avg_rating.toFixed(1) || "0.0" }}
             </div>
           </div>
         </span>
@@ -95,17 +103,23 @@ const statusType = {
             />
             <span class="text-sm text-muted-foreground">
               作成日:
-              {{ format(new Date(props.project.created_at), "yyyy/MM/dd") }}
+              {{
+                format(new Date(props.project.created_at), "yyyy/MM/dd") || ""
+              }}
             </span>
           </div>
-          <div v-if="props.project.deadline" class="flex items-center gap-1">
+          <div class="flex items-center gap-1">
             <Icon
               name="mdi:clock-remove-outline"
               class="!size-4 text-muted-foreground"
             />
             <span class="text-sm text-muted-foreground">
               期限:
-              {{ format(new Date(props.project.deadline), "yyyy/MM/dd") }}
+              {{
+                props.project.deadline
+                  ? format(new Date(props.project.deadline), "yyyy/MM/dd")
+                  : "未設定"
+              }}
             </span>
           </div>
         </div>
@@ -114,7 +128,7 @@ const statusType = {
           class="text-xs rounded-full"
           :class="statusBadgeColors[props.project.status]"
         >
-          {{ statusType[props.project.status] }}
+          {{ statusType[props.project.status] || "" }}
         </Badge>
       </div>
 

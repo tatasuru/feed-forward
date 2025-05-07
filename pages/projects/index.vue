@@ -8,7 +8,9 @@ const supabase = useSupabaseClient();
 const projects = computed<Project[]>(() => {
   return projectsData.value?.filter(
     (project: { status: string }) =>
-      project.status !== "completed" && project.status !== "archived"
+      project.status !== "completed" &&
+      project.status !== "archived" &&
+      project.status !== "draft"
   );
 });
 

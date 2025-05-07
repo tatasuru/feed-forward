@@ -12,6 +12,7 @@ import {
   getLocalTimeZone,
 } from "@internationalized/date";
 import { CalendarIcon } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: "auth",
@@ -20,7 +21,9 @@ definePageMeta({
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const route = useRoute();
-const project = ref<ProjectData | null>(null);
+const project = ref<ProjectData>();
+const publishStatus = ref<boolean>(false);
+const isSubmitting = ref<boolean>(false);
 
 const projectTypes = [
   {
@@ -109,74 +112,97 @@ const form = useForm({
   validationSchema: formSchema,
 });
 
-const onSubmit = form.handleSubmit(
-  (values) => {
-    const userId = user.value?.id;
+const onSubmit = async (event: Event) => {
+  event.preventDefault();
 
-    if (!userId) {
-      console.error("User not found");
+  isSubmitting.value = true;
+
+  // Check if the form is valid
+  const userId = user.value?.id;
+
+  if (!userId) {
+    return;
+  }
+
+  if (!publishStatus.value) {
+    handleSubmit(userId);
+  } else {
+    const { valid, errors } = await form.validate();
+
+    if (!valid) {
+      isSubmitting.value = false;
+      toast.error("入力項目に誤りがあります", {
+        description: "入力項目を確認してください",
+      });
+      // Check if the form has errors
+      if (Object.keys(errors).length > 0) {
+        await nextTick();
+
+        formRef.value?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
       return;
     }
 
-    const formattedDeadline = values.deadline
-      ? new Date(values.deadline).toISOString()
-      : null;
-
-    const projectData: ProjectData = {
-      user_id: userId,
-      title: values.title,
-      description: values.description,
-      project_type: values.projectType,
-      deadline: formattedDeadline,
-      resource_url: values.resourceUrl,
-      evaluation_type: values.evaluationType,
-      visibility_type: values.visibilityType,
-      email_notifications: values.emailNotifications
-        ? values.emailNotifications
-        : false,
-      app_notifications: values.appNotifications
-        ? values.appNotifications
-        : false,
-      status: status.value,
-    };
-
-    try {
-      updateProject(route.params.id as string, projectData);
-      form.resetForm();
-    } catch (error) {
-      console.error("Error creating project:", error);
-    }
-  },
-  async (errors) => {
-    // Check if the form has errors
-    if (Object.keys(errors).length > 0) {
-      await nextTick();
-
-      formRef.value?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
+    handleSubmit(userId);
   }
-);
+};
 
-async function updateProject(projectId: string, projectData: ProjectData) {
+async function handleSubmit(userId: string) {
+  const formValues = form.values;
+  const formattedDeadline = formValues.deadline
+    ? (() => {
+        const [year, month, day] = formValues.deadline.split("/").map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
+
+        return date.toISOString();
+      })()
+    : null;
+
+  const projectData: ProjectData = {
+    user_id: userId,
+    title: formValues.title ? formValues.title : "",
+    description: formValues.description ? formValues.description : "",
+    project_type: formValues.projectType ? formValues.projectType : null,
+    deadline: formattedDeadline,
+    resource_url: formValues.resourceUrl ? formValues.resourceUrl : null,
+    evaluation_type: formValues.evaluationType
+      ? formValues.evaluationType
+      : null,
+    visibility_type: formValues.visibilityType
+      ? formValues.visibilityType
+      : null,
+    email_notifications: formValues.emailNotifications
+      ? formValues.emailNotifications
+      : false,
+    app_notifications: formValues.appNotifications
+      ? formValues.appNotifications
+      : false,
+    status: publishStatus.value ? "active" : "draft",
+  };
+
+  console.log("Project Data:", projectData);
+
   try {
-    const { data, error } = await supabase.rpc("update_project_from_form", {
-      p_project_id: projectId,
-      form_data: projectData,
+    await updateProject(route.params.id as string, projectData);
+
+    toast.success("プロジェクトが更新されました", {
+      description: "プロジェクト詳細ページに移動します",
     });
 
-    if (error) {
-      throw error;
-    }
+    setTimeout(() => {
+      navigateTo(`/my-projects/${route.params.id}/details`);
 
-    navigateTo(`/my-projects/${projectId}/details`);
-
-    return data;
+      form.resetForm();
+      isSubmitting.value = false;
+    }, 2000);
   } catch (error) {
-    console.error("Error updating project:", error);
-    throw error;
+    toast.error("プロジェクトの更新に失敗しました", {
+      description: "もう一度お試しください",
+    });
+    isSubmitting.value = false;
   }
 }
 
@@ -219,7 +245,9 @@ async function getProjectData() {
   }
 
   project.value = data.project;
-  criteriaTemplate.value = data.criteria_templates[0].criteria;
+  criteriaTemplate.value = data.criteria_templates[0]
+    ? data.criteria_templates[0].criteria
+    : null;
 
   // init form values
   if (project.value) {
@@ -235,16 +263,42 @@ async function getProjectData() {
     form.setValues({
       title: project.value.title,
       description: project.value.description,
-      projectType: project.value.project_type,
+      projectType: project.value.project_type
+        ? project.value.project_type
+        : undefined,
       deadline: formattedDate,
-      resourceUrl: project.value.resource_url,
-      evaluationType: project.value.evaluation_type,
-      visibilityType: project.value.visibility_type,
+      resourceUrl: project.value.resource_url
+        ? project.value.resource_url
+        : undefined,
+      evaluationType: project.value.evaluation_type
+        ? project.value.evaluation_type
+        : undefined,
+      visibilityType: project.value.visibility_type
+        ? project.value.visibility_type
+        : undefined,
       emailNotifications: project.value.email_notifications,
       appNotifications: project.value.app_notifications,
     });
   } else {
     console.error("Project not found");
+  }
+}
+
+async function updateProject(projectId: string, projectData: ProjectData) {
+  try {
+    const { data, error } = await supabase.rpc("update_project_from_form", {
+      p_project_id: projectId,
+      form_data: projectData,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating project:", error);
+    throw error;
   }
 }
 </script>
@@ -260,16 +314,6 @@ async function getProjectData() {
     <!-- section -->
     <section id="create-project-form">
       <form @submit="onSubmit" class="grid gap-8">
-        <!-- error message -->
-        <div
-          v-if="!form.meta.value.valid && form.meta.value.touched"
-          class="text-sm text-destructive w-full md:w-auto flex items-center justify-center gap-1 border border-destructive/50 bg-destructive/10 rounded-sm p-4"
-        >
-          <Icon name="mdi:alert-outline" class="!size-4" />
-          入力項目が足りていないか誤りがあります
-          <Icon name="mdi:alert-outline" class="!size-4" />
-        </div>
-
         <!-- info for evaluation -->
         <Card>
           <CardHeader>
@@ -701,7 +745,7 @@ async function getProjectData() {
 
         <!-- buttons -->
         <div
-          class="flex flex-col md:flex-row items-center justify-between gap-2"
+          class="flex flex-col-reverse md:flex-row items-center justify-between gap-2"
         >
           <!-- cancel -->
           <Button
@@ -717,14 +761,43 @@ async function getProjectData() {
           <div
             class="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto"
           >
+            <div
+              class="flex items-center space-x-2 justify-end md:justify-start"
+            >
+              <Switch
+                id="publish-status"
+                :model-value="publishStatus"
+                @update:model-value="publishStatus = $event"
+                class="cursor-pointer data-[state=checked]:bg-purple"
+              />
+              <Label for="publish-status" class="cursor-pointer">
+                公開する
+              </Label>
+            </div>
+            <!-- save as draft -->
+            <Button
+              v-if="!publishStatus"
+              variant="outline"
+              type="submit"
+              class="text-sm text-primary cursor-pointer w-full md:w-auto"
+              :disabled="isSubmitting"
+            >
+              <Icon name="mdi:content-save" class="!size-4" />
+              下書きとして保存
+            </Button>
+
             <!-- create project -->
             <Button
+              v-else
               type="submit"
               variant="main"
               class="text-sm text-white cursor-pointer w-full md:w-auto"
+              :disabled="isSubmitting"
             >
               <Icon name="mdi:plus" class="!size-4" />
-              プロジェクトを更新
+              {{
+                isSubmitting ? "プロジェクトを更新中..." : "プロジェクトを更新"
+              }}
             </Button>
           </div>
         </div>

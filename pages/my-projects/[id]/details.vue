@@ -3,6 +3,10 @@ import type { ProjectWithFeedback } from "@/types/projects.types";
 import { format } from "date-fns";
 import { toast } from "vue-sonner";
 
+definePageMeta({
+  middleware: "auth",
+});
+
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
 const preview = ref();
@@ -76,6 +80,7 @@ const { data: relatedData } = await useAsyncData(
         userFeedback: null,
         criteriaRatings: [],
       };
+
     try {
       // 1.get preview data
       const preview = await getLinkPreview(
@@ -191,10 +196,13 @@ function initDashboardContents() {
   dashboardContents[0].value = String(
     projectWithFeedback.value.feedbacks.length
   );
-  dashboardContents[1].value = (
-    ratingPerCriteria.value.reduce((acc, curr) => acc + curr.rating, 0) /
-    ratingPerCriteria.value.length
-  ).toFixed(1);
+  dashboardContents[1].value =
+    ratingPerCriteria.value.length > 0
+      ? (
+          ratingPerCriteria.value.reduce((acc, curr) => acc + curr.rating, 0) /
+          ratingPerCriteria.value.length
+        ).toFixed(1)
+      : "0.0";
 }
 
 function initFeedbackContents() {
@@ -275,7 +283,7 @@ async function deleteProject() {
             class="text-xs rounded-full border"
             :class="badgeColors[projectWithFeedback.project.project_type]"
           >
-            {{ projectWithFeedback.project.project_type }}
+            {{ projectWithFeedback.project.project_type || "未設定" }}
           </Badge>
 
           <div class="flex items-center gap-px">
@@ -294,10 +302,7 @@ async function deleteProject() {
             </span>
           </div>
 
-          <div
-            v-if="projectWithFeedback.project.deadline"
-            class="flex items-center gap-1"
-          >
+          <div class="flex items-center gap-1">
             <Icon
               name="mdi:clock-remove-outline"
               class="!size-4 text-muted-foreground"
@@ -305,10 +310,12 @@ async function deleteProject() {
             <span class="text-xs md:text-sm text-muted-foreground">
               期限:
               {{
-                format(
-                  new Date(projectWithFeedback.project.deadline),
-                  "yyyy/MM/dd"
-                )
+                projectWithFeedback.project.deadline
+                  ? format(
+                      new Date(projectWithFeedback.project.deadline),
+                      "yyyy/MM/dd"
+                    )
+                  : "未設定"
               }}
             </span>
           </div>
@@ -397,7 +404,11 @@ async function deleteProject() {
           <div class="flex flex-col gap-4 w-full">
             <PageTitle title="概要" size="small" />
             <p class="text-sm text-muted-foreground leading-5">
-              {{ projectWithFeedback.project.description }}
+              {{
+                projectWithFeedback.project.description
+                  ? projectWithFeedback.project.description
+                  : "説明文がありません"
+              }}
             </p>
           </div>
 
@@ -441,7 +452,10 @@ async function deleteProject() {
           <div class="flex flex-col gap-4 w-full">
             <PageTitle title="評価項目" size="small" />
 
-            <div class="flex flex-col gap-4">
+            <div
+              v-if="projectWithFeedback?.evaluation_criteria.length > 0"
+              class="flex flex-col gap-4"
+            >
               <div
                 v-for="(
                   criteria, index
@@ -473,6 +487,12 @@ async function deleteProject() {
                 />
               </div>
             </div>
+
+            <EmptyProjectCard
+              v-if="projectWithFeedback?.evaluation_criteria.length === 0"
+              class="h-[200px] md:h-[200px] flex items-center justify-center"
+              text="評価項目はありません"
+            />
           </div>
         </div>
       </div>

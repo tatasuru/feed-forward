@@ -2,16 +2,17 @@ export type ProjectData = {
   user_id: string;
   title: string;
   description: string;
-  project_type: "design" | "demo" | "plan";
+  project_type: "design" | "demo" | "plan" | null;
   deadline: string | null;
-  resource_url: string;
+  resource_url: string | null;
   evaluation_type:
     | "uiDesignEvaluation"
     | "uxDesignEvaluation"
     | "demoEvaluation"
     | "planEvaluation"
-    | "customEvaluation";
-  visibility_type: "public" | "unlisted" | "private";
+    | "customEvaluation"
+    | null;
+  visibility_type: "public" | "unlisted" | "private" | null;
   email_notifications: boolean;
   app_notifications: boolean;
   status: "draft" | "active" | "archived" | "completed";

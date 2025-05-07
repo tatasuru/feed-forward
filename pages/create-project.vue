@@ -69,7 +69,7 @@ const borderColorPalette = [
   "border-blue/50",
   "border-pink/50",
 ];
-const status = ref<ProjectData["status"]>("active");
+const publishStatus = ref<boolean>(false);
 const formRef = ref<HTMLElement | null>(null);
 const isSubmitting = ref<boolean>(false);
 
@@ -97,92 +97,99 @@ const form = useForm({
   validationSchema: formSchema,
 });
 
-const onSubmit = form.handleSubmit(
-  async (values) => {
-    isSubmitting.value = true;
+const onSubmit = async (event: Event) => {
+  event.preventDefault();
 
-    // Check if the form is valid
-    const userId = user.value?.id;
+  isSubmitting.value = true;
 
-    if (!userId) {
-      console.error("User not found");
+  // Check if the form is valid
+  const userId = user.value?.id;
+
+  if (!userId) {
+    return;
+  }
+
+  if (!publishStatus.value) {
+    handleSubmit(userId);
+  } else {
+    const { valid, errors } = await form.validate();
+
+    if (!valid) {
+      isSubmitting.value = false;
+      toast.error("入力項目に誤りがあります", {
+        description: "入力項目を確認してください",
+      });
+      // Check if the form has errors
+      if (Object.keys(errors).length > 0) {
+        await nextTick();
+
+        formRef.value?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
       return;
     }
 
-    const formattedDeadline = values.deadline
-      ? (() => {
-          const [year, month, day] = values.deadline.split("/").map(Number);
-          const date = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
-
-          return date.toISOString();
-        })()
-      : null;
-
-    const projectData: ProjectData = {
-      user_id: userId,
-      title: values.title,
-      description: values.description,
-      project_type: values.projectType,
-      deadline: formattedDeadline,
-      resource_url: values.resourceUrl,
-      evaluation_type: values.evaluationType,
-      visibility_type: values.visibilityType,
-      email_notifications: values.emailNotifications
-        ? values.emailNotifications
-        : false,
-      app_notifications: values.appNotifications
-        ? values.appNotifications
-        : false,
-      status: status.value,
-    };
-
-    try {
-      await createProject(projectData);
-
-      toast.success("プロジェクトが作成されました", {
-        description: "プロジェクト一覧ページへ移動します",
-      });
-
-      setTimeout(() => {
-        navigateTo({
-          path: "/my-projects",
-        });
-
-        form.resetForm();
-        isSubmitting.value = false;
-      }, 2000);
-    } catch (error) {
-      console.error("Error creating project:", error);
-      toast.error("プロジェクトの作成に失敗しました", {
-        description: "もう一度お試しください",
-      });
-      isSubmitting.value = false;
-    }
-  },
-  async (errors) => {
-    // Check if the form has errors
-    if (Object.keys(errors).length > 0) {
-      await nextTick();
-
-      formRef.value?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
+    handleSubmit(userId);
   }
-);
+};
 
-async function createProject(projectData: ProjectData) {
+async function handleSubmit(userId: string) {
+  const formValues = form.values;
+  const formattedDeadline = formValues.deadline
+    ? (() => {
+        const [year, month, day] = formValues.deadline.split("/").map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
+
+        return date.toISOString();
+      })()
+    : null;
+
+  const projectData: ProjectData = {
+    user_id: userId,
+    title: formValues.title ? formValues.title : "",
+    description: formValues.description ? formValues.description : "",
+    project_type: formValues.projectType ? formValues.projectType : null,
+    deadline: formattedDeadline,
+    resource_url: formValues.resourceUrl ? formValues.resourceUrl : null,
+    evaluation_type: formValues.evaluationType
+      ? formValues.evaluationType
+      : null,
+    visibility_type: formValues.visibilityType
+      ? formValues.visibilityType
+      : null,
+    email_notifications: formValues.emailNotifications
+      ? formValues.emailNotifications
+      : false,
+    app_notifications: formValues.appNotifications
+      ? formValues.appNotifications
+      : false,
+    status: publishStatus.value ? "active" : "draft",
+  };
+
+  console.log("Project Data:", projectData);
+
   try {
-    const { data, error } = await supabase.rpc("create_project_from_form", {
-      form_data: projectData,
+    await createProject(projectData);
+
+    toast.success("プロジェクトが作成されました", {
+      description: "プロジェクト一覧ページへ移動します",
     });
 
-    if (error) {
-      throw error;
-    }
+    setTimeout(() => {
+      navigateTo({
+        path: "/my-projects",
+      });
+
+      form.resetForm();
+      isSubmitting.value = false;
+    }, 2000);
   } catch (error) {
-    console.error("Error creating project:", error);
+    toast.error("プロジェクトの作成に失敗しました", {
+      description: "もう一度お試しください",
+    });
+    isSubmitting.value = false;
   }
 }
 
@@ -213,6 +220,20 @@ function formatDate(newDate: DateValue) {
   dateValue.value = `${year}/${month}/${day}`;
   form.setFieldValue("deadline", dateValue.value);
 }
+
+async function createProject(projectData: ProjectData) {
+  try {
+    const { data, error } = await supabase.rpc("create_project_from_form", {
+      form_data: projectData,
+    });
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    throw error;
+  }
+}
 </script>
 
 <template>
@@ -226,16 +247,6 @@ function formatDate(newDate: DateValue) {
     <!-- section -->
     <section id="create-project-form">
       <form @submit="onSubmit" class="grid gap-8">
-        <!-- error message -->
-        <div
-          v-if="!form.meta.value.valid && form.meta.value.touched"
-          class="text-sm text-destructive-foreground w-full md:w-auto flex items-center justify-center gap-1 border border-destructive/50 bg-destructive/10 rounded-sm p-4"
-        >
-          <Icon name="mdi:alert-outline" class="!size-4" />
-          入力項目が足りていないか誤りがあります
-          <Icon name="mdi:alert-outline" class="!size-4" />
-        </div>
-
         <!-- info for evaluation -->
         <Card>
           <CardHeader>
@@ -667,7 +678,7 @@ function formatDate(newDate: DateValue) {
 
         <!-- buttons -->
         <div
-          class="flex flex-col md:flex-row items-center justify-between gap-2"
+          class="flex flex-col-reverse md:flex-row items-center justify-between gap-2"
         >
           <!-- cancel -->
           <Button
@@ -684,11 +695,23 @@ function formatDate(newDate: DateValue) {
           <div
             class="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto"
           >
+            <div class="flex items-center space-x-2 justify-end md:justify-start">
+              <Switch
+                id="publish-status"
+                :model-value="publishStatus"
+                @update:model-value="publishStatus = $event"
+                class="cursor-pointer data-[state=checked]:bg-purple"
+              />
+              <Label for="publish-status" class="cursor-pointer">
+                公開する
+              </Label>
+            </div>
+
             <!-- save as draft -->
             <Button
+              v-if="!publishStatus"
               variant="outline"
               type="submit"
-              @click="status = 'draft'"
               class="text-sm text-primary cursor-pointer w-full md:w-auto"
               :disabled="isSubmitting"
             >
@@ -698,6 +721,7 @@ function formatDate(newDate: DateValue) {
 
             <!-- create project -->
             <Button
+              v-else
               type="submit"
               variant="main"
               class="text-sm text-white cursor-pointer w-full md:w-auto"

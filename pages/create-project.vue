@@ -224,7 +224,7 @@ function formatDate(newDate: DateValue) {
         <!-- error message -->
         <div
           v-if="!form.meta.value.valid && form.meta.value.touched"
-          class="text-sm text-destructive w-full md:w-auto flex items-center justify-center gap-1 border border-destructive/50 bg-destructive/10 rounded-sm p-4"
+          class="text-sm text-destructive-foreground w-full md:w-auto flex items-center justify-center gap-1 border border-destructive/50 bg-destructive/10 rounded-sm p-4"
         >
           <Icon name="mdi:alert-outline" class="!size-4" />
           入力項目が足りていないか誤りがあります
@@ -668,7 +668,7 @@ function formatDate(newDate: DateValue) {
           <Button
             variant="outline"
             type="button"
-            class="text-sm text-destructive cursor-pointer w-full md:w-auto border-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive"
+            class="text-sm text-destructive-foreground cursor-pointer w-full md:w-auto border-destructive hover:bg-destructive/10 hover:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive-foreground"
             @click="$router.back()"
             :disabled="isSubmitting"
           >

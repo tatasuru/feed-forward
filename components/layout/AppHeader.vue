@@ -250,7 +250,7 @@ onMounted(async () => {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            class="cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
+            class="cursor-pointer text-destructive-foreground hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive-foreground"
             @click="logout"
           >
             <Icon name="mdi:logout" class="size-4" />

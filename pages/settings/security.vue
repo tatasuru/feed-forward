@@ -73,46 +73,94 @@ const onSubmit = form.handleSubmit(async (values) => {
 <template>
   <SettingLayout>
     <div class="flex flex-col gap-8 md:gap-12">
-      <div class="flex flex-col gap-4">
-        <PageTitle
-          title="パスワードリセット"
-          description="パスワードを忘れた場合は、以下のフォームにメールアドレスを入力してください。"
-          size="small"
-        />
-        <Separator />
+      <div class="flex flex-col gap-8 md:gap-8">
+        <div class="flex flex-col gap-4">
+          <PageTitle
+            title="パスワードリセット"
+            description="パスワードを忘れた場合は、以下のフォームにメールアドレスを入力してください。"
+            size="small"
+          />
+          <Separator />
+        </div>
+
+        <p class="text-success text-sm w-full text-center" v-if="message">
+          {{ message }}
+        </p>
+
+        <form @submit="onSubmit" class="space-y-6">
+          <FormField v-slot="{ componentField }" name="email">
+            <FormItem>
+              <FormLabel>メールアドレス</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="xxxxxx@example.com"
+                  v-bind="componentField"
+                  autocomplete="email"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <div class="flex items-center justify-end">
+            <Button
+              type="submit"
+              class="w-full md:w-fit cursor-pointer gradient-bg"
+              :disabled="loading"
+              variant="main"
+            >
+              {{ loading ? "処理中..." : "リセットリンクを送信" }}
+            </Button>
+          </div>
+        </form>
       </div>
 
-      <p class="text-success text-sm w-full text-center" v-if="message">
-        {{ message }}
-      </p>
-
-      <form @submit="onSubmit" class="space-y-6">
-        <FormField v-slot="{ componentField }" name="email">
-          <FormItem>
-            <FormLabel>メールアドレス</FormLabel>
-            <FormControl>
-              <Input
-                type="email"
-                placeholder="xxxxxx@example.com"
-                v-bind="componentField"
-                autocomplete="email"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </FormField>
-
-        <div class="flex items-center justify-end">
-          <Button
-            type="submit"
-            class="w-full md:w-fit cursor-pointer gradient-bg"
-            :disabled="loading"
-            variant="main"
-          >
-            {{ loading ? "処理中..." : "リセットリンクを送信" }}
-          </Button>
+      <div class="flex flex-col gap-8 md:gap-8">
+        <div class="flex flex-col gap-4">
+          <PageTitle
+            title="アカウント削除"
+            description="アカウントを削除する場合は、以下のボタンをクリックしてください。"
+            size="small"
+          />
+          <Separator />
         </div>
-      </form>
+
+        <AlertDialog>
+          <AlertDialogTrigger as-child>
+            <Button
+              variant="destructive"
+              class="w-full md:w-fit cursor-pointer"
+            >
+              アカウントを削除
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>最終確認</AlertDialogTitle>
+              <AlertDialogDescription>
+                <p
+                  class="text-danger text-sm w-full text-center text-destructive-foreground"
+                >
+                  アカウントを削除すると、すべてのデータが失われます。
+                  <br />
+                  本当に削除しますか？
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel class="cursor-pointer">
+                キャンセル
+              </AlertDialogCancel>
+              <AlertDialogAction
+                class="w-full md:w-fit cursor-pointer bg-destructive text-white hover:bg-destructive/80 hover:text-white"
+              >
+                削除する
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   </SettingLayout>
 </template>

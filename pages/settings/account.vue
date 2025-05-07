@@ -146,7 +146,7 @@ onMounted(() => {
 
 <template>
   <SettingLayout>
-    <div class="flex flex-col gap-8 md:gap-12">
+    <div class="flex flex-col gap-8 md:gap-8">
       <div class="flex flex-col gap-4">
         <PageTitle
           title="アカウント設定"

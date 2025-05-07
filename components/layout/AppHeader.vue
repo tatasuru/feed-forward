@@ -94,6 +94,23 @@ async function markNotificationAsRead(notificationId: string) {
   return true;
 }
 
+// subscribe to notifications
+const channels = supabase
+  .channel("custom-insert-channel")
+  .on(
+    "postgres_changes",
+    {
+      event: "INSERT",
+      schema: "public",
+      table: "notifications",
+      filter: `user_id=eq.${user.value?.id}`,
+    },
+    async (payload) => {
+      unreadNotifications.value = await fetchUnreadNotifications();
+    }
+  )
+  .subscribe();
+
 onMounted(async () => {
   unreadNotifications.value = await fetchUnreadNotifications();
 });
@@ -210,6 +227,17 @@ onMounted(async () => {
                 </div>
                 <div
                   v-if="notification.type === 'project_active'"
+                  class="flex flex-col gap-1"
+                >
+                  <p>
+                    {{ notification.message }}
+                  </p>
+                  <span class="text-xs text-muted-foreground">
+                    {{ format(notification.created_at, "yyyy/MM/dd") }}
+                  </span>
+                </div>
+                <div
+                  v-if="notification.type === 'feedback_rated'"
                   class="flex flex-col gap-1"
                 >
                   <p>

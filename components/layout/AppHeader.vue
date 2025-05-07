@@ -31,7 +31,7 @@ const pageMenu = [
   },
   {
     name: "設定",
-    link: "/settings",
+    link: "/settings/account",
     icon: "mdi:cog-outline",
   },
 ];

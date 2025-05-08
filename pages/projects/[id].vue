@@ -543,8 +543,13 @@ async function getRatingPerCriteria() {
           <!-- overview -->
           <div class="flex flex-col gap-4 w-full">
             <PageTitle title="概要" size="small" />
-            <p class="text-sm text-muted-foreground leading-5">
-              {{ projectWithFeedback.project.description }}
+            <div
+              v-if="projectWithFeedback.project.description"
+              v-html="projectWithFeedback.project.description"
+              class="prose prose-sm project-description"
+            />
+            <p v-else class="text-sm text-muted-foreground leading-5">
+              説明文がありません
             </p>
           </div>
 

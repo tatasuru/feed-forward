@@ -40,6 +40,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@nuxtjs/device",
     "@vueuse/nuxt",
+    "nuxt-tiptap-editor",
   ],
 
   colorMode: {
@@ -47,7 +48,7 @@ export default defineNuxtConfig({
     preference: "dark",
   },
 
-  css: ["~/assets/css/tailwind.css"],
+  css: ["~/assets/css/tailwind.css", "~/assets/css/tiptap.css"],
 
   vite: {
     plugins: [tailwindcss()],

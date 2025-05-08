@@ -295,11 +295,9 @@ async function createProject(projectData: ProjectData) {
                   </Badge>
                 </FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="デザインやデモ、企画の詳細をわかりやすく記載"
-                    v-bind="componentField"
-                    :rows="4"
-                    class="resize-none h-[200px]"
+                  <TiptapEditor
+                    :model-value="componentField.modelValue"
+                    @update:model-value="(e: Event) => componentField.onChange(e)"
                   />
                 </FormControl>
                 <FormMessage />

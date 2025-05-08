@@ -42,7 +42,7 @@ const statusType = {
         </div>
       </div>
       <CardDescription class="line-clamp-2">
-        {{ props.project.description }}
+        {{ props.project.description.replace(/<[^>]+>/g, "") }}
       </CardDescription>
     </CardHeader>
 

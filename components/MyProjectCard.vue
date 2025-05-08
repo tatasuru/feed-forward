@@ -64,7 +64,7 @@ const statusType = {
         />
       </div>
       <CardDescription class="line-clamp-2">
-        {{ props.project.description || "未設定" }}
+        {{ props.project.description.replace(/<[^>]+>/g, "") || "未設定" }}
       </CardDescription>
     </CardHeader>
     <CardContent class="flex items-center gap-12">

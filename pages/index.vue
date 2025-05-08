@@ -207,7 +207,9 @@ watch(
       size="large"
     />
 
-    <div class="flex items-center gap-2 md:gap-4 overflow-scroll">
+    <div
+      class="flex items-center gap-2 md:gap-4 overflow-x-scroll hidden-scrollbar"
+    >
       <Card
         v-for="(item, index) in dashboardContents"
         :key="index"

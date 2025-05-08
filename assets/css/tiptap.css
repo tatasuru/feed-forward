@@ -111,6 +111,22 @@
     border-top: 1px solid var(--border);
     margin: 2rem 0;
   }
+
+  .is-empty.is-editor-empty {
+    font-size: 0.875rem;
+
+    &::before {
+      color: var(--muted-foreground) !important;
+    }
+  }
+
+  p {
+    font-size: 0.875rem;
+  }
+
+  a {
+    color: var(--link);
+  }
 }
 
 .dark {

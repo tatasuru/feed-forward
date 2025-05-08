@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import Placeholder from "@tiptap/extension-placeholder";
+import Link from "@tiptap/extension-link";
+
 const props = defineProps({
   modelValue: {
     type: String,
@@ -9,7 +12,16 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 const editor = useEditor({
-  extensions: [TiptapStarterKit],
+  extensions: [
+    TiptapStarterKit,
+    Placeholder.configure({ placeholder: "プロジェクトの説明..." }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: "text-primary underline",
+      },
+    }),
+  ],
   editable: true,
   onUpdate: ({ editor }) => {
     emit("update:modelValue", editor.getHTML());
@@ -23,6 +35,16 @@ onBeforeUnmount(() => {
 const focusEditor = () => {
   if (editor.value) {
     editor.value.commands.focus();
+  }
+};
+
+const insertLink = () => {
+  if (!editor.value) return;
+
+  const url = prompt("URL", "https://");
+
+  if (url) {
+    editor.value.chain().focus().setLink({ href: url }).run();
   }
 };
 
@@ -201,7 +223,10 @@ watch(
         :editor="editor"
         :action="button.action"
         :disabled="!button.canRun()"
-        :class="{ 'bg-purple text-white': button.isActive() }"
+        :class="{
+          'bg-purple text-white dark:bg-purple/30 dark:text-purple':
+            button.isActive(),
+        }"
         :label="button.label"
         :icon="button.icon"
       />
@@ -212,9 +237,20 @@ watch(
         :editor="editor"
         :action="button.action"
         :disabled="!button.canRun()"
-        :class="{ 'bg-purple text-white': button.isActive() }"
+        :class="{
+          'bg-purple text-white dark:bg-purple/30 dark:text-purple':
+            button.isActive(),
+        }"
         :label="button.label"
         :icon="button.icon"
+      />
+
+      <TipTapButton
+        :editor="editor"
+        :action="insertLink"
+        :class="{ 'bg-purple text-white': editor.isActive('link') }"
+        label="Insert Link"
+        icon="mdi:link"
       />
 
       <TipTapButton
@@ -223,7 +259,10 @@ watch(
         :editor="editor"
         :action="button.action"
         :disabled="!button.canRun()"
-        :class="{ 'bg-purple text-white': button.isActive() }"
+        :class="{
+          'bg-purple text-white dark:bg-purple/30 dark:text-purple':
+            button.isActive(),
+        }"
         :label="button.label"
         :icon="button.icon"
       />
@@ -234,7 +273,10 @@ watch(
         :editor="editor"
         :action="button.action"
         :disabled="!button.canRun()"
-        :class="{ 'bg-purple text-white': button.isActive() }"
+        :class="{
+          'bg-purple text-white dark:bg-purple/30 dark:text-purple':
+            button.isActive(),
+        }"
         :label="button.label"
         :icon="button.icon"
       />

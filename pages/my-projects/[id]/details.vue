@@ -413,7 +413,7 @@ async function deleteProject() {
             <div
               v-if="projectWithFeedback.project.description"
               v-html="projectWithFeedback.project.description"
-              class="prose prose-sm project-description"
+              class="prose prose-sm project-description text-sm"
             />
             <p v-else class="text-sm text-muted-foreground leading-5">
               説明文がありません

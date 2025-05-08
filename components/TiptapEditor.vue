@@ -11,7 +11,11 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
+/******************************
+ * TIPTAP EDITOR INITIALIZATION
+ *****************************/
 const editor = useEditor({
+  content: props.modelValue,
   extensions: [
     TiptapStarterKit,
     Placeholder.configure({ placeholder: "プロジェクトの説明..." }),
@@ -28,26 +32,9 @@ const editor = useEditor({
   },
 });
 
-onBeforeUnmount(() => {
-  unref(editor)?.destroy();
-});
-
-const focusEditor = () => {
-  if (editor.value) {
-    editor.value.commands.focus();
-  }
-};
-
-const insertLink = () => {
-  if (!editor.value) return;
-
-  const url = prompt("URL", "https://");
-
-  if (url) {
-    editor.value.chain().focus().setLink({ href: url }).run();
-  }
-};
-
+/******************************
+ * BUTTONS
+ *****************************/
 const textFormatButtons = [
   {
     icon: "mdi:format-bold",
@@ -200,6 +187,32 @@ const otherButtons = [
     label: "Redo",
   },
 ];
+
+/******************************
+ * HELPERS
+ *****************************/
+const focusEditor = () => {
+  if (editor.value) {
+    editor.value.commands.focus();
+  }
+};
+
+const insertLink = () => {
+  if (!editor.value) return;
+
+  const url = prompt("URL", "https://");
+
+  if (url) {
+    editor.value.chain().focus().setLink({ href: url }).run();
+  }
+};
+
+/******************************
+ * Lifecycle hooks
+ *****************************/
+onBeforeUnmount(() => {
+  unref(editor)?.destroy();
+});
 
 watch(
   () => props.modelValue,

@@ -18,7 +18,10 @@ const editor = useEditor({
   content: props.modelValue,
   extensions: [
     TiptapStarterKit,
-    Placeholder.configure({ placeholder: "プロジェクトの説明..." }),
+    // TODO: this is a cause of a bug that causes the editor to not bold japanese text
+    // Placeholder.configure({
+    //   placeholder: "プロジェクトの説明...",
+    // }),
     Link.configure({
       openOnClick: false,
       HTMLAttributes: {

@@ -18,6 +18,11 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
     return navigateTo("/login");
   }
 
+  // for redirecting to home if user is logged in and trying to access login page
+  if (user.value && to.path === "/login") {
+    return navigateTo("/");
+  }
+
   // for redirecting to setup page if user is not set up
   try {
     if (user.value) {

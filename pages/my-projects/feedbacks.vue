@@ -286,15 +286,13 @@ async function selectProject(projectId: string) {
 
       <!-- all -->
       <TabsContent value="all" class="w-full min-h-[calc(100vh-300px)]">
-        <div
-          v-if="feedbackContents?.length"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
-        >
+        <div v-if="feedbackContents?.length" class="flex flex-col gap-3">
           <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
             :feedback="feedback"
-            :isDashboard="true"
+            :isClamp="false"
+            :isProjectNameDisplay="true"
           />
         </div>
 
@@ -309,16 +307,13 @@ async function selectProject(projectId: string) {
         value="high-evaluation"
         class="w-full min-h-[calc(100vh-300px)]"
       >
-        <div
-          v-if="feedbackContents?.length"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
-        >
+        <div v-if="feedbackContents?.length" class="flex flex-col gap-3">
           <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
             :feedback="feedback"
-            :isDashboard="true"
-            class="border rounded-lg p-4"
+            :isClamp="false"
+            :isProjectNameDisplay="true"
           />
         </div>
 
@@ -330,16 +325,13 @@ async function selectProject(projectId: string) {
 
       <!-- improvement -->
       <TabsContent value="improvement" class="w-full min-h-[calc(100vh-300px)]">
-        <div
-          v-if="feedbackContents?.length"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
-        >
+        <div v-if="feedbackContents?.length" class="flex flex-col gap-3">
           <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
             :feedback="feedback"
-            :isDashboard="true"
-            class="border rounded-lg p-4"
+            :isClamp="false"
+            :isProjectNameDisplay="true"
           />
         </div>
 
@@ -354,16 +346,13 @@ async function selectProject(projectId: string) {
         value="recently-evaluation"
         class="w-full min-h-[calc(100vh-300px)]"
       >
-        <div
-          v-if="feedbackContents?.length"
-          class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-3"
-        >
+        <div v-if="feedbackContents?.length" class="flex flex-col gap-3">
           <FeedbackCard
             v-for="(feedback, index) in feedbackContents"
             :key="index"
             :feedback="feedback"
-            :isDashboard="true"
-            class="border rounded-lg p-4"
+            :isClamp="false"
+            :isProjectNameDisplay="true"
           />
         </div>
 

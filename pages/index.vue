@@ -316,7 +316,8 @@ watch(
             v-for="(feedback, index) in feedbackContents.slice(0, 6)"
             :key="index"
             :feedback="feedback"
-            :isDashboard="true"
+            :isClamp="true"
+            :isProjectNameDisplay="true"
           />
         </div>
 

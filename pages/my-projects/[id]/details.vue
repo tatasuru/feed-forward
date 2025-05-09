@@ -572,8 +572,8 @@ async function deleteProject() {
               v-for="(feedback, index) in feedbackContents.slice(0, 3)"
               :key="index"
               :feedback="feedback"
-              :isDashboard="false"
-              class="w-full"
+              :isClamp="true"
+              :isProjectNameDisplay="false"
             />
           </div>
 

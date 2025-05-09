@@ -20,7 +20,8 @@ const props = defineProps<{
       avatar_url: string | null;
     };
   };
-  isDashboard?: boolean;
+  isClamp?: boolean;
+  isProjectNameDisplay?: boolean;
 }>();
 
 const badgeColors = {
@@ -51,7 +52,10 @@ const badgeColors = {
           </h3>
         </div>
 
-        <p class="text-sm text-muted-foreground line-clamp-2">
+        <p
+          class="text-sm text-muted-foreground"
+          :class="{ 'line-clamp-2': isClamp }"
+        >
           {{ props.feedback.overall_comment }}
         </p>
       </div>
@@ -93,7 +97,7 @@ const badgeColors = {
             {{ format(new Date(props.feedback.created_at), "yyyy/MM/dd") }}
           </span>
         </div>
-        <div v-if="isDashboard" class="flex items-center gap-1">
+        <div v-if="isProjectNameDisplay" class="flex items-center gap-1">
           <Icon
             name="mdi:file-document-outline"
             class="!size-4 text-muted-foreground"

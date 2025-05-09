@@ -84,4 +84,8 @@ export default defineNuxtConfig({
   image: {
     dir: "assets/images",
   },
+
+  tiptap: {
+    prefix: "Tiptap",
+  },
 });

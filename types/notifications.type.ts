@@ -1,6 +1,7 @@
 // 通知のメタデータ型
 export type NotificationMetadata = {
   feedback_id?: string;
+  project_short_id: string;
   project_title?: string;
   is_anonymous?: boolean;
   provider_user_id?: string | null;

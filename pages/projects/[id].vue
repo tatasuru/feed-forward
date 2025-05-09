@@ -110,9 +110,12 @@ const { data: projectDetails } = await useAsyncData(
   "projectDetails",
   async () => {
     try {
-      const { data, error } = await supabase.rpc("get_project_with_feedback", {
-        p_project_id: id,
-      });
+      const { data, error } = await supabase.rpc(
+        "get_project_with_feedback_by_short_id",
+        {
+          p_short_id: id,
+        }
+      );
 
       if (error) throw new Error(error.message);
       return data;
@@ -292,13 +295,16 @@ async function submitFeedback(values: {
       return data.feedback_id;
     } else {
       // submit feedback
-      const { data, error } = await supabase.rpc("save_feedback_with_ratings", {
-        p_project_id: id,
-        p_user_id: supabaseUser.value?.id,
-        p_comment: values.overallComment,
-        p_is_anonymous: values.isAnonymous,
-        p_ratings: ratingsObject,
-      });
+      const { data, error } = await supabase.rpc(
+        "save_feedback_with_ratings_by_short_id",
+        {
+          p_short_id: id,
+          p_user_id: supabaseUser.value?.id,
+          p_comment: values.overallComment,
+          p_is_anonymous: values.isAnonymous,
+          p_ratings: ratingsObject,
+        }
+      );
 
       if (error) {
         console.error("RPC呼び出しエラー:", error);
@@ -315,10 +321,13 @@ async function submitFeedback(values: {
 
 async function checkExistingFeedback() {
   try {
-    const { data, error } = await supabase.rpc("check_user_feedback", {
-      p_project_id: id,
-      p_user_id: supabaseUser.value?.id,
-    });
+    const { data, error } = await supabase.rpc(
+      "check_user_feedback_by_short_id",
+      {
+        p_short_id: id,
+        p_user_id: supabaseUser.value?.id,
+      }
+    );
 
     if (error) {
       console.error("フィードバック確認エラー:", error);
@@ -339,10 +348,13 @@ async function checkExistingFeedback() {
 
 async function getUserFeedback() {
   try {
-    const { data, error } = await supabase.rpc("get_user_provided_feedback", {
-      p_user_id: supabaseUser.value?.id,
-      p_project_id: id,
-    });
+    const { data, error } = await supabase.rpc(
+      "get_user_provided_feedback_by_short_id",
+      {
+        p_user_id: supabaseUser.value?.id,
+        p_short_id: id,
+      }
+    );
 
     if (error) {
       console.error("フィードバック取得エラー:", error);
@@ -391,7 +403,7 @@ async function getUserFeedback() {
   }
 }
 
-async function getRatingPerCriteria() {
+function getRatingPerCriteria() {
   const feedbacks = projectWithFeedback.value.feedbacks || [];
   const ratingAvgByCriteriaId: Record<string, number> = {};
   const ratingCountByCriteriaId: Record<string, number> = {};

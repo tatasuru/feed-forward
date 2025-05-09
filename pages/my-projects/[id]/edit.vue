@@ -80,7 +80,6 @@ const borderColorPalette = [
   "border-blue/50",
   "border-pink/50",
 ];
-const status = ref<ProjectData["status"]>("active");
 const formRef = ref<HTMLElement | null>(null);
 
 /********************************
@@ -243,9 +242,12 @@ function formatDate(newDate: DateValue) {
 }
 
 async function getProjectData() {
-  const { data, error } = await supabase.rpc("get_project_with_feedback", {
-    p_project_id: route.params.id,
-  });
+  const { data, error } = await supabase.rpc(
+    "get_project_with_feedback_by_short_id",
+    {
+      p_short_id: route.params.id,
+    }
+  );
 
   if (error) {
     console.error("Error fetching project data:", error);
@@ -294,10 +296,13 @@ async function getProjectData() {
 
 async function updateProject(projectId: string, projectData: ProjectData) {
   try {
-    const { data, error } = await supabase.rpc("update_project_from_form", {
-      p_project_id: projectId,
-      form_data: projectData,
-    });
+    const { data, error } = await supabase.rpc(
+      "update_project_from_form_by_short_id",
+      {
+        p_short_id: projectId,
+        form_data: projectData,
+      }
+    );
 
     if (error) {
       throw error;

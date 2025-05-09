@@ -62,19 +62,17 @@ const logout = async () => {
 
 // get unread notifications
 async function fetchUnreadNotifications() {
-  const { data, error } = await supabase
-    .from("notifications")
-    .select("*")
-    .eq("user_id", user.value?.id)
-    .eq("is_read", false)
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.rpc("get_user_notifications", {
+    p_user_id: user.value?.id,
+    p_unread_only: true,
+  });
 
   if (error) {
     console.error("通知の取得に失敗しました:", error);
     return [];
   }
 
-  return data || [];
+  return data.notifications || [];
 }
 
 // read notifications post
@@ -185,7 +183,7 @@ onMounted(async () => {
             class="cursor-pointer"
           >
             <NuxtLink
-              :to="`/my-projects/${notification.project_id}/details`"
+              :to="`/my-projects/${notification.metadata.project_short_id}/details`"
               @click="markNotificationAsRead(notification.id)"
             >
               <div class="flex items-start gap-4">

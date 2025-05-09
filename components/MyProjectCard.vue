@@ -143,7 +143,7 @@ const statusType = {
           class="w-full md:w-fit h-fit md:py-1 md:px-6 rounded-sm"
         >
           <NuxtLink
-            :to="`/my-projects/${props.project.id}/details`"
+            :to="`/my-projects/${props.project.short_id}/details`"
             class="text-sm text-purple dark:text-white"
           >
             詳細を見る

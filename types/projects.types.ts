@@ -1,6 +1,7 @@
 // Existing Project type
 export type Project = {
   id: string;
+  short_id: string;
   created_at: Date;
   deadline: Date;
   description: string;
@@ -65,6 +66,7 @@ export type Feedback = {
 export type ProjectWithFeedback = {
   project: {
     id: string;
+    short_id: string;
     user_id: string;
     title: string;
     description: string;

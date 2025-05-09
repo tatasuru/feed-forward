@@ -46,7 +46,7 @@ const { data: selectItem } = await useAsyncData(
       // 1. get project data
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title")
+        .select("short_id, title")
         .eq("user_id", user.value?.id)
         .order("created_at", { ascending: false });
 
@@ -70,10 +70,13 @@ const { data: projectsData } = await useAsyncData(
       isLoading.value = true;
 
       // 1. get project data
-      const { data, error } = await supabase.rpc("get_user_feedback", {
-        p_user_id: user.value?.id,
-        p_project_id: project_id !== "all" ? project_id : null,
-      });
+      const { data, error } = await supabase.rpc(
+        "get_user_feedback_by_short_id",
+        {
+          p_user_id: user.value?.id,
+          p_short_id: project_id !== "all" ? project_id : null,
+        }
+      );
 
       if (error) throw new Error(error.message);
 
@@ -131,8 +134,8 @@ watch(
     if (!newData) return;
 
     selectItems.value.push(
-      ...newData.map((item: { id: string; title: string }) => ({
-        value: item.id,
+      ...newData.map((item: { short_id: string; title: string }) => ({
+        value: item.short_id,
         label: item.title,
       }))
     );
@@ -212,9 +215,9 @@ function initFeedbackContents() {
 
 async function selectProject(projectId: string) {
   // 1. get project data
-  const { data, error } = await supabase.rpc("get_user_feedback", {
+  const { data, error } = await supabase.rpc("get_user_feedback_by_short_id", {
     p_user_id: user.value?.id,
-    p_project_id: projectId !== "all" ? projectId : null,
+    p_short_id: projectId !== "all" ? projectId : null,
   });
 
   if (error) throw new Error(error.message);

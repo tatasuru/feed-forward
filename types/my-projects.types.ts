@@ -1,5 +1,6 @@
 export type MyProject = {
   id: string;
+  short_id: string;
   created_at: Date;
   deadline: Date | null;
   description: string;
@@ -64,6 +65,7 @@ export type Feedback = {
 
 export type MyProjectWithFeedback = {
   id: string;
+  short_id: string;
   created_at: Date;
   deadline: Date | null;
   description: string;

@@ -62,9 +62,12 @@ const { data: projectsData } = await useAsyncData(
       isLoading.value = true;
 
       // 1. get project data
-      const { data, error } = await supabase.rpc("get_project_with_feedback", {
-        p_project_id: id,
-      });
+      const { data, error } = await supabase.rpc(
+        "get_project_with_feedback_by_short_id",
+        {
+          p_short_id: id,
+        }
+      );
 
       if (error) throw new Error(error.message);
       return data as ProjectWithFeedback;
@@ -243,7 +246,7 @@ async function deleteProject() {
     isDeleting.value = true;
 
     const { data, error } = await supabase.rpc("delete_project", {
-      p_project_id: id,
+      p_project_id: projectWithFeedback.value.project.id,
     });
 
     if (error) {
@@ -338,7 +341,9 @@ async function deleteProject() {
           class="w-full md:w-fit cursor-pointer"
           :class="isDeleting ? 'pointer-events-none opacity-50' : ''"
         >
-          <NuxtLink :to="`/my-projects/${projectWithFeedback.project.id}/edit`">
+          <NuxtLink
+            :to="`/my-projects/${projectWithFeedback.project.short_id}/edit`"
+          >
             <Icon
               name="mdi:text-box-edit-outline"
               class="!size-4 text-muted-foreground"
@@ -576,7 +581,7 @@ async function deleteProject() {
               :to="{
                 path: `/my-projects/feedbacks`,
                 query: {
-                  project_id: projectWithFeedback?.project?.id,
+                  project_id: projectWithFeedback?.project?.short_id,
                 },
               }"
               class="w-full"

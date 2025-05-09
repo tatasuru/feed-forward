@@ -343,7 +343,7 @@ async function deleteProject() {
           >
             <Icon v-if="copied" name="mdi:attachment-check" class="!size-4" />
             <Icon v-else name="mdi:attachment" class="!size-4" />
-            {{ copied ? "コピーしました" : "リンクをコピー" }}
+            {{ copied ? "コピーしました" : "シェアリンクをコピー" }}
           </Button>
         </div>
       </div>

@@ -13,16 +13,10 @@ export const formSchema = toTypedSchema(
       .max(50, {
         message: "プロジェクト名は50文字以内で入力してください",
       }),
-    description: z
-      .string({
-        message: "プロジェクトの説明は必須です",
-      })
-      .min(10, {
-        message: "プロジェクトの説明は10文字以上で入力してください",
-      })
-      .max(500, {
-        message: "プロジェクトの説明は500文字以内で入力してください",
-      }),
+    description: z.string({
+      message: "プロジェクトの説明は必須です",
+      required_error: "プロジェクトの説明は必須です",
+    }),
     projectType: z.enum(["design", "demo", "plan"], {
       errorMap: () => ({ message: "プロジェクトの種類は必須です" }),
     }),

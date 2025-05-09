@@ -29,7 +29,7 @@ watchEffect(() => {
       },
       {
         property: "og:image",
-        content: String(ogImage),
+        content: String(twitterImage),
       },
       {
         name: "twitter:card",

@@ -228,8 +228,8 @@ function initFeedbackContents() {
         description: feedback.overall_comment,
         created_at: feedback.created_at.toString(),
         feedback_ratings: feedback.ratings.map((fb: any, index: number) => ({
-          title: ratingPerCriteria.value[index]?.title,
-          rating: ratingPerCriteria.value[index]?.rating || 0,
+          title: fb.criteria.name,
+          rating: fb.rating,
           created_at: feedback.created_at.toString(),
           user_id: fb.user_id || "",
         })),

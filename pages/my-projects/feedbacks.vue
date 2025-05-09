@@ -64,7 +64,7 @@ const { data: selectItem } = await useAsyncData(
 );
 
 const { data: projectsData } = await useAsyncData(
-  "myProjectDetails",
+  `myProjectDetails-${project_id}`,
   async () => {
     try {
       isLoading.value = true;
@@ -92,7 +92,7 @@ const { data: projectsData } = await useAsyncData(
 );
 
 const { data: relatedData } = await useAsyncData(
-  "myProjectRelatedData",
+  `myProjectRelatedData-${project_id}`,
   async () => {
     try {
       projectWithFeedback.value =

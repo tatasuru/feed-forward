@@ -17,6 +17,10 @@ definePageMeta({
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
 const preview = ref();
+const config = useRuntimeConfig();
+const baseUrl = config.public.baseUrl;
+const source = ref<string>(`${baseUrl}/projects/${id}`);
+const { text, copy, copied, isSupported } = useClipboard({ source });
 
 const projectWithFeedback = computed<ProjectWithFeedback>(() => {
   return projectsData.value as ProjectWithFeedback;
@@ -287,7 +291,7 @@ async function deleteProject() {
       <div class="flex flex-col items-start gap-4">
         <PageTitle :title="projectWithFeedback.project.title" size="large" />
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 flex-wrap">
           <Badge
             variant="default"
             class="text-xs rounded-full border"
@@ -329,6 +333,18 @@ async function deleteProject() {
               }}
             </span>
           </div>
+
+          <Button
+            v-if="isSupported"
+            variant="link"
+            class="p-0 hover:text-muted-foreground cursor-pointer gap-1 h-fit hover:no-underline md:text-sm text-xs"
+            :class="isDeleting ? 'pointer-events-none opacity-50' : ''"
+            @click="copy(source)"
+          >
+            <Icon v-if="copied" name="mdi:attachment-check" class="!size-4" />
+            <Icon v-else name="mdi:attachment" class="!size-4" />
+            {{ copied ? "コピーしました" : "リンクをコピー" }}
+          </Button>
         </div>
       </div>
       <!-- settings -->

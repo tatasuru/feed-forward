@@ -215,8 +215,10 @@ onMounted(() => {
                   v-if="!isUploading"
                   class="flex flex-col items-center gap-2"
                 >
-                  <span class="text-sm text-muted-foreground">
+                  <span class="text-sm text-muted-foreground text-center">
                     クリックかドラック&ドロップで画像をアップロードできます。
+                    <br />
+                    2MBまでのJPEG/PNG形式の画像がアップロード可能です。
                   </span>
                 </div>
                 <div
@@ -241,9 +243,6 @@ onMounted(() => {
                 class="hidden"
               />
             </FormControl>
-            <FormDescription>
-              初期値は仮のプロフィール画像です。
-            </FormDescription>
             <FormMessage />
           </FormItem>
         </FormField>

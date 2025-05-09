@@ -1,3 +1,5 @@
+import { toast } from "vue-sonner";
+
 export function useImageUpload(options: {
   bucket?: string;
   maxSize?: number;
@@ -72,11 +74,19 @@ export function useImageUpload(options: {
       return null;
     }
     if (file.size > maxSize) {
+      toast.error("サイズ制限を超えています", {
+        description: "2MB以下の画像をアップロードしてください。",
+      });
+      isUploading.value = false;
       throw new Error(
         "サイズ制限を超えています。2MB以下の画像をアップロードしてください。"
       );
     }
     if (!allowedTypes.includes(file.type)) {
+      toast.error("無効なファイル形式です", {
+        description: "JPEGまたはPNG形式の画像をアップロードしてください。",
+      });
+      isUploading.value = false;
       throw new Error(
         "無効なファイル形式です。JPEGまたはPNG形式の画像をアップロードしてください。"
       );

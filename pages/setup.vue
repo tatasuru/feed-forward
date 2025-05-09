@@ -46,7 +46,7 @@ const steps = [
   {
     step: 2,
     title: "2. プロフィール画像",
-    description: "プロフィール画像のURLを入力してください",
+    description: "プロフィール画像をアップロードしてください",
   },
   {
     step: 3,
@@ -355,8 +355,10 @@ const {
                         v-if="!isUploading"
                         class="flex flex-col items-center gap-2"
                       >
-                        <span class="text-sm text-muted-foreground">
+                        <span class="text-sm text-muted-foreground text-center">
                           クリックかドラック&ドロップで画像をアップロードできます。
+                          <br />
+                          2MBまでのJPEG/PNG形式の画像がアップロード可能です。
                         </span>
                         <span class="text-sm text-muted-foreground">
                           画像をアップロードしない場合は、そのまま次へ進んでください。

@@ -168,7 +168,7 @@ function initFeedbackContents(projects: any[]) {
     }
 
     feedbacks.map((feedback: any) => {
-      feedbackContents.value.push({
+      feedbackContents.value.unshift({
         ...feedbackContents.value,
         id: project.id,
         title: project.title,

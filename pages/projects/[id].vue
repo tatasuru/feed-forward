@@ -48,6 +48,9 @@ const ratingPerCriteria = ref<
     rating: number;
   }[]
 >([]);
+const isOwner = computed(() => {
+  return projectWithFeedback.value?.owner.id === supabaseUser.value?.id;
+});
 
 /******************************
  * form setup
@@ -643,12 +646,20 @@ function getRatingPerCriteria() {
       <!-- right -->
       <div
         class="md:sticky md:top-[90px] flex flex-col gap-8 border border-muted-foreground/20 rounded-lg p-4 md:p-8 min-h-fit h-[calc(100vh-110px)] w-full"
+        :class="isOwner ? 'pointer-events-none bg-muted' : ''"
       >
         <PageTitle
           title="フィードバックを送る"
           description="このプロジェクトに対するフィードバックを提供してください"
           size="medium"
         />
+
+        <div v-if="isOwner" class="p-4 bg-muted-foreground/20 rounded-md">
+          <p class="text-sm text-muted-foreground">
+            あなたはこのプロジェクトのオーナーです。<br />
+            フィードバックを送信することはできません。
+          </p>
+        </div>
 
         <div
           v-if="isAlreadyRated"

@@ -160,32 +160,35 @@ function initDashboardContents(projects: MyProjectWithFeedback[]) {
 }
 
 function initFeedbackContents(projects: any[]) {
-  feedbackContents.value = projects.map((project) => {
+  projects.map((project) => {
     const feedbacks = project.feedbacks || [];
 
     if (feedbacks.length === 0) {
       return {};
     }
 
-    return {
-      id: project.id,
-      title: project.title,
-      description: project.description,
-      created_at: project.created_at.toString(),
-      feedback_ratings: feedbacks[0]?.ratings.map((fb: any, index: number) => ({
-        title: feedbacks[0]?.ratings[index]?.name,
-        rating: Number(fb.rating),
-        created_at: feedbacks[0]?.created_at.toString(),
-        user_id: fb.user_id || "",
-      })),
-      overall_comment: feedbacks.length ? feedbacks[0].overall_comment : "",
-      project_type: project.project_type,
-      user: {
-        id: feedbacks[0]?.user?.id || "",
-        display_name: feedbacks[0]?.user?.display_name || "Unknown User",
-        avatar_url: feedbacks[0]?.user?.avatar_url || "",
-      },
-    };
+    feedbacks.map((feedback: any) => {
+      feedbackContents.value.push({
+        ...feedbackContents.value,
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        created_at: project.created_at.toString(),
+        feedback_ratings: feedback?.ratings.map((fb: any, index: number) => ({
+          title: feedback.ratings[index]?.name,
+          rating: Number(fb.rating),
+          created_at: feedback.created_at.toString(),
+          user_id: fb.user_id || "",
+        })),
+        overall_comment: feedback ? feedback.overall_comment : "",
+        project_type: project.project_type,
+        user: {
+          id: feedback?.user?.id || "",
+          display_name: feedback?.user?.display_name || "Unknown User",
+          avatar_url: feedback?.user?.avatar_url || "",
+        },
+      });
+    });
   });
 }
 

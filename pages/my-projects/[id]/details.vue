@@ -491,10 +491,13 @@ async function deleteProject() {
                 ) in projectWithFeedback?.evaluation_criteria"
                 class="flex flex-col gap-2"
               >
-                <div class="flex justify-between items-center">
-                  <p class="text-sm">
-                    {{ criteria.name }}
-                  </p>
+                <div class="flex justify-between items-end">
+                  <div class="flex flex-col gap-px max-w-4/6">
+                    <p class="text-sm">{{ criteria.name }}</p>
+                    <p class="text-xs text-muted-foreground">
+                      {{ criteria.description }}
+                    </p>
+                  </div>
                   <p class="text-sm">
                     平均:
                     {{

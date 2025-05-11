@@ -615,8 +615,13 @@ function getRatingPerCriteria() {
                 ) in projectWithFeedback?.evaluation_criteria"
                 class="flex flex-col gap-2"
               >
-                <div class="flex justify-between items-center">
-                  <p class="text-sm">{{ criteria.name }}</p>
+                <div class="flex justify-between items-end">
+                  <div class="flex flex-col gap-px max-w-4/6">
+                    <p class="text-sm">{{ criteria.name }}</p>
+                    <p class="text-xs text-muted-foreground">
+                      {{ criteria.description }}
+                    </p>
+                  </div>
                   <p class="text-sm">
                     平均:
                     {{
@@ -682,6 +687,9 @@ function getRatingPerCriteria() {
           >
             <FormItem>
               <FormLabel>{{ criteria.name }}</FormLabel>
+              <span class="text-xs text-muted-foreground">
+                {{ criteria.description }}
+              </span>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <FormControl>

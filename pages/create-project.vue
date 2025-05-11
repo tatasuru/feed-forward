@@ -169,7 +169,11 @@ async function handleSubmit(userId: string) {
           description: criteria.description,
           evaluation_type: "rating",
         }))
-      : [],
+      : criteriaTemplate.value.map((criteria) => ({
+          name: criteria.name,
+          description: criteria.description,
+          evaluation_type: "rating",
+        })),
     visibility_type: formValues.visibilityType
       ? formValues.visibilityType
       : null,
@@ -484,24 +488,8 @@ function addCustomCriteria() {
                   </FormControl>
                   <SelectContent>
                     <SelectGroup class="py-1">
-                      <SelectLabel>テンプレート</SelectLabel>
                       <SelectItem
-                        v-for="evaluationType in evaluationTypes.filter(
-                          (item) => item.evaluation_type !== 'customEvaluation'
-                        )"
-                        :key="evaluationType.name"
-                        :value="evaluationType.evaluation_type"
-                        @vue:updated="selectCriteriaTemplate"
-                      >
-                        {{ evaluationType.name }}
-                      </SelectItem>
-                    </SelectGroup>
-                    <SelectGroup class="py-1">
-                      <SelectLabel>その他</SelectLabel>
-                      <SelectItem
-                        v-for="evaluationType in evaluationTypes.filter(
-                          (item) => item.evaluation_type === 'customEvaluation'
-                        )"
+                        v-for="evaluationType in evaluationTypes"
                         :key="evaluationType.name"
                         :value="evaluationType.evaluation_type"
                         @vue:updated="selectCriteriaTemplate"

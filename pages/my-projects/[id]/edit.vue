@@ -534,7 +534,7 @@ async function updateProject(projectId: string, projectData: ProjectData) {
         <!-- evaluation items -->
         <Card class="relative">
           <div
-            class="mask absolute inset-0 bg-muted-foreground/10 dark:bg-muted/20"
+            class="mask absolute inset-0 bg-muted-foreground/10 dark:bg-muted/20 rounded-xl"
           />
           <CardHeader>
             <PageTitle

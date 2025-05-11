@@ -483,19 +483,30 @@ function addCustomCriteria() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectGroup>
+                    <SelectGroup class="py-1">
+                      <SelectLabel>テンプレート</SelectLabel>
                       <SelectItem
-                        v-for="evaluationType in evaluationTypes"
+                        v-for="evaluationType in evaluationTypes.filter(
+                          (item) => item.evaluation_type !== 'customEvaluation'
+                        )"
                         :key="evaluationType.name"
                         :value="evaluationType.evaluation_type"
                         @vue:updated="selectCriteriaTemplate"
                       >
                         {{ evaluationType.name }}
-                        <!-- {{
-                          evaluationType.evaluation_type === "customEvaluation"
-                            ? "(有料版のみ)"
-                            : ""
-                        }} -->
+                      </SelectItem>
+                    </SelectGroup>
+                    <SelectGroup class="py-1">
+                      <SelectLabel>その他</SelectLabel>
+                      <SelectItem
+                        v-for="evaluationType in evaluationTypes.filter(
+                          (item) => item.evaluation_type === 'customEvaluation'
+                        )"
+                        :key="evaluationType.name"
+                        :value="evaluationType.evaluation_type"
+                        @vue:updated="selectCriteriaTemplate"
+                      >
+                        {{ evaluationType.name }}
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>

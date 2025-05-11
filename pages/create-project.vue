@@ -163,8 +163,8 @@ async function handleSubmit(userId: string) {
     evaluation_type: formValues.evaluationType
       ? formValues.evaluationType
       : null,
-    evaluation_criteria: criteriaTemplate.value
-      ? criteriaTemplate.value.map((criteria) => ({
+    evaluation_criteria: form.values.criteriaTemplate
+      ? form.values.criteriaTemplate.map((criteria) => ({
           name: criteria.name,
           description: criteria.description,
           evaluation_type: "rating",

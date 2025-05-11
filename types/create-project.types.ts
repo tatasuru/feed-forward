@@ -12,7 +12,7 @@ export type ProjectData = {
     | "planEvaluation"
     | "customEvaluation"
     | null;
-  evaluationCriteria?: {
+  evaluation_criteria?: {
     name: string;
     description: string;
     evaluation_type: "rating";
@@ -28,5 +28,5 @@ export type CriteriaTemplate = {
   name: string;
   description: string;
   evaluation_type: ProjectData["evaluation_type"];
-  criteria: { name: string; description: string }[];
+  criteria: { name: string; description: string; evaluation_type: "rating" }[];
 };

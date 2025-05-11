@@ -163,7 +163,7 @@ async function handleSubmit(userId: string) {
     evaluation_type: formValues.evaluationType
       ? formValues.evaluationType
       : null,
-    evaluationCriteria: criteriaTemplate.value
+    evaluation_criteria: criteriaTemplate.value
       ? criteriaTemplate.value.map((criteria) => ({
           name: criteria.name,
           description: criteria.description,
@@ -251,6 +251,7 @@ function addCustomCriteria() {
   criteriaTemplate.value.push({
     name: "",
     description: "",
+    evaluation_type: "rating",
   });
 }
 </script>
@@ -490,11 +491,11 @@ function addCustomCriteria() {
                         @vue:updated="selectCriteriaTemplate"
                       >
                         {{ evaluationType.name }}
-                        {{
+                        <!-- {{
                           evaluationType.evaluation_type === "customEvaluation"
                             ? "(有料版のみ)"
                             : ""
-                        }}
+                        }} -->
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -506,7 +507,7 @@ function addCustomCriteria() {
               </FormItem>
             </FormField>
 
-            <!-- TODO: display when selector selected -->
+            <!-- for selected exist template -->
             <div
               v-if="
                 form.values.evaluationType &&
@@ -560,6 +561,7 @@ function addCustomCriteria() {
               </div>
             </div>
 
+            <!-- for selected custom template -->
             <div
               v-if="form.values.evaluationType === 'customEvaluation'"
               class="flex flex-col gap-4"
@@ -600,36 +602,67 @@ function addCustomCriteria() {
                     }"
                   >
                     <CardContent class="flex flex-col gap-8">
-                      <div class="flex flex-col gap-2">
-                        <Label> 項目{{ index + 1 }} </Label>
-                        <Input
-                          :placeholder="criteria.name"
-                          v-model="criteria.name"
-                          :class="{
-                            [borderColorPalette[index]]:
-                              criteriaTemplate.length > 0,
-                          }"
-                          :default-value="criteria.name"
-                        />
-                      </div>
+                      <FormField
+                        v-slot="{ componentField }"
+                        :name="`criteriaTemplate.${index}.name`"
+                      >
+                        <FormItem>
+                          <FormLabel>
+                            項目{{ index + 1 }}
+                            <Badge
+                              variant="gradient"
+                              class="text-xs text-white rounded-sm"
+                            >
+                              必須
+                            </Badge>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              :placeholder="`評価項目${index + 1}の名前`"
+                              v-model="criteria.name"
+                              :class="{
+                                [borderColorPalette[index]]:
+                                  criteriaTemplate.length > 0,
+                              }"
+                              v-bind="componentField"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
 
-                      <div class="flex flex-col gap-2">
-                        <Label> 項目{{ index + 1 }}の説明 </Label>
-                        <Input
-                          :placeholder="criteria.description"
-                          v-model="criteria.description"
-                          :class="{
-                            [borderColorPalette[index]]:
-                              criteriaTemplate.length > 0,
-                          }"
-                          :default-value="criteria.description"
-                        />
-                      </div>
+                      <FormField
+                        v-slot="{ componentField }"
+                        :name="`criteriaTemplate.${index}.description`"
+                      >
+                        <FormItem>
+                          <FormLabel>
+                            項目{{ index + 1 }}の説明
+                            <Badge
+                              variant="gradient"
+                              class="text-xs text-white rounded-sm"
+                            >
+                              必須
+                            </Badge>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              :placeholder="`評価項目${index + 1}の説明`"
+                              v-model="criteria.description"
+                              :class="{
+                                [borderColorPalette[index]]:
+                                  criteriaTemplate.length > 0,
+                              }"
+                              v-bind="componentField"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
                     </CardContent>
                   </Card>
                 </div>
               </div>
-              <!-- TODO: For paid version -->
 
               <Button
                 variant="outline"

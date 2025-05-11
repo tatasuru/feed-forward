@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
 import { useForm } from "vee-validate";
-import { formSchema } from "@/utils/form-schema/create-project";
+import { formSchema } from "@/utils/form-schema/update-project";
 import type {
   ProjectData,
   CriteriaTemplate,
@@ -72,6 +72,7 @@ const evaluationTypes = computed<CriteriaTemplate[]>(() => {
   return criteriaTemplates.value as CriteriaTemplate[];
 });
 const criteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
+const customCriteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
 const dateValue = ref<string>("");
 const selectedDateValue = ref<DateValue>();
 const bgColorPalette = ["bg-purple/10", "bg-blue/10", "bg-pink/10"];
@@ -180,6 +181,13 @@ async function handleSubmit(userId: string) {
     evaluation_type: formValues.evaluationType
       ? formValues.evaluationType
       : null,
+    evaluation_criteria: criteriaTemplate.value
+      ? criteriaTemplate.value.map((criteria) => ({
+          name: criteria.name,
+          description: criteria.description,
+          evaluation_type: "rating",
+        }))
+      : [],
     visibility_type: formValues.visibilityType
       ? formValues.visibilityType
       : null,
@@ -217,6 +225,11 @@ async function handleSubmit(userId: string) {
  * HELPER FUNCTIONS
  ********************************/
 function selectCriteriaTemplate() {
+  if (form.values.evaluationType === "customEvaluation") {
+    criteriaTemplate.value = customCriteriaTemplate.value;
+    return;
+  }
+
   const selectedTemplate = evaluationTypes.value.find(
     (template) => template.evaluation_type === form.values.evaluationType
   );
@@ -258,6 +271,9 @@ async function getProjectData() {
   criteriaTemplate.value = data.criteria_templates[0]
     ? data.criteria_templates[0].criteria
     : null;
+
+  // for custom evaluation
+  customCriteriaTemplate.value = data.evaluation_criteria;
 
   // init form values
   if (project.value) {
@@ -516,11 +532,14 @@ async function updateProject(projectId: string, projectData: ProjectData) {
         </Card>
 
         <!-- evaluation items -->
-        <Card>
+        <Card class="relative">
+          <div
+            class="mask absolute inset-0 bg-muted-foreground/10 dark:bg-muted/20"
+          />
           <CardHeader>
             <PageTitle
               title="評価項目設定"
-              description="フィードバックで評価してほしい項目を設定してください"
+              description="一度設定した評価項目は変更できません"
               size="small"
             />
           </CardHeader>
@@ -538,7 +557,7 @@ async function updateProject(projectId: string, projectData: ProjectData) {
                 </FormLabel>
                 <Select v-bind="componentField">
                   <FormControl>
-                    <SelectTrigger class="w-full cursor-pointer">
+                    <SelectTrigger class="w-full cursor-pointer" disabled>
                       <SelectValue placeholder="評価項目テンプレートを選択" />
                     </SelectTrigger>
                   </FormControl>
@@ -570,14 +589,7 @@ async function updateProject(projectId: string, projectData: ProjectData) {
               </FormItem>
             </FormField>
 
-            <!-- TODO: display when selector selected -->
-            <div
-              v-if="
-                form.values.evaluationType &&
-                form.values.evaluationType !== 'customEvaluation'
-              "
-              class="flex flex-col gap-4"
-            >
+            <div v-if="form.values.evaluationType" class="flex flex-col gap-4">
               <div class="flex flex-col gap-2">
                 <Label>評価項目</Label>
                 <div class="flex flex-col gap-3">
@@ -622,16 +634,6 @@ async function updateProject(projectId: string, projectData: ProjectData) {
                   </Card>
                 </div>
               </div>
-              <!-- TODO: For paid version -->
-
-              <Button
-                variant="outline"
-                class="w-full text-sm text-primary cursor-pointer"
-                disabled
-              >
-                <Icon name="mdi:plus" class="!size-4" />
-                評価項目を追加 (有料版のみ)
-              </Button>
             </div>
           </CardContent>
         </Card>

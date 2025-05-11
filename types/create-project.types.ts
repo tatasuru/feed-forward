@@ -12,6 +12,11 @@ export type ProjectData = {
     | "planEvaluation"
     | "customEvaluation"
     | null;
+  evaluationCriteria?: {
+    name: string;
+    description: string;
+    evaluation_type: "rating";
+  }[];
   visibility_type: "public" | "unlisted" | "private" | null;
   email_notifications: boolean;
   app_notifications: boolean;

@@ -163,6 +163,13 @@ async function handleSubmit(userId: string) {
     evaluation_type: formValues.evaluationType
       ? formValues.evaluationType
       : null,
+    evaluationCriteria: criteriaTemplate.value
+      ? criteriaTemplate.value.map((criteria) => ({
+          name: criteria.name,
+          description: criteria.description,
+          evaluation_type: "rating",
+        }))
+      : [],
     visibility_type: formValues.visibilityType
       ? formValues.visibilityType
       : null,
@@ -238,6 +245,13 @@ async function createProject(projectData: ProjectData) {
   } catch (error) {
     throw error;
   }
+}
+
+function addCustomCriteria() {
+  criteriaTemplate.value.push({
+    name: "",
+    description: "",
+  });
 }
 </script>
 
@@ -473,9 +487,6 @@ async function createProject(projectData: ProjectData) {
                         v-for="evaluationType in evaluationTypes"
                         :key="evaluationType.name"
                         :value="evaluationType.evaluation_type"
-                        :disabled="
-                          evaluationType.evaluation_type === 'customEvaluation'
-                        "
                         @vue:updated="selectCriteriaTemplate"
                       >
                         {{ evaluationType.name }}
@@ -547,15 +558,98 @@ async function createProject(projectData: ProjectData) {
                   </Card>
                 </div>
               </div>
+            </div>
+
+            <div
+              v-if="form.values.evaluationType === 'customEvaluation'"
+              class="flex flex-col gap-4"
+            >
+              <div class="flex flex-col gap-2">
+                <div class="inline-flex items-center gap-1">
+                  <Label>カスタム評価項目設定</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger
+                        @click="(e: Event) => e.preventDefault()"
+                        class="w-fit h-fit cursor-pointer flex items-center justify-center"
+                      >
+                        <Icon name="mdi:information" class="!size-4" />
+                      </TooltipTrigger>
+                      <TooltipContent
+                        class="w-96"
+                        side="top"
+                        :sideOffset="4"
+                        align="center"
+                      >
+                        カスタム評価項目は、プロジェクトのフィードバックを受け取る際に、特定の項目について評価してもらうためのものです。<br />
+                        例えば、「デザインの美しさ」や「使いやすさ」など、プロジェクトに特有の評価基準を設定できます。<br />
+                        <br />
+                        評価項目は最大3つまで設定可能です。
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                  <Card
+                    v-for="(criteria, index) in criteriaTemplate"
+                    class="rounded-sm"
+                    :class="{
+                      [bgColorPalette[index]]: criteriaTemplate.length > 0,
+                      [borderColorPalette[index]]: criteriaTemplate.length > 0,
+                    }"
+                  >
+                    <CardContent class="flex flex-col gap-8">
+                      <div class="flex flex-col gap-2">
+                        <Label> 項目{{ index + 1 }} </Label>
+                        <Input
+                          :placeholder="criteria.name"
+                          v-model="criteria.name"
+                          :class="{
+                            [borderColorPalette[index]]:
+                              criteriaTemplate.length > 0,
+                          }"
+                          :default-value="criteria.name"
+                        />
+                      </div>
+
+                      <div class="flex flex-col gap-2">
+                        <Label> 項目{{ index + 1 }}の説明 </Label>
+                        <Input
+                          :placeholder="criteria.description"
+                          v-model="criteria.description"
+                          :class="{
+                            [borderColorPalette[index]]:
+                              criteriaTemplate.length > 0,
+                          }"
+                          :default-value="criteria.description"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
               <!-- TODO: For paid version -->
 
               <Button
                 variant="outline"
                 class="w-full text-sm text-primary cursor-pointer"
-                disabled
+                :disabled="isSubmitting || criteriaTemplate.length >= 3"
+                @click="(e: Event) => {
+                  e.preventDefault();
+                  addCustomCriteria()
+                }"
               >
-                <Icon name="mdi:plus" class="!size-4" />
-                評価項目を追加 (有料版のみ)
+                <Icon
+                  v-if="criteriaTemplate.length < 3"
+                  name="mdi:plus"
+                  class="!size-4"
+                />
+                {{
+                  criteriaTemplate.length >= 3
+                    ? "評価項目は3つまでです"
+                    : "評価項目を追加"
+                }}
               </Button>
             </div>
           </CardContent>

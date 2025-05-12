@@ -97,6 +97,7 @@ const { data: criteriaTemplates } = useAsyncData(
     return data;
   }
 );
+
 /********************************
  * Form setup
  ********************************/
@@ -251,11 +252,27 @@ async function createProject(projectData: ProjectData) {
   }
 }
 
+/********************************
+ * Custom criteria functions
+ ********************************/
 function addCustomCriteria() {
   criteriaTemplate.value.push({
     name: "",
     description: "",
     evaluation_type: "rating",
+  });
+}
+
+function removeCustomCriteria(index: number) {
+  if (index < 0 || index >= criteriaTemplate.value.length) {
+    return;
+  }
+
+  const newArray = criteriaTemplate.value.filter((_, i) => i !== index);
+  criteriaTemplate.value = newArray;
+
+  nextTick(() => {
+    form.setFieldValue("criteriaTemplate", newArray);
   });
 }
 </script>
@@ -594,12 +611,25 @@ function addCustomCriteria() {
                 <div class="flex flex-col gap-3">
                   <Card
                     v-for="(criteria, index) in criteriaTemplate"
-                    class="rounded-sm"
+                    :key="index"
+                    class="rounded-sm relative"
                     :class="{
                       [bgColorPalette[index]]: criteriaTemplate.length > 0,
                       [borderColorPalette[index]]: criteriaTemplate.length > 0,
                     }"
                   >
+                    <Button
+                      v-if="criteriaTemplate.length > 1"
+                      @click="(e: Event) => {
+                        e.preventDefault();
+                        removeCustomCriteria(index)
+                      }"
+                      variant="ghost"
+                      class="absolute top-2 right-2 w-fit h-fit cursor-pointer p-0"
+                    >
+                      <Icon name="mdi:close" class="!size-4" />
+                    </Button>
+
                     <CardContent class="flex flex-col gap-8">
                       <FormField
                         v-slot="{ componentField }"

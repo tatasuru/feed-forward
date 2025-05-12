@@ -419,6 +419,7 @@ async function deleteProject() {
                 <NuxtLink
                   v-if="projectWithFeedback.owner.website"
                   :to="projectWithFeedback.owner.website"
+                  target="_blank"
                   class="text-sm text-link flex items-center gap-1"
                 >
                   <Icon name="mdi:link" class="!size-4 text-link" />

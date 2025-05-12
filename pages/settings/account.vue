@@ -77,6 +77,7 @@ const onSubmit = form.handleSubmit((values) => {
     setTimeout(() => {
       registrationProfile(values as formValues);
       toast.success("プロフィールを更新しました");
+      isSubmitting.value = false;
     }, 1000);
   } catch (error) {
     console.error("Validation error:", error);

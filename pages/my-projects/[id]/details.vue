@@ -122,6 +122,7 @@ const { data: relatedData } = await useAsyncData(
   },
   {
     server: true,
+    watch: [projectsData],
   }
 );
 
@@ -335,7 +336,6 @@ async function deleteProject() {
           </div>
 
           <Button
-            v-if="isSupported"
             variant="link"
             class="p-0 hover:text-muted-foreground cursor-pointer gap-1 h-fit hover:no-underline md:text-sm text-xs"
             :class="isDeleting ? 'pointer-events-none opacity-50' : ''"

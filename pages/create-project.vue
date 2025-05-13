@@ -84,7 +84,7 @@ const isSubmitting = ref<boolean>(false);
  * Lifecycle hooks
  ********************************/
 const { data: criteriaTemplates } = useAsyncData(
-  "criteriaTemplates",
+  "criteriaTemplatesForCreate",
   async () => {
     const { data, error } = await supabase.rpc("get_criteria_templates", {
       p_evaluation_type: "",

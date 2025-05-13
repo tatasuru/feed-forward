@@ -87,7 +87,7 @@ const formRef = ref<HTMLElement | null>(null);
  * Lifecycle hooks
  ********************************/
 const { data: criteriaTemplates } = useAsyncData(
-  "criteriaTemplates",
+  "criteriaTemplatesForEdit",
   async () => {
     try {
       const { data, error } = await supabase.rpc("get_criteria_templates", {
@@ -534,12 +534,17 @@ async function updateProject(projectId: string, projectData: ProjectData) {
         <!-- evaluation items -->
         <Card class="relative">
           <div
+            v-if="project?.status !== 'draft'"
             class="mask absolute inset-0 bg-muted-foreground/10 dark:bg-muted/20 rounded-xl"
           />
           <CardHeader>
             <PageTitle
               title="評価項目設定"
-              description="一度設定した評価項目は変更できません"
+              :description="
+                project?.status === 'draft'
+                  ? 'フィードバックで評価してほしい項目を設定してください'
+                  : '公開中のプロジェクトは評価項目を変更できません'
+              "
               size="small"
             />
           </CardHeader>

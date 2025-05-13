@@ -127,7 +127,7 @@ const { data: projectsData } = await useAsyncData(
   }
 );
 
-const { data: linkPreview } = await useLazyAsyncData(
+const { data: linkPreview, pending } = await useLazyAsyncData(
   "linkPreviewForMyProject",
   async () => {
     try {
@@ -389,6 +389,7 @@ async function deleteProject() {
           <div class="flex flex-col gap-4 w-full">
             <PageTitle title="フィードバック対象" size="small" />
             <NuxtLink
+              v-if="linkPreview"
               :to="projectWithFeedback.project.resource_url"
               class="flex flex-col gap-3 border border-muted-foreground/20 rounded-sm"
               target="_blank"
@@ -399,6 +400,7 @@ async function deleteProject() {
                 :alt="preview?.title || ''"
                 class="object-cover object-center h-52 md:h-96 rounded-t-sm"
               />
+
               <NuxtImg
                 v-else="!preview?.images?.[0]"
                 src="no-image.png"
@@ -419,6 +421,10 @@ async function deleteProject() {
                 </p>
               </div>
             </NuxtLink>
+
+            <div v-if="pending">
+              <Skeleton class="h-[300px] md:h-[470px] rounded-sm" />
+            </div>
           </div>
 
           <!-- feedback items -->

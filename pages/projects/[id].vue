@@ -143,7 +143,7 @@ const { data: projectDetails } = await useAsyncData(
   }
 );
 
-const { data: linkPreview } = await useLazyAsyncData(
+const { data: linkPreview, pending } = await useLazyAsyncData(
   "linkPreviewForProject",
   async () => {
     try {
@@ -549,6 +549,7 @@ async function getUserFeedback() {
           <div class="flex flex-col gap-4 w-full">
             <PageTitle title="フィードバック対象" size="small" />
             <NuxtLink
+              v-if="linkPreview"
               :to="projectWithFeedback.project.resource_url"
               class="flex flex-col gap-3 border border-muted-foreground/20 rounded-sm"
               target="_blank"
@@ -579,6 +580,10 @@ async function getUserFeedback() {
                 </p>
               </div>
             </NuxtLink>
+
+            <div v-if="pending">
+              <Skeleton class="h-[300px] md:h-[470px] rounded-sm" />
+            </div>
           </div>
 
           <!-- feedback items -->

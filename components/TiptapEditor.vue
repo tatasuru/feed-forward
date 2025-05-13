@@ -232,7 +232,10 @@ watch(
 
 <template>
   <div class="w-full flex flex-col gap-2">
-    <div v-if="editor" class="w-full flex gap-1 items-center flex-wrap">
+    <div
+      v-if="editor"
+      class="sticky top-[60px] md:top-[80px] w-full flex gap-1 items-center flex-wrap border p-2 rounded-sm z-[1] bg-background/70 backdrop-blur-[8px]"
+    >
       <TipTapButton
         v-for="(button, index) in textFormatButtons"
         :key="index"

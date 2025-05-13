@@ -2,7 +2,7 @@
 
 <template>
   <div
-    class="flex items-start gap-4 hover:scale-103 transition-transform duration-200 ease-in-out cursor-pointer"
+    class="flex items-start gap-4 hover:scale-103 transition-transform duration-200 ease-in-out cursor-pointer border rounded-lg p-4"
   >
     <!-- avatar -->
     <Skeleton class="size-10 shrink-0 rounded-full" />

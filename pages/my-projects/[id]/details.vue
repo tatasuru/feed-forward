@@ -65,19 +65,16 @@ const { data: projectsData } = await useAsyncData(
     try {
       isLoading.value = true;
 
-      // 1. get project data
       const { data, error } = await supabase.rpc(
         "get_project_with_feedback_by_short_id",
-        {
-          p_short_id: id,
-        }
+        { p_short_id: id }
       );
 
       if (error) throw new Error(error.message);
       return data as ProjectWithFeedback;
     } catch (error) {
       console.error("Error fetching projects:", error);
-      return [];
+      return null;
     }
   },
   {
@@ -85,67 +82,35 @@ const { data: projectsData } = await useAsyncData(
   }
 );
 
-const { data: relatedData } = await useAsyncData(
-  "myProjectRelatedData",
-  async () => {
-    if (!projectsData.value)
-      return {
-        preview: null,
-        userFeedback: null,
-        criteriaRatings: [],
-      };
+onMounted(async () => {
+  try {
+    if (!projectWithFeedback?.value?.project?.resource_url) return;
 
-    try {
-      // 1.get preview data
-      const preview = await getLinkPreview(
-        projectWithFeedback.value.project.resource_url
-      );
-
-      // 2.get rating per criteria
-      const ratingPerCriteria = await getRatingPerCriteria();
-
-      // 3. set loading to false
-      isLoading.value = false;
-
-      return {
-        preview,
-        ratingPerCriteria,
-      };
-    } catch (error) {
-      console.error("Error fetching related data:", error);
-      return {
-        preview: null,
-        userFeedback: null,
-        ratingPerCriteria: [],
-      };
-    }
-  },
-  {
-    server: true,
-    watch: [projectsData],
-  }
-);
-
-watch(
-  relatedData,
-  (newData) => {
-    if (!newData) return;
-
-    // 1. set preview data
-    preview.value = newData.preview;
+    preview.value = await getLinkPreview(
+      projectWithFeedback.value.project.resource_url
+    );
 
     // 2. set rating per criteria
-    ratingPerCriteria.value = newData.ratingPerCriteria || [];
+    ratingPerCriteria.value = getRatingPerCriteria();
 
     // 3.initialize feedback analytics contents
     initDashboardContents();
 
     // 4.initialize feedback contents
     initFeedbackContents();
-  },
-  { immediate: true }
-);
 
+    // 5. set loading to false
+    isLoading.value = false;
+  } catch (error) {
+    console.error("Error fetching link preview:", error);
+    toast.error("フィードバックの取得に失敗しました", {
+      description: "もう一度お試しください",
+    });
+
+    navigateTo("/my-projects");
+    return null;
+  }
+});
 /******************************
  * HELPER FUNCTIONS
  ******************************/
@@ -172,7 +137,7 @@ async function getLinkPreview(url: string) {
   }
 }
 
-async function getRatingPerCriteria() {
+function getRatingPerCriteria() {
   const feedbacks = projectWithFeedback.value.feedbacks || [];
   const ratingAvgByCriteriaId: Record<string, number> = {};
   const ratingCountByCriteriaId: Record<string, number> = {};
@@ -569,7 +534,7 @@ async function deleteProject() {
           <PageTitle title="フィードバック" size="medium" />
 
           <div
-            v-if="projectWithFeedback.feedbacks.length > 0"
+            v-if="feedbackContents.length > 0"
             class="flex flex-col gap-4 w-full"
           >
             <FeedbackCard
@@ -581,8 +546,8 @@ async function deleteProject() {
             />
           </div>
 
-          <div v-if="isLoading" class="flex flex-col gap-8">
-            <FeedbackCardSkeleton />
+          <div v-if="isLoading" class="flex flex-col gap-4">
+            <FeedbackCardSkeleton v-for="index in 3" :key="index" />
           </div>
 
           <EmptyProjectCard

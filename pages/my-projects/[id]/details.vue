@@ -16,7 +16,15 @@ definePageMeta({
 
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
-const preview = ref();
+const preview = computed(() => {
+  return (
+    linkPreview.value || {
+      title: "No Title",
+      description: "No Description",
+      images: [],
+    }
+  );
+});
 const config = useRuntimeConfig();
 const baseUrl = config.public.baseUrl;
 const source = ref<string>(`${baseUrl}/projects/${id}`);
@@ -38,23 +46,60 @@ const ratingPerCriteria = ref<
     rating: number;
   }[]
 >([]);
-const feedbackContents = ref<any[]>([]);
-const dashboardContents = [
-  {
-    title: "受け取ったフィードバック",
-    description: "",
-    icon: "mdi:comment-check-outline",
-    value: "---",
-  },
-  {
-    title: "平均評価",
-    description: "",
-    icon: "mdi:star-check",
-    value: "---",
-  },
-];
+
+const feedbackContents = computed(() => {
+  if (!projectWithFeedback.value?.feedbacks) return [];
+
+  return projectWithFeedback.value.feedbacks.map((feedback) => {
+    return {
+      id: feedback.id,
+      title: feedback.overall_comment,
+      description: feedback.overall_comment,
+      created_at: feedback.created_at.toString(),
+      feedback_ratings: feedback.ratings.map((fb: any, index: number) => ({
+        title: fb.criteria.name,
+        rating: fb.rating,
+        created_at: feedback.created_at.toString(),
+        user_id: fb.user_id || "",
+      })),
+      overall_comment: feedback.overall_comment,
+      project_type: projectWithFeedback.value.project?.project_type,
+      user: {
+        id: feedback.user?.id || "",
+        display_name: feedback.user?.display_name || "Unknown User",
+        avatar_url: feedback.user?.avatar_url || "",
+      },
+    };
+  });
+});
+const dashboardContents = computed(() => {
+  return [
+    {
+      title: "フィードバック数",
+      value: String(projectWithFeedback.value.feedbacks.length),
+      description: "フィードバックの数",
+      icon: "mdi:comment-text-outline",
+    },
+    {
+      title: "平均評価",
+      value:
+        ratingPerCriteria.value.length > 0
+          ? (
+              ratingPerCriteria.value.reduce(
+                (acc, curr) => acc + curr.rating,
+                0
+              ) / ratingPerCriteria.value.length
+            ).toFixed(1)
+          : "0.0",
+      description: "評価の平均値",
+      icon: "mdi:star-outline",
+    },
+  ];
+});
 const isLoading = ref<boolean>(false);
 const isDeleting = ref<boolean>(false);
+
+const { getRatingPerCriteria } = useRatingCalculation();
 
 /******************************
  * Lifecycle Hooks
@@ -82,24 +127,54 @@ const { data: projectsData } = await useAsyncData(
   }
 );
 
+const { data: linkPreview } = await useLazyAsyncData(
+  "linkPreviewForMyProject",
+  async () => {
+    try {
+      if (!projectsData.value) return;
+
+      const encodedUrl = encodeURIComponent(
+        projectsData.value.project.resource_url
+      );
+      const { data, error } = await useFetch<{
+        title: string;
+        description: string;
+        images: string[];
+      }>(`/api/link-preview?url=${encodedUrl}`);
+
+      if (error.value) {
+        console.error("Error fetching link preview:", error.value);
+        return {
+          title: "No Title",
+          description: "No Description",
+          images: [],
+        };
+      }
+
+      return {
+        title: data.value?.title || "No Title",
+        description: data.value?.description || "No Description",
+        images: data.value?.images || [],
+      };
+    } catch (error) {
+      console.error("Error fetching link preview:", error);
+      throw error;
+    }
+  },
+  {
+    server: true,
+    watch: [projectsData],
+  }
+);
+
 onMounted(async () => {
   try {
     if (!projectWithFeedback?.value?.project?.resource_url) return;
 
-    preview.value = await getLinkPreview(
-      projectWithFeedback.value.project.resource_url
-    );
+    // 1. set rating per criteria
+    ratingPerCriteria.value = getRatingPerCriteria(projectWithFeedback.value);
 
-    // 2. set rating per criteria
-    ratingPerCriteria.value = getRatingPerCriteria();
-
-    // 3.initialize feedback analytics contents
-    initDashboardContents();
-
-    // 4.initialize feedback contents
-    initFeedbackContents();
-
-    // 5. set loading to false
+    // 2. set loading to false
     isLoading.value = false;
   } catch (error) {
     console.error("Error fetching link preview:", error);
@@ -114,103 +189,6 @@ onMounted(async () => {
 /******************************
  * HELPER FUNCTIONS
  ******************************/
-async function getLinkPreview(url: string) {
-  try {
-    const encodedUrl = encodeURIComponent(url);
-    const { data, error } = await useFetch(
-      `/api/link-preview?url=${encodedUrl}`
-    );
-
-    if (error.value) {
-      console.error("Error fetching link preview:", error.value);
-      return {
-        title: "No Title",
-        description: "No Description",
-        images: [],
-      };
-    }
-
-    return data.value;
-  } catch (error) {
-    console.error("Error fetching link preview:", error);
-    throw error;
-  }
-}
-
-function getRatingPerCriteria() {
-  const feedbacks = projectWithFeedback.value.feedbacks || [];
-  const ratingAvgByCriteriaId: Record<string, number> = {};
-  const ratingCountByCriteriaId: Record<string, number> = {};
-
-  // 1. insert feedbacks into each criteria variable
-  feedbacks.forEach((feedback) => {
-    feedback.ratings.forEach((rating) => {
-      if (!ratingAvgByCriteriaId[rating.criteria_id]) {
-        ratingAvgByCriteriaId[rating.criteria_id] = 0;
-        ratingCountByCriteriaId[rating.criteria_id] = 0;
-      }
-      ratingAvgByCriteriaId[rating.criteria_id] += rating.rating;
-      ratingCountByCriteriaId[rating.criteria_id]++;
-    });
-  });
-
-  // 2. calculate average rating for each criteria
-  Object.keys(ratingAvgByCriteriaId).forEach((criteriaId) => {
-    if (ratingCountByCriteriaId[criteriaId] > 0) {
-      ratingAvgByCriteriaId[criteriaId] =
-        ratingAvgByCriteriaId[criteriaId] / ratingCountByCriteriaId[criteriaId];
-    }
-  });
-
-  // 3. set the average rating to the ratingPerCriteria
-  return projectWithFeedback.value.evaluation_criteria.map((criteria) => {
-    return {
-      title: criteria.name,
-      criteria_id: criteria.id,
-      rating: ratingAvgByCriteriaId[criteria.id] || 0,
-    };
-  });
-}
-
-function initDashboardContents() {
-  dashboardContents[0].value = String(
-    projectWithFeedback.value.feedbacks.length
-  );
-  dashboardContents[1].value =
-    ratingPerCriteria.value.length > 0
-      ? (
-          ratingPerCriteria.value.reduce((acc, curr) => acc + curr.rating, 0) /
-          ratingPerCriteria.value.length
-        ).toFixed(1)
-      : "0.0";
-}
-
-function initFeedbackContents() {
-  feedbackContents.value = projectWithFeedback.value.feedbacks.map(
-    (feedback) => {
-      return {
-        id: feedback.id,
-        title: feedback.overall_comment,
-        description: feedback.overall_comment,
-        created_at: feedback.created_at.toString(),
-        feedback_ratings: feedback.ratings.map((fb: any, index: number) => ({
-          title: fb.criteria.name,
-          rating: fb.rating,
-          created_at: feedback.created_at.toString(),
-          user_id: fb.user_id || "",
-        })),
-        overall_comment: feedback.overall_comment,
-        project_type: projectWithFeedback.value.project?.project_type,
-        user: {
-          id: feedback.user?.id || "",
-          display_name: feedback.user?.display_name || "Unknown User",
-          avatar_url: feedback.user?.avatar_url || "",
-        },
-      };
-    }
-  );
-}
-
 async function deleteProject() {
   try {
     isDeleting.value = true;
@@ -533,28 +511,30 @@ async function deleteProject() {
         >
           <PageTitle title="フィードバック" size="medium" />
 
-          <div
-            v-if="feedbackContents.length > 0"
-            class="flex flex-col gap-4 w-full"
-          >
-            <FeedbackCard
-              v-for="(feedback, index) in feedbackContents.slice(0, 3)"
-              :key="index"
-              :feedback="feedback"
-              :isClamp="true"
-              :isProjectNameDisplay="false"
+          <ClientOnly>
+            <div
+              v-if="feedbackContents.length > 0"
+              class="flex flex-col gap-4 w-full"
+            >
+              <FeedbackCard
+                v-for="(feedback, index) in feedbackContents.slice(0, 3)"
+                :key="index"
+                :feedback="feedback"
+                :isClamp="true"
+                :isProjectNameDisplay="false"
+              />
+            </div>
+
+            <EmptyProjectCard
+              v-if="projectWithFeedback.feedbacks.length === 0"
+              class="h-[200px] md:h-[200px] flex items-center justify-center"
+              text="最近のフィードバックはありません"
             />
-          </div>
 
-          <div v-if="isLoading" class="flex flex-col gap-4">
-            <FeedbackCardSkeleton v-for="index in 3" :key="index" />
-          </div>
-
-          <EmptyProjectCard
-            v-if="projectWithFeedback.feedbacks.length === 0"
-            class="h-[200px] md:h-[200px] flex items-center justify-center"
-            text="最近のフィードバックはありません"
-          />
+            <template #fallback>
+              <FeedbackCardSkeleton v-for="index in 3" :key="index" />
+            </template>
+          </ClientOnly>
 
           <Button
             as-child

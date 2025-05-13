@@ -3,7 +3,6 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import { toast } from "vue-sonner";
-import { useImageUpload } from "@/composables/useImageUpload";
 import SettingLayout from "@/components/layout/SettingLayout.vue";
 
 definePageMeta({

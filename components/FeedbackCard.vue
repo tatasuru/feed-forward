@@ -3,8 +3,8 @@ import { format } from "date-fns";
 const props = defineProps<{
   feedback: {
     id: string;
-    title: string;
-    description: string;
+    title: string | null;
+    description: string | null;
     created_at: string;
     feedback_ratings: Array<{
       title: string;

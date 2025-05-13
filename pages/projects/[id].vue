@@ -20,7 +20,15 @@ definePageMeta({
 const { id } = useRoute().params;
 const supabase = useSupabaseClient();
 const supabaseUser = useSupabaseUser();
-const preview = ref();
+const preview = computed(() => {
+  return (
+    linkPreview.value || {
+      title: "No Title",
+      description: "No Description",
+      images: [],
+    }
+  );
+});
 const isLoading = ref<boolean>(true);
 const isSubmitting = ref<boolean>(false);
 
@@ -44,6 +52,7 @@ const isAlreadyRated = ref<boolean>(false);
 const currentFeedbackId = ref<string | null>(null);
 const ratingPerCriteria = ref<
   {
+    title: string;
     criteria_id: string;
     rating: number;
   }[]
@@ -51,6 +60,8 @@ const ratingPerCriteria = ref<
 const isOwner = computed(() => {
   return projectWithFeedback.value?.owner.id === supabaseUser.value?.id;
 });
+
+const { getRatingPerCriteria } = useRatingCalculation();
 
 /******************************
  * form setup
@@ -132,42 +143,78 @@ const { data: projectDetails } = await useAsyncData(
   }
 );
 
-const { data: relatedData } = await useAsyncData(
-  "projectRelatedData",
+const { data: linkPreview } = await useLazyAsyncData(
+  "linkPreviewForProject",
+  async () => {
+    try {
+      if (!projectDetails.value) return;
+
+      const encodedUrl = encodeURIComponent(
+        projectDetails.value.project.resource_url
+      );
+      const { data, error } = await useFetch<{
+        title: string;
+        description: string;
+        images: string[];
+      }>(`/api/link-preview?url=${encodedUrl}`);
+
+      if (error.value) {
+        console.error("Error fetching link preview:", error.value);
+        return {
+          title: "No Title",
+          description: "No Description",
+          images: [],
+        };
+      }
+
+      return {
+        title: data.value?.title || "No Title",
+        description: data.value?.description || "No Description",
+        images: data.value?.images || [],
+      };
+    } catch (error) {
+      console.error("Error fetching link preview:", error);
+      throw error;
+    }
+  },
+  {
+    server: true,
+    watch: [projectDetails],
+  }
+);
+
+const { data: userFeedbackData } = await useAsyncData(
+  "userFeedbackData",
   async () => {
     if (!projectDetails.value)
       return {
-        preview: null,
-        userFeedback: null,
-        ratingPerCriteria: [],
+        exists: false,
+        feedback: null,
+        initialValues: {
+          overallComment: "",
+          isAnonymous: false,
+          ratings: {},
+        },
       };
 
     try {
-      // 1.get preview data
-      const preview = await getLinkPreview(
-        projectWithFeedback.value.project.resource_url
-      );
-
-      // 2.get user feedback
+      // 1.get user feedback
       const userFeedBack = await checkExistingFeedback();
 
-      // 3.get rating per criteria
-      const ratingPerCriteria = await getRatingPerCriteria();
-
-      // 4. set loading to false
+      // 2. set loading to false
       isLoading.value = false;
 
-      return {
-        preview,
-        userFeedBack,
-        ratingPerCriteria,
-      };
+      return userFeedBack;
     } catch (error) {
       console.error("Error fetching related data:", error);
       return {
-        preview: null,
-        userFeedback: null,
-        ratingPerCriteria: [],
+        exists: false,
+        feedback: null,
+        initialValues: {
+          overallComment: "",
+          isAnonymous: false,
+          ratings: {},
+        },
       };
     }
   },
@@ -177,33 +224,23 @@ const { data: relatedData } = await useAsyncData(
 );
 
 watch(
-  relatedData,
+  userFeedbackData,
   (newData) => {
     if (!newData) return;
 
-    // 1. set preview data
-    preview.value = newData.preview;
+    // 1. set rating per criteria
+    ratingPerCriteria.value = getRatingPerCriteria(projectWithFeedback.value);
 
-    // 2. check if user feedback exists
-    if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
-      isAlreadyRated.value = true;
-    } else {
-      isAlreadyRated.value = false;
-    }
-
-    // 3. set rating per criteria
-    ratingPerCriteria.value = newData.ratingPerCriteria || [];
-
-    // 4. set initial values for ratings
+    // 2. set initial values for ratings
     const initialRatings: Record<number, number> = {};
     projectWithFeedback.value?.evaluation_criteria.forEach((_, index) => {
       initialRatings[index] = -1;
       hoverStarIndexObj.value[index] = -1;
     });
 
-    if (newData.userFeedBack?.exists && newData.userFeedBack.feedback.ratings) {
+    if (newData.exists && newData.feedback.ratings) {
       const ratingsByCriteriaId: Record<string, any> = {};
-      newData.userFeedBack.feedback.ratings.forEach((rating: any) => {
+      newData.feedback.ratings.forEach((rating: any) => {
         ratingsByCriteriaId[rating.criteria_id] = rating;
       });
 
@@ -225,12 +262,9 @@ watch(
     // Set initial values for ratings
     form.setFieldValue(
       "overallComment",
-      newData.userFeedBack?.feedback?.overall_comment || ""
+      newData.feedback?.overall_comment || ""
     );
-    form.setFieldValue(
-      "isAnonymous",
-      newData.userFeedBack?.feedback?.is_anonymous || false
-    );
+    form.setFieldValue("isAnonymous", newData.feedback?.is_anonymous || false);
     form.setFieldValue("ratings", initialRatings);
   },
   { immediate: true }
@@ -239,30 +273,6 @@ watch(
 /******************************
  * HELPER FUNCTIONS
  ******************************/
-
-async function getLinkPreview(url: string) {
-  try {
-    const encodedUrl = encodeURIComponent(url);
-    const { data, error } = await useFetch(
-      `/api/link-preview?url=${encodedUrl}`
-    );
-
-    if (error.value) {
-      console.error("Error fetching link preview:", error.value);
-      return {
-        title: "No Title",
-        description: "No Description",
-        images: [],
-      };
-    }
-
-    return data.value;
-  } catch (error) {
-    console.error("Error fetching link preview:", error);
-    throw error;
-  }
-}
-
 async function submitFeedback(values: {
   overallComment: string;
   isAnonymous: boolean;
@@ -404,40 +414,6 @@ async function getUserFeedback() {
     console.error("フィードバック取得中にエラーが発生しました:", error);
     throw error;
   }
-}
-
-function getRatingPerCriteria() {
-  const feedbacks = projectWithFeedback.value.feedbacks || [];
-  const ratingAvgByCriteriaId: Record<string, number> = {};
-  const ratingCountByCriteriaId: Record<string, number> = {};
-
-  // 1. insert feedbacks into each criteria variable
-  feedbacks.forEach((feedback) => {
-    feedback.ratings.forEach((rating) => {
-      if (!ratingAvgByCriteriaId[rating.criteria_id]) {
-        ratingAvgByCriteriaId[rating.criteria_id] = 0;
-        ratingCountByCriteriaId[rating.criteria_id] = 0;
-      }
-      ratingAvgByCriteriaId[rating.criteria_id] += rating.rating;
-      ratingCountByCriteriaId[rating.criteria_id]++;
-    });
-  });
-
-  // 2. calculate average rating for each criteria
-  Object.keys(ratingAvgByCriteriaId).forEach((criteriaId) => {
-    if (ratingCountByCriteriaId[criteriaId] > 0) {
-      ratingAvgByCriteriaId[criteriaId] =
-        ratingAvgByCriteriaId[criteriaId] / ratingCountByCriteriaId[criteriaId];
-    }
-  });
-
-  // 3. set the average rating to the ratingPerCriteria
-  return projectWithFeedback.value.evaluation_criteria.map((criteria) => {
-    return {
-      criteria_id: criteria.id,
-      rating: ratingAvgByCriteriaId[criteria.id] || 0,
-    };
-  });
 }
 </script>
 

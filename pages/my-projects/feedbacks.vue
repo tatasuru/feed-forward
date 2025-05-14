@@ -64,7 +64,7 @@ const { data: selectItem } = await useAsyncData(
 );
 
 const { data: projectsData } = await useAsyncData(
-  `myProjectDetails-${project_id}`,
+  "myProjectDetails",
   async () => {
     try {
       isLoading.value = true;

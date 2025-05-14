@@ -52,7 +52,7 @@ const formSchema = toTypedSchema(
       .string({
         invalid_type_error: "自己紹介は文字列である必要があります",
       })
-      .max(200, "自己紹介は200文字以内で入力してください")
+      .max(50, "自己紹介は50文字以内で入力してください")
       .or(z.literal(""))
       .optional(),
     website: z

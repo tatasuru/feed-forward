@@ -944,8 +944,15 @@ function removeCustomCriteria(index: number) {
           </Button>
 
           <div
-            class="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto"
+            class="flex md:items-center flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto"
           >
+            <span
+              v-if="publishStatus === false"
+              class="text-sm text-destructive-foreground text-center md:text-left"
+            >
+              下書きに戻すと貰ったフィードバックが削除されます！
+            </span>
+
             <div
               class="flex items-center space-x-2 justify-end md:justify-start"
             >

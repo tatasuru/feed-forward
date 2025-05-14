@@ -174,7 +174,11 @@ const { data: linkPreview, pending } = await useLazyAsyncData(
       };
     } catch (error) {
       console.error("Error fetching link preview:", error);
-      throw error;
+      return {
+        title: "No Title",
+        description: "No Description",
+        images: [],
+      };
     }
   },
   {

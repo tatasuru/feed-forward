@@ -105,7 +105,7 @@ const { getRatingPerCriteria } = useRatingCalculation();
  * Lifecycle Hooks
  ******************************/
 const { data: projectsData } = await useAsyncData(
-  "myProjectDetails",
+  `myProjectDetails-${id}`,
   async () => {
     try {
       isLoading.value = true;
@@ -128,7 +128,7 @@ const { data: projectsData } = await useAsyncData(
 );
 
 const { data: linkPreview, pending } = await useLazyAsyncData(
-  "linkPreviewForMyProject",
+  `linkPreviewForMyProject-${id}`,
   async () => {
     try {
       if (!projectsData.value) return;
@@ -158,7 +158,11 @@ const { data: linkPreview, pending } = await useLazyAsyncData(
       };
     } catch (error) {
       console.error("Error fetching link preview:", error);
-      throw error;
+      return {
+        title: "No Title",
+        description: "No Description",
+        images: [],
+      };
     }
   },
   {

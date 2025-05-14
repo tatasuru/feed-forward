@@ -613,9 +613,6 @@ function removeCustomCriteria(index: number) {
               </FormItem>
             </FormField>
 
-            {{ form.values.evaluationType }}
-            {{ form.values.criteriaTemplate }}
-
             <!-- for selected exist template -->
             <div
               v-if="

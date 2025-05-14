@@ -34,7 +34,7 @@ const badgeColors = {
 <template>
   <div
     v-if="props.feedback.feedback_ratings"
-    class="grid grid-cols-[40px_1fr] gap-4 cursor-pointer grid-rows-[1fr_auto_auto] h-full border rounded-lg p-4"
+    class="grid grid-cols-[40px_1fr] gap-4 cursor-pointer grid-rows-[1fr_auto_auto] h-full border rounded-lg p-4 shadow-sm"
   >
     <!-- avatar - spans all 3 rows -->
     <Avatar class="!size-10 self-start row-span-3">

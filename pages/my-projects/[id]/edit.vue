@@ -231,14 +231,9 @@ function selectCriteriaTemplate() {
 
   if (selectedTemplate) {
     if (selectedTemplate.evaluation_type === "customEvaluation") {
-      criteriaTemplate.value = [
-        {
-          name: "",
-          description: "",
-          evaluation_type: "rating",
-        },
-      ];
+      criteriaTemplate.value = [];
       form.setFieldValue("criteriaTemplate", criteriaTemplate.value);
+      addCustomCriteria();
     } else {
       criteriaTemplate.value = selectedTemplate.criteria;
       form.setFieldValue("criteriaTemplate", criteriaTemplate.value);
@@ -617,6 +612,9 @@ function removeCustomCriteria(index: number) {
                 <FormMessage />
               </FormItem>
             </FormField>
+
+            {{ form.values.evaluationType }}
+            {{ form.values.criteriaTemplate }}
 
             <!-- for selected exist template -->
             <div

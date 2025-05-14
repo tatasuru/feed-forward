@@ -651,7 +651,7 @@ function removeCustomCriteria(index: number) {
                               criteriaTemplate.length > 0,
                           }"
                           :default-value="criteria.name"
-                          :disabled="project?.status !== 'draft'"
+                          disabled
                         />
                       </div>
 
@@ -665,7 +665,7 @@ function removeCustomCriteria(index: number) {
                               criteriaTemplate.length > 0,
                           }"
                           :default-value="criteria.description"
-                          :disabled="project?.status !== 'draft'"
+                          disabled
                         />
                       </div>
                     </CardContent>

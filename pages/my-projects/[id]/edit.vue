@@ -563,11 +563,15 @@ function removeCustomCriteria(index: number) {
         </Card>
 
         <!-- evaluation items -->
-        <Card>
+        <Card class="relative">
           <CardHeader>
             <PageTitle
               title="評価項目設定"
-              description="フィードバックで評価してほしい項目を設定してください"
+              :description="
+                project?.status !== 'draft'
+                  ? '公開中のプロジェクトは評価項目を変更できません'
+                  : 'フィードバックを受け取るための評価項目を設定します'
+              "
               size="small"
             />
           </CardHeader>
@@ -590,7 +594,10 @@ function removeCustomCriteria(index: number) {
                   }"
                 >
                   <FormControl>
-                    <SelectTrigger class="w-full cursor-pointer">
+                    <SelectTrigger
+                      class="w-full cursor-pointer"
+                      :disabled="project?.status !== 'draft'"
+                    >
                       <SelectValue placeholder="評価項目テンプレートを選択" />
                     </SelectTrigger>
                   </FormControl>
@@ -644,7 +651,7 @@ function removeCustomCriteria(index: number) {
                               criteriaTemplate.length > 0,
                           }"
                           :default-value="criteria.name"
-                          disabled
+                          :disabled="project?.status !== 'draft'"
                         />
                       </div>
 
@@ -658,7 +665,7 @@ function removeCustomCriteria(index: number) {
                               criteriaTemplate.length > 0,
                           }"
                           :default-value="criteria.description"
-                          disabled
+                          :disabled="project?.status !== 'draft'"
                         />
                       </div>
                     </CardContent>
@@ -716,6 +723,7 @@ function removeCustomCriteria(index: number) {
                       }"
                       variant="ghost"
                       class="absolute top-2 right-2 w-fit h-fit cursor-pointer p-0"
+                      :disabled="project?.status !== 'draft'"
                     >
                       <Icon name="mdi:close" class="!size-4" />
                     </Button>
@@ -745,6 +753,7 @@ function removeCustomCriteria(index: number) {
                               }"
                               :default-value="criteria.name"
                               v-bind="componentField"
+                              :disabled="project?.status !== 'draft'"
                             />
                           </FormControl>
                           <FormMessage />
@@ -775,6 +784,7 @@ function removeCustomCriteria(index: number) {
                               }"
                               :default-value="criteria.description"
                               v-bind="componentField"
+                              :disabled="project?.status !== 'draft'"
                             />
                           </FormControl>
                           <FormMessage />
@@ -788,7 +798,11 @@ function removeCustomCriteria(index: number) {
               <Button
                 variant="outline"
                 class="w-full text-sm text-primary cursor-pointer"
-                :disabled="isSubmitting || criteriaTemplate.length >= 3"
+                :disabled="
+                  isSubmitting ||
+                  criteriaTemplate.length >= 3 ||
+                  project?.status !== 'draft'
+                "
                 @click="(e: Event) => {
                   e.preventDefault();
                   addCustomCriteria()

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils";
 import { useForm } from "vee-validate";
 import { formSchema } from "@/utils/form-schema/update-project";
 import type {
@@ -27,10 +26,6 @@ definePageMeta({
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
-const route = useRoute();
-const project = ref<ProjectData>();
-const publishStatus = ref<boolean>(false);
-const isSubmitting = ref<boolean>(false);
 
 const projectTypes = [
   {
@@ -69,10 +64,9 @@ const visibilityTypes = [
   },
 ];
 const evaluationTypes = computed<CriteriaTemplate[]>(() => {
-  return criteriaTemplates.value as CriteriaTemplate[];
+  return criteriaTemplates.value;
 });
 const criteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
-const customCriteriaTemplate = ref<CriteriaTemplate["criteria"]>([]);
 const dateValue = ref<string>("");
 const selectedDateValue = ref<DateValue>();
 const bgColorPalette = ["bg-purple/10", "bg-blue/10", "bg-pink/10"];
@@ -81,28 +75,28 @@ const borderColorPalette = [
   "border-blue/50",
   "border-pink/50",
 ];
+const publishStatus = ref<boolean>(false);
 const formRef = ref<HTMLElement | null>(null);
+const isSubmitting = ref<boolean>(false);
+
+const route = useRoute();
+const project = ref<ProjectData>();
 
 /********************************
  * Lifecycle hooks
  ********************************/
-const { data: criteriaTemplates } = useAsyncData(
-  "criteriaTemplatesForEdit",
+const { data: criteriaTemplates } = await useAsyncData(
+  "criteriaTemplatesForCreate",
   async () => {
-    try {
-      const { data, error } = await supabase.rpc("get_criteria_templates", {
-        p_evaluation_type: "",
-      });
+    const { data, error } = await supabase.rpc("get_criteria_templates", {
+      p_evaluation_type: "",
+    });
 
-      if (error) {
-        throw error;
-      }
-
-      return data;
-    } catch (error) {
-      console.error("Error fetching criteria templates:", error);
-      return [];
+    if (error) {
+      throw error;
     }
+
+    return data;
   }
 );
 
@@ -181,13 +175,17 @@ async function handleSubmit(userId: string) {
     evaluation_type: formValues.evaluationType
       ? formValues.evaluationType
       : null,
-    evaluation_criteria: criteriaTemplate.value
-      ? criteriaTemplate.value.map((criteria) => ({
+    evaluation_criteria: form.values.criteriaTemplate
+      ? form.values.criteriaTemplate.map((criteria) => ({
           name: criteria.name,
           description: criteria.description,
           evaluation_type: "rating",
         }))
-      : [],
+      : criteriaTemplate.value.map((criteria) => ({
+          name: criteria.name,
+          description: criteria.description,
+          evaluation_type: "rating",
+        })),
     visibility_type: formValues.visibilityType
       ? formValues.visibilityType
       : null,
@@ -204,11 +202,13 @@ async function handleSubmit(userId: string) {
     await updateProject(route.params.id as string, projectData);
 
     toast.success("プロジェクトが更新されました", {
-      description: "プロジェクト詳細ページに移動します",
+      description: "プロジェクト一覧ページへ移動します",
     });
 
     setTimeout(() => {
-      navigateTo(`/my-projects/${route.params.id}/details`);
+      navigateTo({
+        path: `/my-projects/${route.params.id}/details`,
+      });
 
       form.resetForm();
       isSubmitting.value = false;
@@ -225,19 +225,27 @@ async function handleSubmit(userId: string) {
  * HELPER FUNCTIONS
  ********************************/
 function selectCriteriaTemplate() {
-  if (form.values.evaluationType === "customEvaluation") {
-    criteriaTemplate.value = customCriteriaTemplate.value;
-    return;
-  }
-
   const selectedTemplate = evaluationTypes.value.find(
     (template) => template.evaluation_type === form.values.evaluationType
   );
 
   if (selectedTemplate) {
-    criteriaTemplate.value = selectedTemplate.criteria;
+    if (selectedTemplate.evaluation_type === "customEvaluation") {
+      criteriaTemplate.value = [
+        {
+          name: "",
+          description: "",
+          evaluation_type: "rating",
+        },
+      ];
+      form.setFieldValue("criteriaTemplate", criteriaTemplate.value);
+    } else {
+      criteriaTemplate.value = selectedTemplate.criteria;
+      form.setFieldValue("criteriaTemplate", criteriaTemplate.value);
+    }
   } else {
     criteriaTemplate.value = [];
+    form.setFieldValue("criteriaTemplate", criteriaTemplate.value);
   }
 }
 
@@ -268,12 +276,15 @@ async function getProjectData() {
   }
 
   project.value = data.project;
-  criteriaTemplate.value = data.criteria_templates[0]
-    ? data.criteria_templates[0].criteria
-    : null;
-
-  // for custom evaluation
-  customCriteriaTemplate.value = data.evaluation_criteria;
+  criteriaTemplate.value = data.evaluation_criteria
+    ? data.evaluation_criteria.map(
+        (criteria: { name: string; description: string }) => ({
+          name: criteria.name,
+          description: criteria.description,
+          evaluation_type: "rating",
+        })
+      )
+    : data.criteria_template;
 
   // init form values
   if (project.value) {
@@ -299,6 +310,7 @@ async function getProjectData() {
       evaluationType: project.value.evaluation_type
         ? project.value.evaluation_type
         : undefined,
+      criteriaTemplate: criteriaTemplate.value,
       visibilityType: project.value.visibility_type
         ? project.value.visibility_type
         : undefined,
@@ -330,13 +342,37 @@ async function updateProject(projectId: string, projectData: ProjectData) {
     throw error;
   }
 }
+
+/********************************
+ * Custom criteria functions
+ ********************************/
+function addCustomCriteria() {
+  criteriaTemplate.value.push({
+    name: "",
+    description: "",
+    evaluation_type: "rating",
+  });
+}
+
+function removeCustomCriteria(index: number) {
+  if (index < 0 || index >= criteriaTemplate.value.length) {
+    return;
+  }
+
+  const newArray = criteriaTemplate.value.filter((_, i) => i !== index);
+  criteriaTemplate.value = newArray;
+
+  nextTick(() => {
+    form.setFieldValue("criteriaTemplate", newArray);
+  });
+}
 </script>
 
 <template>
-  <div id="create-project" class="grid w-full gap-8" ref="formRef">
+  <div id="update-project" class="grid w-full gap-8" ref="formRef">
     <PageTitle
       title="プロジェクト編集"
-      description="フィードバックプロジェクトを編集"
+      description="プロジェクトの詳細を編集できます"
       size="large"
     />
 
@@ -532,19 +568,11 @@ async function updateProject(projectId: string, projectData: ProjectData) {
         </Card>
 
         <!-- evaluation items -->
-        <Card class="relative">
-          <div
-            v-if="project?.status !== 'draft'"
-            class="mask absolute inset-0 bg-muted-foreground/10 dark:bg-muted/20 rounded-xl"
-          />
+        <Card>
           <CardHeader>
             <PageTitle
               title="評価項目設定"
-              :description="
-                project?.status === 'draft'
-                  ? 'フィードバックで評価してほしい項目を設定してください'
-                  : '公開中のプロジェクトは評価項目を変更できません'
-              "
+              description="フィードバックで評価してほしい項目を設定してください"
               size="small"
             />
           </CardHeader>
@@ -560,29 +588,25 @@ async function updateProject(projectId: string, projectData: ProjectData) {
                     必須
                   </Badge>
                 </FormLabel>
-                <Select v-bind="componentField">
+                <Select
+                  v-bind="componentField"
+                  @update:model-value="(e: Event) => {
+                    selectCriteriaTemplate();
+                  }"
+                >
                   <FormControl>
-                    <SelectTrigger class="w-full cursor-pointer" disabled>
+                    <SelectTrigger class="w-full cursor-pointer">
                       <SelectValue placeholder="評価項目テンプレートを選択" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectGroup>
+                    <SelectGroup class="py-1">
                       <SelectItem
                         v-for="evaluationType in evaluationTypes"
                         :key="evaluationType.name"
                         :value="evaluationType.evaluation_type"
-                        :disabled="
-                          evaluationType.evaluation_type === 'customEvaluation'
-                        "
-                        @vue:updated="selectCriteriaTemplate"
                       >
                         {{ evaluationType.name }}
-                        {{
-                          evaluationType.evaluation_type === "customEvaluation"
-                            ? "(有料版のみ)"
-                            : ""
-                        }}
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -594,7 +618,14 @@ async function updateProject(projectId: string, projectData: ProjectData) {
               </FormItem>
             </FormField>
 
-            <div v-if="form.values.evaluationType" class="flex flex-col gap-4">
+            <!-- for selected exist template -->
+            <div
+              v-if="
+                form.values.evaluationType &&
+                form.values.evaluationType !== 'customEvaluation'
+              "
+              class="flex flex-col gap-4"
+            >
               <div class="flex flex-col gap-2">
                 <Label>評価項目</Label>
                 <div class="flex flex-col gap-3">
@@ -639,6 +670,146 @@ async function updateProject(projectId: string, projectData: ProjectData) {
                   </Card>
                 </div>
               </div>
+            </div>
+
+            <!-- for selected custom template -->
+            <div
+              v-if="form.values.evaluationType === 'customEvaluation'"
+              class="flex flex-col gap-4"
+            >
+              <div class="flex flex-col gap-2">
+                <div class="inline-flex items-center gap-1">
+                  <Label>カスタム評価項目設定</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger
+                        @click="(e: Event) => e.preventDefault()"
+                        class="w-fit h-fit cursor-pointer flex items-center justify-center"
+                      >
+                        <Icon name="mdi:information" class="!size-4" />
+                      </TooltipTrigger>
+                      <TooltipContent
+                        class="w-96"
+                        side="top"
+                        :sideOffset="4"
+                        align="center"
+                      >
+                        カスタム評価項目は、プロジェクトのフィードバックを受け取る際に、特定の項目について評価してもらうためのものです。<br />
+                        例えば、「デザインの美しさ」や「使いやすさ」など、プロジェクトに特有の評価基準を設定できます。<br />
+                        <br />
+                        評価項目は最大3つまで設定可能です。
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                  <Card
+                    v-for="(criteria, index) in criteriaTemplate"
+                    :key="index"
+                    class="rounded-sm relative"
+                    :class="{
+                      [bgColorPalette[index]]: criteriaTemplate.length > 0,
+                      [borderColorPalette[index]]: criteriaTemplate.length > 0,
+                    }"
+                  >
+                    <Button
+                      v-if="criteriaTemplate.length > 1"
+                      @click="(e: Event) => {
+                        e.preventDefault();
+                        removeCustomCriteria(index)
+                      }"
+                      variant="ghost"
+                      class="absolute top-2 right-2 w-fit h-fit cursor-pointer p-0"
+                    >
+                      <Icon name="mdi:close" class="!size-4" />
+                    </Button>
+
+                    <CardContent class="flex flex-col gap-8">
+                      <FormField
+                        v-slot="{ componentField }"
+                        :name="`criteriaTemplate.${index}.name`"
+                      >
+                        <FormItem>
+                          <FormLabel>
+                            項目{{ index + 1 }}
+                            <Badge
+                              variant="gradient"
+                              class="text-xs text-white rounded-sm"
+                            >
+                              必須
+                            </Badge>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              :placeholder="`評価項目${index + 1}の名前`"
+                              v-model="criteria.name"
+                              :class="{
+                                [borderColorPalette[index]]:
+                                  criteriaTemplate.length > 0,
+                              }"
+                              :default-value="criteria.name"
+                              v-bind="componentField"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
+
+                      <FormField
+                        v-slot="{ componentField }"
+                        :name="`criteriaTemplate.${index}.description`"
+                      >
+                        <FormItem>
+                          <FormLabel>
+                            項目{{ index + 1 }}の説明
+                            <Badge
+                              variant="gradient"
+                              class="text-xs text-white rounded-sm"
+                            >
+                              必須
+                            </Badge>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              :placeholder="`評価項目${index + 1}の説明`"
+                              v-model="criteria.description"
+                              :class="{
+                                [borderColorPalette[index]]:
+                                  criteriaTemplate.length > 0,
+                              }"
+                              :default-value="criteria.description"
+                              v-bind="componentField"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                class="w-full text-sm text-primary cursor-pointer"
+                :disabled="isSubmitting || criteriaTemplate.length >= 3"
+                @click="(e: Event) => {
+                  e.preventDefault();
+                  addCustomCriteria()
+                }"
+              >
+                <Icon
+                  v-if="criteriaTemplate.length < 3"
+                  name="mdi:plus"
+                  class="!size-4"
+                />
+                {{
+                  criteriaTemplate.length >= 3
+                    ? "評価項目は3つまでです"
+                    : "評価項目を追加"
+                }}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -769,8 +940,9 @@ async function updateProject(projectId: string, projectData: ProjectData) {
           <Button
             variant="outline"
             type="button"
-            class="text-sm text-destructive cursor-pointer w-full md:w-auto border-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive"
+            class="text-sm text-destructive-foreground cursor-pointer w-full md:w-auto border-destructive hover:bg-destructive/10 hover:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive-foreground"
             @click="$router.back()"
+            :disabled="isSubmitting"
           >
             <Icon name="mdi:close" class="!size-4" />
             キャンセル
@@ -792,6 +964,7 @@ async function updateProject(projectId: string, projectData: ProjectData) {
                 公開する
               </Label>
             </div>
+
             <!-- save as draft -->
             <Button
               v-if="!publishStatus"

@@ -133,6 +133,14 @@ const { data: linkPreview, pending } = await useLazyAsyncData(
     try {
       if (!projectsData.value) return;
 
+      if (!projectsData.value.project.resource_url) {
+        return {
+          title: "No Title",
+          description: "No Description",
+          images: [],
+        };
+      }
+
       const encodedUrl = encodeURIComponent(
         projectsData.value.project.resource_url
       );

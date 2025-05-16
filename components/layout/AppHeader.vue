@@ -309,7 +309,7 @@ onMounted(async () => {
       </DropdownMenu>
 
       <!-- signIn and login buttons  -->
-      <div v-if="!user" class="flex items-center gap-6">
+      <div v-if="!user" class="flex items-center gap-2 md:gap-6">
         <Button
           :variant="'ghost'"
           class="cursor-pointer p-2 h-fit"

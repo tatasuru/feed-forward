@@ -60,8 +60,12 @@ const ratingPerCriteria = ref<
 const isOwner = computed(() => {
   return projectWithFeedback.value?.owner.id === supabaseUser.value?.id;
 });
+const isUserLoggedIn = computed(() => {
+  return supabaseUser.value ? true : false;
+});
 
 const { getRatingPerCriteria } = useRatingCalculation();
+const { getSessionId, setFeedbackId } = useSessionId();
 
 /******************************
  * form setup
@@ -238,7 +242,10 @@ const { data: userFeedbackData } = await useAsyncData(
 watch(
   userFeedbackData,
   (newData) => {
-    if (!newData) return;
+    if (!newData) {
+      form.setFieldValue("isAnonymous", isUserLoggedIn.value ? false : true);
+      return;
+    }
 
     // 1. set rating per criteria
     ratingPerCriteria.value = getRatingPerCriteria(projectWithFeedback.value);
@@ -250,7 +257,7 @@ watch(
       hoverStarIndexObj.value[index] = -1;
     });
 
-    if (newData.exists && newData.feedback.ratings) {
+    if (newData.exists && newData.feedback?.ratings) {
       const ratingsByCriteriaId: Record<string, any> = {};
       newData.feedback.ratings.forEach((rating: any) => {
         ratingsByCriteriaId[rating.criteria_id] = rating;
@@ -283,7 +290,7 @@ watch(
 );
 
 /******************************
- * HELPER FUNCTIONS
+ * FORM ACTIONS
  ******************************/
 async function submitFeedback(values: {
   overallComment: string;
@@ -291,6 +298,7 @@ async function submitFeedback(values: {
   ratings: Record<number, number>;
 }) {
   try {
+    const sessionId = getSessionId();
     const ratingsObject: Record<string, number> = {};
 
     // initialize ratingsObject with the project ID
@@ -301,42 +309,31 @@ async function submitFeedback(values: {
       }
     });
 
-    if (isAlreadyRated.value) {
-      const { data, error } = await supabase.rpc(
-        "update_feedback_with_ratings",
-        {
-          p_feedback_id: currentFeedbackId.value,
-          p_comment: values.overallComment,
-          p_is_anonymous: values.isAnonymous,
-          p_ratings: ratingsObject,
-        }
-      );
-
-      if (error) {
-        console.error("RPC呼び出しエラー:", error);
-        throw error;
+    if (supabaseUser.value?.id) {
+      if (isAlreadyRated.value) {
+        return await submitUpdateFeedbackWithExistUser(values, ratingsObject);
+      } else {
+        // submit feedback
+        return await submitNewFeedbackWithExistUser(
+          values,
+          ratingsObject,
+          sessionId
+        );
       }
-
-      return data.feedback_id;
     } else {
-      // submit feedback
-      const { data, error } = await supabase.rpc(
-        "save_feedback_with_ratings_by_short_id",
-        {
-          p_short_id: id,
-          p_user_id: supabaseUser.value?.id,
-          p_comment: values.overallComment,
-          p_is_anonymous: values.isAnonymous,
-          p_ratings: ratingsObject,
-        }
-      );
-
-      if (error) {
-        console.error("RPC呼び出しエラー:", error);
-        throw error;
+      if (isAlreadyRated.value) {
+        return await submitUpdateFeedbackWithAnonymousUser(
+          values,
+          ratingsObject,
+          sessionId
+        );
+      } else {
+        return await submitNewFeedbackWithAnonymousUser(
+          values,
+          ratingsObject,
+          sessionId
+        );
       }
-
-      return data.feedback_id;
     }
   } catch (error) {
     console.error("フィードバック保存中にエラーが発生しました:", error);
@@ -344,26 +341,194 @@ async function submitFeedback(values: {
   }
 }
 
+async function submitNewFeedbackWithExistUser(
+  values: {
+    overallComment: string;
+    isAnonymous: boolean;
+    ratings: Record<number, number>;
+  } = {
+    overallComment: "",
+    isAnonymous: false,
+    ratings: {},
+  },
+  ratingsObject: Record<string, number> = {},
+  sessionId: string
+) {
+  // submit feedback
+  const { data, error } = await supabase.rpc(
+    "save_feedback_with_ratings_by_short_id",
+    {
+      p_short_id: id,
+      p_user_id: supabaseUser.value?.id || null,
+      p_comment: values.overallComment,
+      p_is_anonymous: values.isAnonymous,
+      p_ratings: ratingsObject,
+      p_session_id: sessionId,
+    }
+  );
+
+  if (error) {
+    console.error("RPC呼び出しエラー:", error);
+    throw error;
+  }
+
+  if (data.success) {
+    setFeedbackId(id as string, data.feedback_id);
+  }
+
+  return data.feedback_id;
+}
+
+async function submitUpdateFeedbackWithExistUser(
+  values: {
+    overallComment: string;
+    isAnonymous: boolean;
+    ratings: Record<number, number>;
+  } = {
+    overallComment: "",
+    isAnonymous: false,
+    ratings: {},
+  },
+  ratingsObject: Record<string, number> = {}
+) {
+  // submit feedback
+  const { data, error } = await supabase.rpc("update_feedback_with_ratings", {
+    p_feedback_id: currentFeedbackId.value,
+    p_comment: values.overallComment,
+    p_is_anonymous: values.isAnonymous,
+    p_ratings: ratingsObject,
+  });
+
+  if (error) {
+    console.error("RPC呼び出しエラー:", error);
+    throw error;
+  }
+
+  return data.feedback_id;
+}
+
+async function submitNewFeedbackWithAnonymousUser(
+  values: {
+    overallComment: string;
+    isAnonymous: boolean;
+    ratings: Record<number, number>;
+  } = {
+    overallComment: "",
+    isAnonymous: false,
+    ratings: {},
+  },
+  ratingsObject: Record<string, number> = {},
+  sessionId: string
+) {
+  // submit feedback
+  const { data, error } = await supabase.rpc(
+    "save_feedback_with_ratings_by_short_id",
+    {
+      p_short_id: id,
+      p_user_id: supabaseUser.value?.id || null,
+      p_comment: values.overallComment,
+      p_is_anonymous: values.isAnonymous,
+      p_ratings: ratingsObject,
+      p_session_id: sessionId,
+    }
+  );
+
+  if (error) {
+    console.error("RPC呼び出しエラー:", error);
+    throw error;
+  }
+
+  if (data.success) {
+    setFeedbackId(id as string, data.feedback_id);
+  }
+
+  return data.feedback_id;
+}
+
+async function submitUpdateFeedbackWithAnonymousUser(
+  values: {
+    overallComment: string;
+    isAnonymous: boolean;
+    ratings: Record<number, number>;
+  } = {
+    overallComment: "",
+    isAnonymous: false,
+    ratings: {},
+  },
+  ratingsObject: Record<string, number> = {},
+  sessionId: string
+) {
+  const { data, error } = await supabase.rpc(
+    "update_feedback_with_ratings_by_session",
+    {
+      p_short_id: id,
+      p_session_id: sessionId,
+      p_comment: values.overallComment,
+      p_is_anonymous: values.isAnonymous,
+      p_ratings: ratingsObject,
+    }
+  );
+
+  if (error) {
+    console.error("RPC呼び出しエラー:", error);
+    throw error;
+  }
+
+  return data.feedback_id;
+}
+
+/******************************
+ * HELPER FUNCTIONS
+ ******************************/
 async function checkExistingFeedback() {
   try {
-    const { data, error } = await supabase.rpc(
-      "check_user_feedback_by_short_id",
-      {
-        p_short_id: id,
-        p_user_id: supabaseUser.value?.id,
+    if (supabaseUser.value?.id) {
+      const { data, error } = await supabase.rpc(
+        "check_user_feedback_by_short_id",
+        {
+          p_short_id: id,
+          p_user_id: supabaseUser.value?.id,
+        }
+      );
+
+      if (error) {
+        console.error("フィードバック確認エラー:", error);
+        throw error;
       }
-    );
 
-    if (error) {
-      console.error("フィードバック確認エラー:", error);
-      throw error;
+      if (data.exists) {
+        currentFeedbackId.value = data.feedback_id;
+        return await getUserFeedback();
+      }
+
+      return {
+        exists: false,
+        feedback: null,
+        initialValues: {
+          overallComment: "",
+          isAnonymous: false,
+          ratings: {},
+        },
+      };
+    } else {
+      const sessionId = getSessionId();
+      console.log("sessionId", sessionId, id);
+      const { data, error } = await supabase.rpc(
+        "check_feedback_by_session_and_short_id",
+        {
+          p_short_id: id,
+          p_session_id: sessionId,
+        }
+      );
+      console.log("data", data);
+
+      if (error) throw error;
+
+      if (data.exists) {
+        currentFeedbackId.value = data.feedback_id;
+        return await getAnonymousFeedback(sessionId);
+      }
     }
-
-    if (data.exists) {
-      currentFeedbackId.value = data.feedback_id;
-      return await getUserFeedback();
-    }
-
     return null;
   } catch (error) {
     console.error("フィードバック確認中にエラーが発生しました:", error);
@@ -387,45 +552,91 @@ async function getUserFeedback() {
     }
 
     if (data) {
-      const feedback = data.feedbacks[0];
-
-      const initialValues: Record<string, any> = {
-        overallComment: feedback.overall_comment || "",
-        isAnonymous: feedback.is_anonymous || false,
-        ratings: {},
-      };
-
-      // set initial values for ratings
-      if (feedback.ratings && feedback.ratings.length > 0) {
-        projectWithFeedback.value.evaluation_criteria.forEach(
-          (criteria, index) => {
-            const matchingRating = feedback.ratings.find(
-              (rating: any) => rating.criteria_id === criteria.id
-            );
-
-            if (matchingRating) {
-              initialValues.ratings[index] = matchingRating.rating;
-            } else {
-              initialValues.ratings[index] = -1;
-            }
-          }
-        );
-      }
-
-      return {
-        exists: true,
-        feedback: feedback,
-        initialValues: initialValues,
-      };
+      return buildFeedbackResponse(data.feedbacks[0]);
     }
 
     return {
       exists: false,
+      feedback: null,
+      initialValues: {
+        overallComment: "",
+        isAnonymous: false,
+        ratings: {},
+      },
     };
   } catch (error) {
     console.error("フィードバック取得中にエラーが発生しました:", error);
     throw error;
   }
+}
+
+async function getAnonymousFeedback(sessionId: string) {
+  try {
+    const { data, error } = await supabase.rpc(
+      "get_feedback_by_session_and_short_id",
+      {
+        p_short_id: id,
+        p_session_id: sessionId,
+      }
+    );
+
+    console.log("getAnonymousFeedback", data, error);
+
+    if (error) throw error;
+
+    if (data.exists) {
+      return buildFeedbackResponse(data.feedback);
+    }
+
+    return {
+      exists: false,
+      feedback: null,
+      initialValues: {
+        overallComment: "",
+        isAnonymous: false,
+        ratings: {},
+      },
+    };
+  } catch (error) {
+    console.error("匿名フィードバック取得中にエラーが発生しました:", error);
+    throw error;
+  }
+}
+
+function buildFeedbackResponse(feedback: {
+  overall_comment: string;
+  is_anonymous: boolean;
+  ratings: Array<{
+    criteria_id: string;
+    rating: number;
+  }>;
+}) {
+  const initialValues: Record<string, any> = {
+    overallComment: feedback.overall_comment || "",
+    isAnonymous: feedback.is_anonymous || false,
+    ratings: {},
+  };
+
+  // set initial values for ratings
+  if (feedback.ratings && feedback.ratings.length > 0) {
+    projectWithFeedback.value.evaluation_criteria.forEach((criteria, index) => {
+      const matchingRating = feedback.ratings.find(
+        (rating: any) => rating.criteria_id === criteria.id
+      );
+
+      if (matchingRating) {
+        initialValues.ratings[index] = matchingRating.rating;
+      } else {
+        initialValues.ratings[index] = -1;
+      }
+    });
+  }
+
+  return {
+    exists: true,
+    feedback: feedback,
+    initialValues: initialValues,
+  };
 }
 </script>
 
@@ -758,6 +969,7 @@ async function getUserFeedback() {
                   :model-value="value"
                   class="cursor-pointer data-[state=checked]:bg-purple"
                   @update:model-value="handleChange"
+                  :disabled="!isUserLoggedIn"
                 />
               </FormControl>
               <FormMessage />

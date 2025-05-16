@@ -27,7 +27,6 @@ const activeProjects = computed<MyProjectWithFeedback[]>(() =>
 );
 const dashboardContents = ref<DashboardContent[]>([]);
 const feedbackContents = ref<any[]>([]);
-const activeTab = ref<"projects" | "feedbacks">("projects");
 const store = useStore();
 
 /**********************

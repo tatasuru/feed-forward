@@ -3,31 +3,20 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
   const user = useSupabaseUser();
   const store = useStore();
 
-  const exceptionPages = [
-    "/login",
-    "/confirm",
-    "/reset-password",
-    "/update-password",
-    "/setup",
-  ];
+  // Check if the user is authenticated
+  if (user.value) {
+    // Handle profile setup for authenticated users
+    try {
+      let userData;
 
-  let userData;
-
-  // for redirecting to login page if user is not logged in
-  if (!user.value && !exceptionPages.includes(to.path)) {
-    return navigateTo("/login");
-  }
-
-  // for redirecting to home if user is logged in and trying to access login page
-  if (user.value && to.path === "/login") {
-    return navigateTo("/");
-  }
-
-  // for redirecting to setup page if user is not set up
-  try {
-    if (user.value) {
+      // Fetch user data if not already in store
       if (store.profile.email === "") {
         const { data, error } = await supabase.rpc("get_current_user");
+        if (error) {
+          console.error("Error fetching user data:", error);
+          return;
+        }
+
         userData = data;
         store.profile = {
           display_name: data.display_name,
@@ -36,21 +25,22 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
           bio: data.bio,
           website: data.website,
         };
-
-        if (error) {
-          console.error("Error fetching user data:", error);
-        }
       } else {
         userData = store.profile;
       }
 
+      // Check if user needs to complete setup (only for non-project routes when authenticated)
       if (!userData?.display_name && to.path !== "/setup") {
+        console.log("Redirecting to setup - missing display_name");
         return navigateTo("/setup");
-      } else if (user.value && userData?.display_name && to.path === "/setup") {
+      }
+
+      // Redirect away from setup if profile is complete
+      if (userData?.display_name && to.path === "/setup") {
         return navigateTo("/");
       }
+    } catch (err) {
+      console.error("Exception in auth middleware:", err);
     }
-  } catch (err) {
-    console.error("Exception in auth middleware:", err);
   }
 });

@@ -11,7 +11,7 @@ const isOpen = ref<boolean>(false);
 const pageMenu = [
   {
     name: "ダッシュボード",
-    link: "/",
+    link: "/dashboard",
     icon: "mdi:home",
   },
   {
@@ -56,7 +56,7 @@ const logout = async () => {
   if (error) {
     console.error("Logout error:", error);
   } else {
-    window.location.href = "/login";
+    window.location.href = "/";
   }
 };
 
@@ -110,7 +110,9 @@ const channels = supabase
   .subscribe();
 
 onMounted(async () => {
-  unreadNotifications.value = await fetchUnreadNotifications();
+  if (user.value) {
+    unreadNotifications.value = await fetchUnreadNotifications();
+  }
 });
 </script>
 
@@ -129,7 +131,9 @@ onMounted(async () => {
       :duration="5000"
       :throttle="0"
     />
-    <NavigationMenu class="md:flex hidden">
+
+    <!-- page menus -->
+    <NavigationMenu v-if="user" class="md:flex hidden">
       <NavigationMenuList>
         <NavigationMenuItem v-for="menu in pageMenu" :key="menu.name">
           <NuxtLink
@@ -147,8 +151,11 @@ onMounted(async () => {
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
+
+    <!-- right menu -->
     <div class="items-center gap-1 md:gap-2 flex">
-      <DropdownMenu>
+      <!-- notification menu -->
+      <DropdownMenu v-if="user">
         <DropdownMenuTrigger as-child>
           <Button
             :variant="'ghost'"
@@ -254,7 +261,8 @@ onMounted(async () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DropdownMenu>
+      <!-- avatar menu -->
+      <DropdownMenu v-if="user">
         <DropdownMenuTrigger as-child>
           <Avatar :size="'sm'" class="cursor-pointer">
             <AvatarImage :src="store.profile.avatar_url" alt="avatar" />
@@ -300,9 +308,23 @@ onMounted(async () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      <!-- signIn and login buttons  -->
+      <div v-if="!user" class="flex items-center gap-2">
+        <Button :variant="'main'" class="py-1 md:py-4 h-fit md:h-9" as-child>
+          <NuxtLink to="/login"> サインイン </NuxtLink>
+        </Button>
+        <Button
+          :variant="'mainOutline'"
+          class="py-1 md:py-4 h-fit md:h-9"
+          as-child
+        >
+          <NuxtLink to="/login"> ログイン </NuxtLink>
+        </Button>
+      </div>
+
       <!-- hamburger menu -->
       <Sheet :open="isOpen" @update:open="isOpen = $event">
-        <SheetTrigger as-child>
+        <SheetTrigger v-if="user" as-child>
           <Button
             :variant="'ghost'"
             class="cursor-pointer rounded-full flex md:hidden"

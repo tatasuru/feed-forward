@@ -64,10 +64,16 @@ export default defineNuxtConfig({
     key: process.env.SUPABASE_KEY,
     redirect: true,
     redirectOptions: {
-      login: "/login",
+      login: "/",
       callback: "/confirm",
       include: undefined,
-      exclude: ["/login", "/reset-password", "/update-password", "/projects/*"],
+      exclude: [
+        "/",
+        "/login",
+        "/reset-password",
+        "/update-password",
+        "/projects/*",
+      ],
       cookieRedirect: false,
     },
     // cookieOptions: {

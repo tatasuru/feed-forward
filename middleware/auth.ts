@@ -3,7 +3,17 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
   const user = useSupabaseUser();
   const store = useStore();
 
-  // Check if the user is authenticated
+  // Check if the user is not authenticated and trying to access the projects page
+  if (to.path === "/projects/" && !user.value) {
+    return await navigateTo("/");
+  }
+
+  // Check if the user is not authenticated and trying to access the dashboard
+  if (to.path === "/login" && user.value) {
+    return await navigateTo("/dashboard");
+  }
+
+  // Check if the user is not authenticated
   if (user.value) {
     // Handle profile setup for authenticated users
     try {
@@ -32,12 +42,18 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
       // Check if user needs to complete setup (only for non-project routes when authenticated)
       if (!userData?.display_name && to.path !== "/setup") {
         console.log("Redirecting to setup - missing display_name");
-        return navigateTo("/setup");
+        return await navigateTo("/setup");
       }
 
       // Redirect away from setup if profile is complete
       if (userData?.display_name && to.path === "/setup") {
-        return navigateTo("/");
+        return await navigateTo("/dashboard");
+      }
+
+      // Redirect to dashboard if user is authenticated and not on the dashboard
+      if (to.path === "/") {
+        console.log("Redirecting to dashboard");
+        return await navigateTo("/dashboard");
       }
     } catch (err) {
       console.error("Exception in auth middleware:", err);

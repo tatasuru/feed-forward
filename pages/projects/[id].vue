@@ -647,6 +647,7 @@ function buildFeedbackResponse(feedback: {
       class="flex flex-col gap-4 items-start justify-between"
     >
       <Button
+        v-if="isUserLoggedIn"
         as-child
         variant="ghost"
         class="!p-0 hover:bg-transparent hover:text-muted-foreground"

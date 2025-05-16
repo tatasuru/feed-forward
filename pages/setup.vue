@@ -160,7 +160,7 @@ async function registrationProfile(values: formValues) {
   if (error) {
     console.error("プロフィール登録エラー:", error);
   } else {
-    window.location.href = "/";
+    window.location.href = "/dashboard";
   }
 }
 

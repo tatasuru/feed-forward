@@ -27,7 +27,7 @@ watch(
 
       if (user.value) {
         const path = redirectInfo.pluck();
-        window.location.href = path || "/";
+        window.location.href = path || "/dashboard";
       }
 
       if (!user.value) {

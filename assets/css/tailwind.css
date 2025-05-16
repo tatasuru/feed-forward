@@ -162,6 +162,10 @@
   @apply bg-gradient-to-r from-blue/90 via-purple/90 to-pink/90;
 }
 
+.gradient-bg-pale {
+  @apply bg-gradient-to-b from-blue/20 via-purple/20 to-background/20;
+}
+
 .gradient-bg-reverse {
   @apply bg-gradient-to-r from-pink/90 via-purple/90 to-blue/90;
 }

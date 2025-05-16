@@ -309,17 +309,42 @@ onMounted(async () => {
       </DropdownMenu>
 
       <!-- signIn and login buttons  -->
-      <div v-if="!user" class="flex items-center gap-2">
-        <Button :variant="'main'" class="py-1 md:py-4 h-fit md:h-9" as-child>
-          <NuxtLink to="/login"> サインイン </NuxtLink>
-        </Button>
+      <div v-if="!user" class="flex items-center gap-6">
         <Button
-          :variant="'mainOutline'"
-          class="py-1 md:py-4 h-fit md:h-9"
-          as-child
+          :variant="'ghost'"
+          class="cursor-pointer p-2 h-fit"
+          @click="
+            colorMode.preference =
+              colorMode.preference === 'dark' ? 'light' : 'dark'
+          "
         >
-          <NuxtLink to="/login"> ログイン </NuxtLink>
+          <Icon
+            v-if="colorMode.preference === 'dark'"
+            name="solar:sun-bold-duotone"
+            class="dark:text-white text-black !size-5 flex md:hidden"
+          />
+          <Icon
+            v-else-if="colorMode.preference === 'light'"
+            name="solar:moon-bold-duotone"
+            class="dark:text-white text-black !size-5 hidden md:flex"
+          />
         </Button>
+        <div class="flex items-center gap-2">
+          <Button
+            :variant="'main'"
+            class="py-1 md:py-4 h-fit md:h-9 rounded-sm"
+            as-child
+          >
+            <NuxtLink to="/login"> 新規登録 </NuxtLink>
+          </Button>
+          <Button
+            :variant="'mainOutline'"
+            class="py-1 md:py-4 h-fit md:h-9 hidden md:flex rounded-sm"
+            as-child
+          >
+            <NuxtLink to="/login"> ログイン </NuxtLink>
+          </Button>
+        </div>
       </div>
 
       <!-- hamburger menu -->

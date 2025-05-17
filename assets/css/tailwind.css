@@ -170,6 +170,10 @@
   @apply bg-gradient-to-r from-pink/90 via-purple/90 to-blue/90;
 }
 
+.gradient-bg-pale-reverse {
+  @apply bg-gradient-to-b from-background/20 via-purple/20 to-blue/20;
+}
+
 @layer utilities {
   .hidden-scrollbar {
     -ms-overflow-style: none; /* IE, Edge 対応 */

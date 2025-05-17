@@ -55,7 +55,7 @@ const settingsMenu = [
               class="w-full text-left rounded-md py-2 px-4 flex items-center gap-2 flex-row dark:text-white text-sm"
               :class="
                 currentPath === menu.link
-                  ? 'bg-purple text-background hover:bg-purple hover:text-background'
+                  ? 'bg-purple dark:bg-purple/40 text-white hover:bg-purple hover:text-white focus:bg-purple focus:text-white'
                   : 'hover:bg-purple/10 hover:text-purple transition-colors'
               "
             >

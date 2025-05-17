@@ -24,6 +24,12 @@ const pricePlans = [
       "フィードバック収集",
     ],
     buttonText: "今すぐ始める",
+    link: {
+      name: "login",
+      query: {
+        tab: "signup",
+      },
+    },
   },
   {
     name: "スタータープラン",
@@ -37,6 +43,12 @@ const pricePlans = [
       "AI分析機能",
     ],
     buttonText: "今すぐ始める",
+    link: {
+      name: "login",
+      query: {
+        tab: "signup",
+      },
+    },
   },
   {
     name: "プロプラン",
@@ -50,6 +62,9 @@ const pricePlans = [
       "AI分析機能",
     ],
     buttonText: "お問い合わせ",
+    link: {
+      name: "contact",
+    },
   },
 ];
 </script>
@@ -94,7 +109,7 @@ const pricePlans = [
         <Button :variant="'mainOutline'" class="md:text-base" as-child>
           <div>
             <Icon name="mdi:email" />
-            <NuxtLink to="/"> 問い合わせる </NuxtLink>
+            <NuxtLink to="/contact"> 問い合わせる </NuxtLink>
           </div>
         </Button>
       </div>
@@ -180,8 +195,16 @@ const pricePlans = [
             <Button
               class="w-full cursor-pointer"
               :variant="index !== 2 ? 'main' : 'outline'"
+              as-child
             >
-              {{ plan.buttonText }}
+              <NuxtLink
+                :to="{
+                  name: plan.link.name,
+                  query: plan.link.query,
+                }"
+              >
+                {{ plan.buttonText }}
+              </NuxtLink>
             </Button>
           </CardFooter>
         </Card>

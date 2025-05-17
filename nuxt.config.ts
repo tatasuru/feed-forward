@@ -74,6 +74,7 @@ export default defineNuxtConfig({
         "/reset-password",
         "/update-password",
         "/projects/*",
+        "/contact",
       ],
       cookieRedirect: false,
     },

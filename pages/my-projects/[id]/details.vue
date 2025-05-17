@@ -294,7 +294,14 @@ async function deleteProject() {
             variant="link"
             class="p-0 hover:text-muted-foreground cursor-pointer gap-1 h-fit hover:no-underline md:text-sm text-xs"
             :class="isDeleting ? 'pointer-events-none opacity-50' : ''"
-            @click="copy(source)"
+            @click="
+              () => {
+                copy(source);
+                toast.success('シェアリンクをコピーしました', {
+                  description: 'プロジェクトのシェアリンクをコピーしました',
+                });
+              }
+            "
           >
             <Icon v-if="copied" name="mdi:attachment-check" class="!size-4" />
             <Icon v-else name="mdi:attachment" class="!size-4" />

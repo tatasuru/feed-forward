@@ -241,7 +241,13 @@ const { data: userFeedbackData } = await useAsyncData(
 
 watch(
   userFeedbackData,
-  (newData) => {
+  async (newData) => {
+    // for handling the case when user is not logged in
+    if (projectDetails.value.project.status !== "active") {
+      await navigateTo("/");
+      return;
+    }
+
     if (!newData) {
       form.setFieldValue("isAnonymous", isUserLoggedIn.value ? false : true);
       return;
@@ -512,7 +518,6 @@ async function checkExistingFeedback() {
       };
     } else {
       const sessionId = getSessionId();
-      console.log("sessionId", sessionId, id);
       const { data, error } = await supabase.rpc(
         "check_feedback_by_session_and_short_id",
         {
@@ -520,7 +525,6 @@ async function checkExistingFeedback() {
           p_session_id: sessionId,
         }
       );
-      console.log("data", data);
 
       if (error) throw error;
 
@@ -579,8 +583,6 @@ async function getAnonymousFeedback(sessionId: string) {
         p_session_id: sessionId,
       }
     );
-
-    console.log("getAnonymousFeedback", data, error);
 
     if (error) throw error;
 

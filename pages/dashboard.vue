@@ -314,7 +314,7 @@ watch(
             link="/create-project"
           />
 
-          <Button variant="outline" as-child class="w-full md:hidden flex">
+          <Button variant="mainOutline" as-child class="w-full md:hidden flex">
             <NuxtLink to="/my-projects" class="flex items-center gap-2">
               すべてのプロジェクトを見る
               <Icon name="mdi:arrow-top-right" class="!size-4" />
@@ -375,7 +375,7 @@ watch(
             link="/create-project"
           />
 
-          <Button variant="outline" as-child class="w-full md:hidden flex">
+          <Button variant="mainOutline" as-child class="w-full md:hidden flex">
             <NuxtLink
               :to="{
                 path: '/my-projects/feedbacks',

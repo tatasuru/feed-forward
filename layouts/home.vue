@@ -7,7 +7,7 @@ import AppHeader from "@/components/layout/AppHeader.vue";
     <AppHeader />
 
     <main
-      class="mx-auto w-full min-h-svh md:min-h-screen mt-[53px] md:mt-[68px] max-w-[1440px] px-4 pt-8 pb-12 md:p-8"
+      class="mx-auto w-full min-h-svh md:min-h-screen mt-[53px] md:mt-[68px] px-4 md:px-8"
     >
       <NuxtPage />
     </main>

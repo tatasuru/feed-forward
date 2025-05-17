@@ -242,7 +242,7 @@ watch(
             </div>
           </div>
 
-          <Button as-child variant="outline" class="w-full md:w-fit">
+          <Button as-child variant="mainOutline" class="w-full md:w-fit">
             <NuxtLink to="/settings/account" class="flex items-center gap-2">
               <Icon name="mdi:account" class="!size-4" />
               プロフィールを編集
@@ -286,7 +286,7 @@ watch(
               size="small"
             />
 
-            <Button as-child variant="outline" class="hidden md:flex w-fit">
+            <Button as-child variant="mainOutline" class="hidden md:flex w-fit">
               <NuxtLink to="/my-projects" class="flex items-center gap-2">
                 すべてのプロジェクトを見る
                 <Icon name="mdi:arrow-top-right" class="!size-4" />
@@ -331,7 +331,7 @@ watch(
               size="small"
             />
 
-            <Button as-child variant="outline" class="hidden md:flex w-fit">
+            <Button as-child variant="mainOutline" class="hidden md:flex w-fit">
               <NuxtLink
                 :to="{
                   path: '/my-projects/feedbacks',

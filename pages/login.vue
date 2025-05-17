@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
+import { routerKey } from "vue-router";
 import * as z from "zod";
 
 definePageMeta({
@@ -17,6 +18,7 @@ definePageMeta({
 const supabase = useSupabaseClient();
 const config = useRuntimeConfig();
 
+const router = useRouter();
 const loading = ref<boolean>(false);
 const activeTab = ref<"signup" | "signin">("signup");
 const baseUrl = config.public.baseUrl;
@@ -70,7 +72,7 @@ const form = useForm({
 });
 
 /********************************
- * Form validation
+ * Form Actions
  ********************************/
 const onSubmit = form.handleSubmit(async (values) => {
   loading.value = true;
@@ -139,6 +141,15 @@ async function signIn(email: string, password: string) {
   return navigateTo(redirectPath);
 }
 
+// switch tab
+const switchTab = (tab: "signup" | "signin") => {
+  activeTab.value = tab;
+  router.push({ name: "login", query: { tab } });
+};
+
+/********************************
+ * Lifecycle Hooks
+ ********************************/
 // for reset form when tab changes
 watch(
   activeTab,
@@ -152,6 +163,15 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(() => {
+  const queryTab = router.currentRoute.value.query.tab;
+  if (queryTab === "signin") {
+    activeTab.value = "signin";
+  } else {
+    activeTab.value = "signup";
+  }
+});
 </script>
 
 <template>
@@ -176,12 +196,14 @@ watch(
           <TabsTrigger
             value="signup"
             class="cursor-pointer dark:data-[state=active]:bg-background dark:data-[state=active]:text-foreground"
+            @click="switchTab('signup')"
           >
             サインアップ
           </TabsTrigger>
           <TabsTrigger
             value="signin"
             class="cursor-pointer dark:data-[state=active]:bg-background dark:data-[state=active]:text-foreground"
+            @click="switchTab('signin')"
           >
             ログイン
           </TabsTrigger>

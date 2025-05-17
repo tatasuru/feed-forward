@@ -1,6 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: "auth",
+  layout: "home",
   title:
     "デザイン・コードのフィードバックプラットフォーム FeedForward – AI分析で制作物の品質向上",
   description:
@@ -26,7 +27,7 @@ const pricePlans = [
   },
   {
     name: "スタータープラン",
-    price: "￥1,000 / 月",
+    price: "￥1,000",
     description: "追加機能でフィードバックをさらに活用",
     features: [
       "10プロジェクト作成可能",
@@ -39,7 +40,7 @@ const pricePlans = [
   },
   {
     name: "プロプラン",
-    price: "￥3,000 / 月 〜",
+    price: "￥3,000",
     description: "フィードバックをチーム全体で活用",
     features: [
       "無制限のプロジェクト作成",
@@ -58,7 +59,7 @@ const pricePlans = [
     <!-- kv -->
     <div
       id="kv"
-      class="flex flex-col items-center justify-center gap-8 md:gap-12 gradient-bg-pale relative w-screen ml-[calc(-50vw+50%)] pt-12 px-4 md:pt-48 md:px-8"
+      class="flex flex-col items-center justify-center gap-8 md:gap-12 gradient-bg-pale relative w-screen ml-[calc(-50vw+50%)] pt-12 px-4 md:pt-40 md:px-8"
     >
       <div class="flex flex-col items-center justify-center gap-4">
         <h1
@@ -77,7 +78,16 @@ const pricePlans = [
       <div class="flex items-center gap-2">
         <Button :variant="'main'" class="md:text-base" as-child>
           <div class="flex items-center gap-2">
-            <NuxtLink to="/login"> 無料で始める </NuxtLink>
+            <NuxtLink
+              :to="{
+                name: 'login',
+                query: {
+                  tab: 'signup',
+                },
+              }"
+            >
+              無料で始める
+            </NuxtLink>
             <Icon name="mdi:arrow-right-thick" />
           </div>
         </Button>
@@ -94,7 +104,15 @@ const pricePlans = [
           すでにアカウントをお持ちですか？
         </p>
         <Button :variant="'link'" class="text-base" as-child>
-          <NuxtLink to="/login" class="text-sm text-purple">
+          <NuxtLink
+            :to="{
+              name: 'login',
+              query: {
+                tab: 'signin',
+              },
+            }"
+            class="text-sm text-purple"
+          >
             ログイン
           </NuxtLink>
         </Button>
@@ -113,7 +131,7 @@ const pricePlans = [
       </div>
 
       <div
-        class="md:w-[80%] mx-auto grid md:grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6 md:items-center"
+        class="md:w-[80%] mx-auto grid md:grid-cols-[repeat(auto-fit,minmax(350px,1fr))] gap-6 md:items-center"
       >
         <Card
           v-for="(plan, index) in pricePlans"
@@ -134,6 +152,11 @@ const pricePlans = [
               }"
             >
               {{ plan.price }}
+              <span
+                v-if="index !== 0"
+                class="text-lg font-bold text-muted-foreground"
+                >/ 月
+              </span>
             </span>
           </CardHeader>
           <CardDescription class="text-center px-6">

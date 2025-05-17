@@ -93,7 +93,7 @@ async function markNotificationAsRead(notificationId: string) {
 }
 
 // subscribe to notifications
-const channels = supabase
+supabase
   .channel("custom-insert-channel")
   .on(
     "postgres_changes",
@@ -335,14 +335,32 @@ onMounted(async () => {
             class="py-1 md:py-4 h-fit md:h-9 rounded-sm"
             as-child
           >
-            <NuxtLink to="/login"> 新規登録 </NuxtLink>
+            <NuxtLink
+              :to="{
+                name: 'login',
+                query: {
+                  tab: 'signup',
+                },
+              }"
+            >
+              新規登録
+            </NuxtLink>
           </Button>
           <Button
             :variant="'mainOutline'"
             class="py-1 md:py-4 h-fit md:h-9 hidden md:flex rounded-sm"
             as-child
           >
-            <NuxtLink to="/login"> ログイン </NuxtLink>
+            <NuxtLink
+              :to="{
+                name: 'login',
+                query: {
+                  tab: 'signin',
+                },
+              }"
+            >
+              ログイン
+            </NuxtLink>
           </Button>
         </div>
       </div>

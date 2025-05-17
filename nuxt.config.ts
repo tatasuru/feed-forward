@@ -45,7 +45,8 @@ export default defineNuxtConfig({
 
   colorMode: {
     classSuffix: "",
-    preference: "dark",
+    preference: "system",
+    fallback: "light",
   },
 
   css: ["~/assets/css/tailwind.css", "~/assets/css/tiptap.css"],

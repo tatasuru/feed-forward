@@ -107,6 +107,30 @@ const featureList = [
   },
 ];
 
+const flowSteps = [
+  {
+    icon: "mdi:file-document-plus-outline",
+    title: "プロジェクトを作成",
+    description:
+      "デザイン案やプロトタイプのURLを登録し、評価してほしい項目を選ぶだけで準備完了です。",
+    color: "purple",
+  },
+  {
+    icon: "mdi:comment-check-outline",
+    title: "フィードバックを受ける",
+    description:
+      "共有リンクからチームや顧客が評価とコメントを直感的に入力。リアルタイムで結果が集まります。",
+    color: "purple",
+  },
+  {
+    icon: "mdi:lightbulb-on-outline",
+    title: "改善点を発見",
+    description:
+      "評価データを自動分析し、優先すべき改善点や評価の高かった点をわかりやすく可視化します。",
+    color: "purple",
+  },
+];
+
 const accordionItems = [
   {
     value: "item-1",
@@ -217,7 +241,7 @@ const accordionItems = [
           <Card
             v-for="(feature, index) in featureList"
             :key="index"
-            class="flex flex-row gap-4 items-start p-4 border-purple/50"
+            class="flex flex-row gap-4 items-start p-4"
           >
             <div
               class="flex items-center justify-center gradient-bg rounded-full p-2 w-8 h-8 shrink-0"
@@ -232,6 +256,56 @@ const accordionItems = [
                 {{ feature.description }}
               </p>
             </div>
+          </Card>
+        </div>
+      </div>
+    </section>
+
+    <!-- flow -->
+    <section id="flow" class="flex flex-col items-center gap-8 md:px-24">
+      <div class="flex flex-col gap-8 md:gap-12">
+        <PageTitle
+          title="FeedForwardの使い方"
+          description="簡単なステップでフィードバックを収集し、分析できます。"
+          size="large"
+        />
+
+        <div class="grid gap-6 sm:grid-cols-3">
+          <Card
+            v-for="(step, index) in flowSteps"
+            :key="index"
+            class="pt-0 gap-4"
+          >
+            <CardHeader
+              class="relative mb-4 flex h-40 w-full items-center justify-center overflow-hidden gradient-bg-pale rounded-tl-xl rounded-tr-xl"
+            >
+              <div
+                class="relative flex size-[84px] shrink-0 items-center justify-center"
+              >
+                <div
+                  class="dark:bg-muted-800 flex size-[80px] items-center justify-center bg-white rounded-full shadow-md"
+                >
+                  <Icon
+                    :name="step.icon"
+                    class="!size-7"
+                    :class="`text-${step.color}`"
+                    aria-hidden="true"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardFooter class="flex flex-col items-center justify-center">
+              <h3
+                class="font-bold text-xl leading-tight tracking-normal text-muted-800 mx-auto dark:text-white"
+              >
+                {{ step.title }}
+              </h3>
+              <p
+                class="font-sans text-sm leading-normal font-normal tracking-normal text-muted-500 dark:text-muted-100 mx-auto my-2"
+              >
+                {{ step.description }}
+              </p>
+            </CardFooter>
           </Card>
         </div>
       </div>
@@ -313,17 +387,17 @@ const accordionItems = [
     </section>
 
     <!-- Q&A -->
-    <section id="qa" class="flex flex-col items-center gap-8 md:px-24">
+    <section id="qa" class="flex flex-col md:items-center gap-8 md:px-24">
       <PageTitle
         title="よくある質問"
         description="FeedForwardに関するよくある質問をまとめました。"
         size="large"
-        class="text-center"
+        class="md:text-center"
       />
 
       <Accordion
         type="single"
-        class="w-full md:w-[80%] mx-auto"
+        class="w-full md:w-[60%] mx-auto"
         collapsible
         default-value="item-1"
       >
@@ -332,7 +406,7 @@ const accordionItems = [
           :key="item.value"
           :value="item.value"
         >
-          <AccordionTrigger class="cursor-pointer md:text-base">
+          <AccordionTrigger class="cursor-pointer">
             {{ item.title }}
           </AccordionTrigger>
           <AccordionContent>

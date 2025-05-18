@@ -229,7 +229,10 @@ const accordionItems = [
     </div>
 
     <!-- feature -->
-    <section id="feature" class="flex flex-col items-center gap-8 md:px-24">
+    <section
+      id="feature"
+      class="w-full flex flex-col items-center gap-8 md:px-24 max-w-[1440px] mx-auto"
+    >
       <div class="flex flex-col gap-8 md:gap-12">
         <PageTitle
           title="フィードバック収集・分析を一つのプラットフォームで"
@@ -262,7 +265,10 @@ const accordionItems = [
     </section>
 
     <!-- flow -->
-    <section id="flow" class="flex flex-col items-center gap-8 md:px-24">
+    <section
+      id="flow"
+      class="w-full flex flex-col items-center gap-8 md:px-24 max-w-[1440px] mx-auto"
+    >
       <div class="flex flex-col gap-8 md:gap-12">
         <PageTitle
           title="FeedForwardの使い方"
@@ -312,7 +318,10 @@ const accordionItems = [
     </section>
 
     <!-- price -->
-    <section id="price" class="flex flex-col items-center justify-center gap-8">
+    <section
+      id="price"
+      class="w-full flex flex-col items-center justify-center gap-8 max-w-[1440px] mx-auto"
+    >
       <PageTitle
         title="料金プラン"
         description="あなたのチームに最適なプランを見つけましょう。"
@@ -321,7 +330,7 @@ const accordionItems = [
       />
 
       <div
-        class="md:w-[80%] mx-auto grid md:grid-cols-[repeat(auto-fit,minmax(350px,1fr))] gap-6 md:items-center"
+        class="w-full md:w-[80%] grid md:grid-cols-[repeat(auto-fit,minmax(350px,1fr))] gap-6 md:items-center"
       >
         <Card
           v-for="(plan, index) in pricePlans"
@@ -387,7 +396,10 @@ const accordionItems = [
     </section>
 
     <!-- Q&A -->
-    <section id="qa" class="flex flex-col md:items-center gap-8 md:px-24">
+    <section
+      id="qa"
+      class="w-full md:w-[70%] flex flex-col md:items-center gap-8 md:px-24 max-w-[1440px] mx-auto"
+    >
       <PageTitle
         title="よくある質問"
         description="FeedForwardに関するよくある質問をまとめました。"
@@ -397,7 +409,7 @@ const accordionItems = [
 
       <Accordion
         type="single"
-        class="w-full md:w-[60%] mx-auto"
+        class="w-full"
         collapsible
         default-value="item-1"
       >

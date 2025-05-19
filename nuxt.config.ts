@@ -21,9 +21,14 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY,
       baseUrl: process.env.BASE_URL,
+      stripeApiKey: process.env.STRIPE_API_KEY,
+      stripeWebhook: process.env.STRIPE_WEBHOOK_SECRET,
+      resendApiKey: process.env.RESEND_API_KEY,
     },
     // server side
-    private: {},
+    private: {
+      stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+    },
   },
 
   modules: [

@@ -244,8 +244,10 @@ watch(
   async (newData) => {
     // for handling the case when user is not logged in
     if (projectDetails.value.project.status !== "active") {
-      await navigateTo("/");
-      return;
+      throw createError({
+        statusCode: 404,
+        statusMessage: "このプロジェクトは現在アクティブではありません。",
+      });
     }
 
     if (!newData) {

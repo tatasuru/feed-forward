@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Notification } from "@/types/notifications.type";
 import { format } from "date-fns";
+import { toast } from "vue-sonner";
 
 const router = useRouter();
 const colorMode = useColorMode();
@@ -55,8 +56,10 @@ const logout = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) {
     console.error("Logout error:", error);
+    toast.error("ログアウトに失敗しました");
+    return;
   } else {
-    window.location.href = "/";
+    window.location.href = "/confirm";
   }
 };
 

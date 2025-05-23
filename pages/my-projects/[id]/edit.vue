@@ -589,9 +589,11 @@ function removeCustomCriteria(index: number) {
                 </FormLabel>
                 <Select
                   v-bind="componentField"
-                  @update:model-value="(e: Event) => {
-                    selectCriteriaTemplate();
-                  }"
+                  @update:model-value="
+                    () => {
+                      selectCriteriaTemplate();
+                    }
+                  "
                 >
                   <FormControl>
                     <SelectTrigger
@@ -961,7 +963,7 @@ function removeCustomCriteria(index: number) {
             class="flex md:items-center flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto"
           >
             <span
-              v-if="publishStatus === false"
+              v-if="project?.status === 'active' && publishStatus === false"
               class="text-sm text-destructive-foreground text-center md:text-left"
             >
               下書きに戻すと貰ったフィードバックが削除されます！

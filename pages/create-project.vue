@@ -95,6 +95,78 @@ const formSchema = [
       errorMap: () => ({ message: "テンプレートの選択は必須です" }),
     }),
   }),
+  z.object({
+    title: z
+      .string({
+        message: "プロジェクト名は必須です",
+      })
+      .min(2, {
+        message: "プロジェクト名は2文字以上で入力してください",
+      })
+      .max(50, {
+        message: "プロジェクト名は50文字以内で入力してください",
+      }),
+    description: z.string({
+      message: "プロジェクトの説明は必須です",
+      required_error: "プロジェクトの説明は必須です",
+    }),
+    projectType: z.enum(["design", "demo", "plan"], {
+      errorMap: () => ({ message: "プロジェクトの種類は必須です" }),
+    }),
+    deadline: z
+      .string({
+        message: "プロジェクトの期限は必須です",
+      })
+      .regex(/^[0-9/]+$/, {
+        message: "日付は数字とスラッシュのみで入力してください",
+      })
+      .regex(/^\d{4}\/\d{2}\/\d{2}$/, {
+        message: "日付はYYYY/MM/DD形式で入力してください",
+      })
+      .refine(
+        (v) => {
+          const parts = v.split("/");
+          if (parts.length !== 3) return false;
+
+          const year = parseInt(parts[0]);
+          const month = parseInt(parts[1]);
+          const day = parseInt(parts[2]);
+
+          // Check if the month is valid (1-12)
+          const date = new Date(year, month - 1, day);
+          return (
+            date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day
+          );
+        },
+        {
+          message: "有効な日付を入力してください",
+        }
+      )
+      .refine(
+        (v) => {
+          // Check if the date is in the future
+          const parts = v.split("/");
+          const inputDate = new Date(
+            parseInt(parts[0]),
+            parseInt(parts[1]) - 1,
+            parseInt(parts[2])
+          );
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Set time to midnight for comparison
+          return inputDate >= today;
+        },
+        {
+          message: "期限は未来の日付である必要があります",
+        }
+      ),
+    resourceUrl: z
+      .string({
+        message: "フィードバック対象のファイルやリンクは必須です",
+      })
+      .url("URL形式で入力してください"),
+  }),
 ];
 
 const purposes = [
@@ -150,6 +222,47 @@ const ratingPerCriteria = [
   },
 ];
 
+const projectTypes = [
+  {
+    icon: "mdi:picture-in-picture-top-right",
+    value: "design",
+    label: "デザイン",
+  },
+  {
+    icon: "mdi:code-tags",
+    value: "demo",
+    label: "デモ",
+  },
+  {
+    icon: "mdi:clipboard-text",
+    value: "plan",
+    label: "企画・仕様",
+  },
+];
+
+function formatDate(newDate: DateValue) {
+  const localTimeZone = getLocalTimeZone();
+  const date = newDate.toDate(localTimeZone);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // 月は0始まり
+  const day = String(date.getDate()).padStart(2, "0");
+
+  // Set the formatted date to the input field
+  dateValue.value = `${year}/${month}/${day}`;
+
+  // set form value
+  // TODO: refactor
+  if (formRef.value) {
+    const form = useForm<ProjectData>({
+      initialValues: {
+        deadline: dateValue.value,
+      },
+    });
+    form.setFieldValue("deadline", dateValue.value);
+  }
+}
+
 /********************************
  * stepper and form logic
  ********************************/
@@ -157,18 +270,23 @@ const stepIndex = ref<number>(1);
 const steps = [
   {
     step: 1,
-    title: "プロジェクトの目的を選択",
+    title: "1.プロジェクトの目的を選択",
     description: "目的を選択してください",
   },
   {
     step: 2,
-    title: "テンプレートを選択",
+    title: "2.テンプレートを選択",
     description: "テンプレートを選択してください。",
   },
   {
     step: 3,
-    title: "詳細入力",
+    title: "3.プロジェクト概要入力",
     description: "詳細情報を入力してください。",
+  },
+  {
+    step: 4,
+    title: "4.フィードバックフォーム編集",
+    description: "項目を編集してください。",
   },
 ];
 </script>
@@ -181,21 +299,21 @@ const steps = [
       size="large"
     />
 
-    <section class="flex gap-8 min-h-[calc(100vh-220px)] p-4">
+    <section class="flex gap-8 min-h-[calc(100vh-210px)] p-4">
       <Stepper
         v-model="stepIndex"
         orientation="vertical"
-        class="mx-auto flex w-full max-w-[300px] md:flex-col justify-start gap-20"
+        class="mx-auto flex w-full max-w-[220px] md:flex-col justify-start gap-12 sticky top-24 h-fit"
       >
         <template v-for="step in steps" :key="step.step">
           <StepperItem
             v-slot="{ state }"
-            class="relative flex w-full items-start gap-6"
+            class="relative flex w-full items-start gap-2"
             :step="step.step"
           >
             <StepperSeparator
               v-if="step.step !== steps[steps.length - 1].step"
-              class="absolute left-[19px] top-[50px] block h-[60px] w-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-purple"
+              class="absolute left-[11px] top-[30px] block h-[55px] w-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-purple"
             />
 
             <StepperTrigger
@@ -211,7 +329,7 @@ const steps = [
                     : 'outline'
                 "
                 size="icon"
-                class="z-10 rounded-full shrink-0 size-10 cursor-pointer"
+                class="z-10 rounded-full shrink-0 size-6 cursor-pointer"
                 :class="[
                   state === 'active' &&
                     'ring-2 ring-background ring-offset-2 ring-offset-purple bg-background hover:bg-background focus:bg-background',
@@ -236,6 +354,11 @@ const steps = [
                   class="!size-5 text-purple"
                 />
                 <Icon
+                  name="mdi:text-box-edit-outline"
+                  v-if="step.step === 4 && state !== 'completed'"
+                  class="!size-5 text-purple"
+                />
+                <Icon
                   v-if="state === 'completed'"
                   name="mdi:check-bold"
                   class="!size-5 text-white"
@@ -245,13 +368,17 @@ const steps = [
 
             <div class="flex flex-col gap-1">
               <StepperTitle
-                :class="[state === 'active' && 'text-primary']"
-                class="text-sm font-semibold transition lg:text-base whitespace-normal"
+                :class="[
+                  state === 'active' ? 'text-primary' : 'text-muted-foreground',
+                ]"
+                class="text-sm font-semibold transition lg:text-sm whitespace-normal"
               >
                 {{ step.title }}
               </StepperTitle>
               <StepperDescription
-                :class="[state === 'active' && 'text-primary']"
+                :class="[
+                  state === 'active' ? 'text-primary' : 'text-muted-foreground',
+                ]"
                 class="text-xs transition md:not-sr-only lg:text-xs"
               >
                 {{ step.description }}
@@ -261,7 +388,7 @@ const steps = [
         </template>
       </Stepper>
 
-      <Separator orientation="vertical" class="hidden md:block" />
+      <Separator orientation="vertical" class="hidden md:block h-full" />
 
       <Form
         v-slot="{ meta, values, validate }"
@@ -279,26 +406,11 @@ const steps = [
               }
             }
           "
-          class="w-full h-full md:h-auto flex flex-col justify-between"
+          class="w-full h-full md:h-auto flex flex-col gap-8 justify-between"
         >
-          <div v-if="stepIndex === 1" class="flex flex-col gap-8">
-            <PageTitle
-              title="プロジェクトの目的を選択"
-              description="プロジェクトをどのような目的で作成するかを選択してください"
-              size="small"
-            />
-
+          <div v-if="stepIndex === 1" class="flex flex-col gap-4 h-full">
             <FormField v-slot="{ componentField }" name="purpose">
               <FormItem>
-                <FormLabel>
-                  プロジェクトの種類
-                  <Badge
-                    variant="gradient"
-                    class="text-xs text-white rounded-sm"
-                  >
-                    必須
-                  </Badge>
-                </FormLabel>
                 <FormControl>
                   <RadioGroup
                     v-bind="componentField"
@@ -345,24 +457,9 @@ const steps = [
             </FormField>
           </div>
 
-          <div v-if="stepIndex === 2" class="flex flex-col gap-8">
-            <PageTitle
-              title="プロジェクトの目的を選択"
-              description="プロジェクトをどのような目的で作成するかを選択してください"
-              size="small"
-            />
-
+          <div v-if="stepIndex === 2" class="flex flex-col gap-8 h-full">
             <FormField v-slot="{ componentField }" name="template">
               <FormItem>
-                <FormLabel>
-                  プロジェクトの種類
-                  <Badge
-                    variant="gradient"
-                    class="text-xs text-white rounded-sm"
-                  >
-                    必須
-                  </Badge>
-                </FormLabel>
                 <FormControl>
                   <RadioGroup
                     v-bind="componentField"
@@ -522,36 +619,218 @@ const steps = [
             </FormField>
           </div>
 
-          <div class="flex items-center justify-between mt-4">
-            <Button
-              :disabled="stepIndex === 1"
-              variant="outline"
-              size="sm"
-              @click="stepIndex--"
-              class="cursor-pointer"
-            >
-              もどる
-            </Button>
-            <div class="flex items-center gap-3">
+          <div v-if="stepIndex === 3" class="flex flex-col gap-8 h-full">
+            <FormField v-slot="{ componentField }" name="title">
+              <FormItem>
+                <FormLabel>
+                  プロジェクト名
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="新規プロダクト草案"
+                    v-bind="componentField"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ componentField }" name="description">
+              <FormItem>
+                <FormLabel>
+                  プロジェクトの説明
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
+                <FormControl>
+                  <TiptapEditor
+                    :model-value="componentField.modelValue"
+                    @update:model-value="(e: Event) => componentField.onChange(e)"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ componentField }" name="projectType">
+              <FormItem>
+                <FormLabel>
+                  プロジェクトの種類
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    v-bind="componentField"
+                    :orientation="'vertical'"
+                    class="grid md:grid-cols-3 gap-2 md:gap-4 [&_svg]:fill-purple"
+                  >
+                    <Card
+                      v-for="projectType in projectTypes"
+                      :key="projectType.value"
+                      class="flex items-center space-x-2 border rounded-sm cursor-pointer hover:bg-purple/20 transition-colors shadow-none"
+                      @click="componentField.onChange(projectType.value)"
+                      :class="{
+                        'border-purple border-1 bg-purple/20':
+                          componentField.modelValue === projectType.value,
+                      }"
+                    >
+                      <CardContent
+                        class="w-full flex flex-row items-center space-x-2"
+                      >
+                        <RadioGroupItem
+                          :id="projectType.value"
+                          :value="projectType.value"
+                          class="border-purple"
+                        />
+                        <Icon
+                          :name="projectType.icon"
+                          class="!size-5 text-primary"
+                        />
+                        <Label
+                          :for="projectType.value"
+                          class="w-full cursor-pointer"
+                        >
+                          {{ projectType.label }}
+                        </Label>
+                      </CardContent>
+                    </Card>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ componentField }" name="deadline">
+              <FormItem>
+                <FormLabel>
+                  プロジェクトの期限
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
+                <FormControl>
+                  <div class="relative">
+                    <Input
+                      type="text"
+                      placeholder="YYYY/MM/DD"
+                      v-bind="componentField"
+                      v-model="dateValue"
+                      maxlength="10"
+                    />
+                    <Popover>
+                      <PopoverTrigger as-child>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          class="absolute right-2 top-1/2 -translate-y-1/2 size-6 cursor-pointer"
+                        >
+                          <CalendarIcon class="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent class="w-auto p-0" align="end">
+                        <Calendar
+                          v-model="selectedDateValue"
+                          @update:model-value="formatDate(selectedDateValue!)"
+                          initial-focus
+                          :locale="'ja-JP'"
+                          :min-value="today(getLocalTimeZone())"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  日付はYYYY/MM/DD形式で入力してください（例: 2025/04/30）
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ componentField }" name="resourceUrl">
+              <FormItem>
+                <FormLabel>
+                  フィードバック対象のファイルやリンク
+                  <Badge
+                    variant="gradient"
+                    class="text-xs text-white rounded-sm"
+                  >
+                    必須
+                  </Badge>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com"
+                    v-bind="componentField"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+          </div>
+
+          <div v-if="stepIndex === 4" class="flex flex-col gap-8 h-full"></div>
+
+          <!-- bottom -->
+          <div class="flex flex-col gap-4">
+            <Separator />
+
+            <div class="flex items-center justify-end gap-4">
               <Button
-                v-if="stepIndex !== 3"
-                :type="meta.valid ? 'button' : 'submit'"
+                :disabled="stepIndex === 1"
+                variant="outline"
                 size="sm"
-                :variant="'mainOutline'"
-                @click="meta.valid && stepIndex++"
+                @click="stepIndex--"
                 class="cursor-pointer"
               >
-                次へ
+                <Icon
+                  name="mdi:chevron-left"
+                  class="!size-4 text-muted-foreground"
+                />
+                もどる
               </Button>
-              <Button
-                v-if="stepIndex === 3"
-                size="sm"
-                type="submit"
-                class="cursor-pointer gradient-bg"
-                :disabled="!meta.valid || isSubmitting"
-              >
-                {{ isSubmitting ? "登録中..." : "登録する" }}
-              </Button>
+              <div class="flex items-center gap-3">
+                <Button
+                  v-if="stepIndex !== 4"
+                  :type="meta.valid ? 'button' : 'submit'"
+                  size="sm"
+                  :variant="'mainOutline'"
+                  @click="meta.valid && stepIndex++"
+                  class="cursor-pointer"
+                >
+                  次へ
+                  <Icon name="mdi:chevron-right" class="!size-4 text-purple" />
+                </Button>
+                <Button
+                  v-if="stepIndex === 4"
+                  size="sm"
+                  type="submit"
+                  class="cursor-pointer min-w-[120px]"
+                  variant="main"
+                  :disabled="!meta.valid || isSubmitting"
+                >
+                  {{ isSubmitting ? "作成中..." : "作成する" }}
+                </Button>
+              </div>
             </div>
           </div>
         </form>

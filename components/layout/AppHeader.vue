@@ -16,19 +16,14 @@ const pageMenu = [
     icon: "mdi:home",
   },
   {
-    name: "マイプロジェクト",
-    link: "/my-projects",
+    name: "マイフォーム",
+    link: "/my-forms",
     icon: "mdi:folder",
   },
   {
-    name: "新規プロジェクト作成",
-    link: "/create-project",
+    name: "新規フォーム作成",
+    link: "/create-form",
     icon: "mdi:plus-circle-outline",
-  },
-  {
-    name: "みんなのプロジェクト",
-    link: "/projects",
-    icon: "mdi:earth",
   },
   {
     name: "各種設定",

@@ -9,8 +9,6 @@ definePageMeta({
   ogDescription: "チームの活動状況を一目で確認",
   twitterCard: "summary_large_image",
 });
-
-
 </script>
 
 <template>

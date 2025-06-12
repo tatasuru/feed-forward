@@ -29,7 +29,7 @@ const onSubmit = form.handleSubmit((values) => {
 
       <!-- main -->
       <div
-        class="w-full h-full grid grid-cols-[1fr_auto_1fr] items-start gap-8"
+        class="w-full h-full grid grid-cols-[50%_auto_1fr] items-start gap-8"
       >
         <!-- edit form -->
         <div class="w-full h-full p-4">
@@ -167,11 +167,11 @@ const onSubmit = form.handleSubmit((values) => {
         <div
           class="w-full h-fit flex flex-col justify-center items-center gap-4 p-4 sticky top-20 z-10"
         >
-          <!-- <PageTitle
+          <PageTitle
             title="プレビュー"
             size="small"
             class="text-muted-foreground"
-          /> -->
+          />
 
           <div
             class="flex flex-col gap-6 border p-6 rounded-md w-full max-w-[520px] h-fit mx-auto shadow-sm"
@@ -217,14 +217,15 @@ const onSubmit = form.handleSubmit((values) => {
             </div>
 
             <!-- anonymous -->
-            <div name="isAnonymous">
+            <!-- <div name="isAnonymous">
               <div class="flex items-center justify-between">
                 <p class="text-sm text-muted-foreground">
                   匿名でフィードバックをする
                 </p>
                 <Switch class="cursor-pointer data-[state=checked]:bg-purple" />
               </div>
-            </div>
+            </div> -->
+
             <Button variant="main" class="w-full cursor-pointer">
               フィードバックを送信する
             </Button>

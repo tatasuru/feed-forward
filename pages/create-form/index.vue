@@ -150,7 +150,7 @@ const hoverStarIndexObj = ref<{
                 </div>
 
                 <!-- anonymous -->
-                <div name="isAnonymous">
+                <!-- <div name="isAnonymous">
                   <div class="flex items-center justify-between">
                     <p class="text-sm text-muted-foreground">
                       匿名でフィードバックをする
@@ -159,7 +159,8 @@ const hoverStarIndexObj = ref<{
                       class="cursor-pointer data-[state=checked]:bg-purple"
                     />
                   </div>
-                </div>
+                </div> -->
+
                 <Button variant="main" class="w-full cursor-pointer">
                   フィードバックを送信する
                 </Button>

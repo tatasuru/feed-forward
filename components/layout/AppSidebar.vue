@@ -28,7 +28,7 @@ const isActive = (url: string) => {
 </script>
 
 <template>
-  <Sidebar collapsible="icon">
+  <Sidebar collapsible="icon" :open="sidebarStore.isSidebarOpen">
     <SidebarHeader
       class="flex flex-row items-center gap-2"
       data-slot="sidebar-header"

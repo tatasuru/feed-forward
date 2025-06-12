@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Notification } from "@/types/notifications.type";
+import { useSidebarStore } from "@/stores/sidebar";
 import { format } from "date-fns";
 import { toast } from "vue-sonner";
 
@@ -7,6 +8,7 @@ const colorMode = useColorMode();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const store = useStore();
+const sidebarStore = useSidebarStore();
 const route = useRoute();
 const unreadNotifications = ref<Notification[]>([]);
 
@@ -20,6 +22,11 @@ const logout = async () => {
   } else {
     window.location.href = "/confirm";
   }
+};
+
+// sidebar toggle
+const toggleSidebar = () => {
+  sidebarStore.toggleSidebar();
 };
 
 // get unread notifications
@@ -99,7 +106,11 @@ onMounted(async () => {
     </NuxtLink>
 
     <!-- sidebar trigger -->
-    <SidebarTrigger v-if="route.path !== '/'" class="cursor-pointer" />
+    <SidebarTrigger
+      v-if="route.path !== '/'"
+      class="cursor-pointer"
+      @click="toggleSidebar"
+    />
 
     <!-- right menu -->
     <div class="items-center gap-1 md:gap-2 flex">

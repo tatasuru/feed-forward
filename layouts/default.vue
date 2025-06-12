@@ -10,7 +10,9 @@ const route = useRoute();
     <AppSidebar v-if="route.path !== '/'" />
     <main class="flex-1 flex flex-col">
       <AppHeader />
-      <NuxtPage class="p-4" />
+      <div class="py-2 px-4 min-h-[calc(100svh-52px)]">
+        <NuxtPage />
+      </div>
     </main>
   </SidebarProvider>
 </template>

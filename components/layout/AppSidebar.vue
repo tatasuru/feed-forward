@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useSidebarStore } from "@/stores/sidebar";
+const sidebarStore = useSidebarStore();
+
 // Menu items.
 const items = [
   {
@@ -17,10 +20,15 @@ const items = [
     icon: "mdi:cog",
   },
 ];
+
+const route = useRoute();
+const isActive = (url: string) => {
+  return route.path === url;
+};
 </script>
 
 <template>
-  <Sidebar>
+  <Sidebar collapsible="icon">
     <SidebarHeader
       class="flex flex-row items-center gap-2"
       data-slot="sidebar-header"
@@ -33,7 +41,12 @@ const items = [
         height="24"
         class="rounded-full"
       />
-      <span class="text-2xl font-bold gradient-text">Feed Forward</span>
+      <span
+        v-if="sidebarStore.isSidebarOpen"
+        class="text-2xl font-bold gradient-text whitespace-nowrap overflow-hidden"
+      >
+        Feed Forward
+      </span>
     </SidebarHeader>
     <SidebarContent>
       <SidebarGroup>
@@ -41,10 +54,18 @@ const items = [
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton
+                asChild
+                class="hover:bg-purple/20 hover:text-purple"
+                :class="{
+                  'bg-purple/20 text-purple': isActive(item.url),
+                }"
+              >
                 <NuxtLink :to="item.url">
                   <Icon :name="item.icon" />
-                  <span>{{ item.title }}</span>
+                  <span v-if="sidebarStore.isSidebarOpen">
+                    {{ item.title }}
+                  </span>
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

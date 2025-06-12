@@ -23,7 +23,7 @@ onMounted(() => {
     <AppSidebar v-if="route.path !== '/'" />
     <main class="flex-1 flex flex-col">
       <AppHeader />
-      <div class="py-2 px-4 min-h-[calc(100svh-52px)]">
+      <div class="py-2 px-6 min-h-[calc(100svh-52px)]">
         <slot />
       </div>
     </main>

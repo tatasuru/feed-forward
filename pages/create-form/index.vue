@@ -48,7 +48,7 @@ const hoverStarIndexObj = ref<{
       size="large"
     />
 
-    <div class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
       <Card v-for="template in templates" :key="template.value">
         <div>
           <NuxtImg

@@ -12,7 +12,7 @@ const titleSize = computed(() => {
     case "medium":
       return "md:text-xl text-xl";
     case "small":
-      return "md:text-lg text-lg";
+      return "md:text-base text-base";
     default:
       return "md:text-2xl text-xl";
   }
@@ -25,7 +25,7 @@ const descriptionSize = computed(() => {
     case "medium":
       return "md:text-sm text-sm";
     case "small":
-      return "md:text-sm text-sm";
+      return "md:text-xs text-xs";
     default:
       return "md:text-sm text-sm";
   }

@@ -87,7 +87,7 @@ onMounted(async () => {
 
 <template>
   <header
-    class="flex items-center justify-between w-full p-2 px-4"
+    class="flex items-center justify-between w-full p-2 px-6"
     :class="{
       'p-2 px-4 md:p-4 w-full fixed top-0 shadow-md z-10 bg-background border-b':
         route.path === '/',

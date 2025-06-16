@@ -10,16 +10,40 @@ interface FeedbackItem {
   description: string;
 }
 
+/******************************
+ * form validation schema
+ *******************************/
 const feedbackItemSchema = z.object({
-  name: z.string().min(1, "項目名は必須です"),
-  description: z.string().min(1, "項目の説明は必須です"),
+  name: z
+    .string({
+      required_error: "項目名は必須です",
+    })
+    .min(1, "項目名は必須です"),
+  description: z
+    .string({
+      required_error: "項目の説明は必須です",
+    })
+    .min(1, "項目の説明は必須です"),
 });
 
 const formSchema = toTypedSchema(
   z.object({
     formName: z.string().min(1, "フォーム名は必須です"),
     formDescription: z.string().min(1, "フォームの説明は必須です"),
-    formColor: z.string().optional(),
+    buttonBgColor: z
+      .string()
+      .optional()
+      .refine((val) => !val || /^#[0-9A-Fa-f]{6}$/.test(val), {
+        message:
+          "カラーコードは#から始まる6桁の16進数で入力してください（例：#FF5733）",
+      }),
+    buttonTextColor: z
+      .string()
+      .optional()
+      .refine((val) => !val || /^#[0-9A-Fa-f]{6}$/.test(val), {
+        message:
+          "カラーコードは#から始まる6桁の16進数で入力してください（例：#FF5733）",
+      }),
     feedbackItems: z
       .array(feedbackItemSchema)
       .min(1, "少なくとも1つの項目が必要です")
@@ -27,6 +51,9 @@ const formSchema = toTypedSchema(
   })
 );
 
+/******************************
+ * feedback items management
+ *******************************/
 const feedbackItems = ref<FeedbackItem[]>([
   {
     id: "1",
@@ -34,7 +61,6 @@ const feedbackItems = ref<FeedbackItem[]>([
     description: "",
   },
 ]);
-
 const maxItems = 3;
 const remainingItems = computed(() => maxItems - feedbackItems.value.length);
 const canAddMore = computed(() => feedbackItems.value.length < maxItems);
@@ -49,19 +75,22 @@ const addFeedbackItem = () => {
     });
   }
 };
-
 const removeFeedbackItem = (index: number) => {
   if (feedbackItems.value.length > 1) {
     feedbackItems.value.splice(index, 1);
   }
 };
 
+/******************************
+ * form handling
+ *******************************/
 const form = useForm({
   validationSchema: formSchema,
   initialValues: {
     formName: "",
     formDescription: "",
-    formColor: "",
+    buttonBgColor: "",
+    buttonTextColor: "",
     feedbackItems: feedbackItems.value,
   },
 });
@@ -79,7 +108,9 @@ const onSubmit = form.handleSubmit((values) => {
         class="flex items-center justify-between w-full sticky top-0 z-100 bg-background border-b border-border py-4"
       >
         <PageTitle title="フィードバックフォームの作成" size="medium" />
-        <Button variant="main" class="cursor-pointer">保存する</Button>
+        <Button @click="onSubmit" variant="main" class="cursor-pointer"
+          >保存する</Button
+        >
       </div>
 
       <!-- main -->
@@ -88,7 +119,8 @@ const onSubmit = form.handleSubmit((values) => {
       >
         <!-- edit form -->
         <div class="w-full h-full p-4">
-          <form @submit="onSubmit" class="flex flex-col gap-8 w-full h-full">
+          <form class="flex flex-col gap-8 w-full h-full">
+            <!-- step-1 -->
             <div class="flex flex-col gap-6 p-8 border rounded-md shadow-sm">
               <PageTitle
                 title="1.フォームの基本情報"
@@ -130,6 +162,8 @@ const onSubmit = form.handleSubmit((values) => {
                 </FormField>
               </div>
             </div>
+
+            <!-- step-2 -->
             <div class="flex flex-col gap-6 p-8 border rounded-md shadow-sm">
               <PageTitle
                 title="2.フィードバック項目の設定"
@@ -222,6 +256,8 @@ const onSubmit = form.handleSubmit((values) => {
                 </span>
               </div>
             </div>
+
+            <!-- step-3 -->
             <div class="flex flex-col gap-6 p-8 border rounded-md shadow-sm">
               <PageTitle
                 title="3.フォームの見た目"
@@ -229,9 +265,9 @@ const onSubmit = form.handleSubmit((values) => {
                 size="small"
               />
               <div class="flex flex-col gap-6">
-                <FormField v-slot="{ componentField }" name="formColor">
+                <FormField v-slot="{ componentField }" name="buttonBgColor">
                   <FormItem>
-                    <FormLabel> カラー </FormLabel>
+                    <FormLabel> ボタンの背景 </FormLabel>
                     <FormControl>
                       <Input
                         type="text"
@@ -240,7 +276,25 @@ const onSubmit = form.handleSubmit((values) => {
                       />
                     </FormControl>
                     <FormDescription class="text-xs">
-                      フォームの見た目を設定するためのカラーを入力してください。
+                      ボタンに使用するカラーコードを入力してください。
+                      例:#FF5733
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+                <FormField v-slot="{ componentField }" name="buttonTextColor">
+                  <FormItem>
+                    <FormLabel> ボタンのテキスト </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="#FF5733"
+                        v-bind="componentField"
+                      />
+                    </FormControl>
+                    <FormDescription class="text-xs">
+                      ボタンのテキストに使用するカラーコードを入力してください。
+                      例:#FF5733
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -257,15 +311,27 @@ const onSubmit = form.handleSubmit((values) => {
         <div
           class="w-full h-fit flex flex-col justify-center items-center gap-4 p-4 sticky top-20 z-10"
         >
-          <!-- <PageTitle
-            title="プレビュー"
-            size="small"
-            class="text-muted-foreground"
-          /> -->
-
           <div
             class="flex flex-col gap-6 border p-6 rounded-md w-full max-w-[520px] h-fit mx-auto shadow-sm"
           >
+            <!-- title and description -->
+            <div>
+              <h2 class="text-lg font-semibold">
+                {{
+                  form.values.formName
+                    ? form.values.formName
+                    : "フィードバックフォームタイトル"
+                }}
+              </h2>
+              <p class="text-sm text-muted-foreground">
+                {{
+                  form.values.formDescription
+                    ? form.values.formDescription
+                    : "このフォームはフィードバックを収集するためのものです。"
+                }}
+              </p>
+            </div>
+
             <!-- rating items -->
             <div
               v-for="(item, index) in feedbackItems"
@@ -314,24 +380,23 @@ const onSubmit = form.handleSubmit((values) => {
               <Textarea
                 type="text"
                 placeholder="フィードバックを入力"
-                class="w-full h-36 border border-muted-foreground/20 rounded-md p-4"
+                class="w-full h-24 border border-muted-foreground/20 rounded-md p-4"
               />
               <span class="text-xs text-muted-foreground">
                 フィードバックで伝えたい想いがあればご記入ください。
               </span>
             </div>
 
-            <!-- anonymous -->
-            <!-- <div name="isAnonymous">
-              <div class="flex items-center justify-between">
-                <p class="text-sm text-muted-foreground">
-                  匿名でフィードバックをする
-                </p>
-                <Switch class="cursor-pointer data-[state=checked]:bg-purple" />
-              </div>
-            </div> -->
-
-            <Button variant="main" class="w-full cursor-pointer">
+            <!-- form submit -->
+            <Button
+              class="w-full cursor-pointer"
+              :style="
+                form.values.buttonBgColor
+                  ? `background-color: ${form.values.buttonBgColor};
+                  color: ${form.values.buttonTextColor || '#fff'};`
+                  : ''
+              "
+            >
               フィードバックを送信する
             </Button>
           </div>

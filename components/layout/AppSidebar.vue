@@ -24,7 +24,9 @@ const items = [
 const route = useRoute();
 const isActive = (url: string) => {
   return (
-    route.path.includes(url) || (url === "/" && route.path === "/dashboard")
+    route.path.includes(url) ||
+    (url === "/" && route.path === "/dashboard") ||
+    (url.includes("/settings") && route.path.startsWith("/settings"))
   );
 };
 </script>
@@ -58,7 +60,7 @@ const isActive = (url: string) => {
             <SidebarMenuItem v-for="item in items" :key="item.title">
               <SidebarMenuButton
                 asChild
-                class="hover:bg-purple/20 hover:text-purple"
+                class="hover:bg-purple/20 hover:text-purple focus:bg-purple/20 focus:text-purple active:bg-purple/20 active:text-purple"
                 :class="{
                   'bg-purple/20 text-purple': isActive(item.url),
                 }"
@@ -84,7 +86,7 @@ const isActive = (url: string) => {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                class="hover:bg-purple/20 hover:text-purple"
+                class="hover:bg-purple/20 hover:text-purple focus:bg-purple/20 focus:text-purple active:bg-purple/20 active:text-purple"
                 :class="{
                   'bg-purple/20 text-purple': isActive('/create-form'),
                 }"

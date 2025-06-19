@@ -295,7 +295,7 @@ const { data: formTemplates } = await useAsyncData(
                   </span>
                 </div>
 
-                <Button variant="main" class="w-full cursor-pointer">
+                <Button variant="default" class="w-full cursor-pointer">
                   フィードバックを送信する
                 </Button>
               </div>

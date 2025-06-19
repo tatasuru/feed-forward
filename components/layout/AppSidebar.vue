@@ -23,7 +23,9 @@ const items = [
 
 const route = useRoute();
 const isActive = (url: string) => {
-  return route.path === url;
+  return (
+    route.path.includes(url) || (url === "/" && route.path === "/dashboard")
+  );
 };
 </script>
 
@@ -66,6 +68,30 @@ const isActive = (url: string) => {
                   <span v-if="sidebarStore.isSidebarOpen">
                     {{ item.title }}
                   </span>
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <Separator />
+
+      <SidebarGroup>
+        <SidebarGroupLabel>アクション</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                class="hover:bg-purple/20 hover:text-purple"
+                :class="{
+                  'bg-purple/20 text-purple': isActive('/create-form'),
+                }"
+              >
+                <NuxtLink to="/create-form">
+                  <Icon name="mdi:plus" />
+                  <span v-if="sidebarStore.isSidebarOpen">フォームを作成</span>
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

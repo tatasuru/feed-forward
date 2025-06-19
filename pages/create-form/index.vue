@@ -116,8 +116,8 @@ const { data: formTemplates } = await useAsyncData(
         class="cursor-pointer hover:shadow-lg transition-shadow duration-200 grid grid-rows-subgrid row-span-3"
       >
         <NuxtImg
-          src="/feedback-thumbnail.png"
-          alt="フィードバックテンプレート"
+          :src="`/${template.category}-feedback-thumbnail.png`"
+          :alt="`${template.name}テンプレート`"
           class="w-full h-32 object-contain rounded-t-md"
         />
 

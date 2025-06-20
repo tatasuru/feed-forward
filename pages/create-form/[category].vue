@@ -4,12 +4,47 @@ import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import { ref, computed } from "vue";
 
+const supabase = useSupabaseClient();
+const route = useRoute();
+const category = route.params.category as string;
+
 interface FeedbackItem {
   id: string;
   name: string;
   description: string;
 }
 
+onMounted(() => {
+  console.log(newTemplateView.value, "Mounted newTemplateView", category);
+});
+
+/******************************
+ * Fetch data
+ *******************************/
+const newTemplateView = computed(() => {
+  return formTemplatesView.value?.[0];
+});
+
+const { data: formTemplatesView } = await useAsyncData(
+  "projectsList",
+  async () => {
+    try {
+      let { data: rating_types, error } = await supabase
+        .from("rating_types")
+        .select("*")
+        .eq("code", category);
+
+      if (error) throw new Error(error.message);
+      return rating_types;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      return [];
+    }
+  },
+  {
+    server: true,
+  }
+);
 /******************************
  * form validation schema
  *******************************/
@@ -164,6 +199,7 @@ const onSubmit = form.handleSubmit((values) => {
             </div>
 
             <!-- step-2 -->
+
             <div class="flex flex-col gap-6 p-8 border rounded-md shadow-sm">
               <PageTitle
                 title="2.フィードバック項目の設定"
@@ -171,74 +207,76 @@ const onSubmit = form.handleSubmit((values) => {
                 size="small"
               />
 
-              <div
-                v-for="(item, index) in feedbackItems"
-                :key="item.id"
-                :class="[
-                  'flex flex-col gap-6 border-2 p-6 rounded-md border-dashed relative',
-                  index === 0
-                    ? 'border-pink'
-                    : index === 1
-                    ? 'border-purple'
-                    : 'border-blue',
-                ]"
-              >
-                <div class="flex items-center justify-between">
-                  <h3 class="text-sm font-medium">項目{{ index + 1 }}</h3>
-                  <Button
-                    v-if="feedbackItems.length > 1"
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    @click="removeFeedbackItem(index)"
-                    class="text-purple hover:bg-muted dark:hover:bg-purple/20 cursor-pointer"
+              <template v-if="category === 'star'">
+                <div
+                  v-for="(item, index) in feedbackItems"
+                  :key="item.id"
+                  :class="[
+                    'flex flex-col gap-6 border-2 p-6 rounded-md border-dashed relative',
+                    index === 0
+                      ? 'border-pink'
+                      : index === 1
+                      ? 'border-purple'
+                      : 'border-blue',
+                  ]"
+                >
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium">項目{{ index + 1 }}</h3>
+                    <Button
+                      v-if="feedbackItems.length > 1"
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      @click="removeFeedbackItem(index)"
+                      class="text-purple hover:bg-muted dark:hover:bg-purple/20 cursor-pointer"
+                    >
+                      <Icon name="mdi:close" class="!size-4" />
+                    </Button>
+                  </div>
+
+                  <FormField
+                    v-slot="{ componentField }"
+                    :name="`feedbackItems.${index}.name`"
                   >
-                    <Icon name="mdi:close" class="!size-4" />
-                  </Button>
+                    <FormItem>
+                      <FormLabel>項目{{ index + 1 }}の名前</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="例: デザインの質"
+                          v-bind="componentField"
+                          v-model="feedbackItems[index].name"
+                        />
+                      </FormControl>
+                      <FormDescription class="text-xs">
+                        実際に表示するフィードバック項目の名前を入力してください。
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+
+                  <FormField
+                    v-slot="{ componentField }"
+                    :name="`feedbackItems.${index}.description`"
+                  >
+                    <FormItem>
+                      <FormLabel>項目{{ index + 1 }}の説明</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="例: デザインの美しさや一貫性について評価してください"
+                          v-bind="componentField"
+                          v-model="feedbackItems[index].description"
+                        />
+                      </FormControl>
+                      <FormDescription class="text-xs">
+                        フィードバックを収集するための項目を設定します。
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
                 </div>
-
-                <FormField
-                  v-slot="{ componentField }"
-                  :name="`feedbackItems.${index}.name`"
-                >
-                  <FormItem>
-                    <FormLabel>項目{{ index + 1 }}の名前</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="例: デザインの質"
-                        v-bind="componentField"
-                        v-model="feedbackItems[index].name"
-                      />
-                    </FormControl>
-                    <FormDescription class="text-xs">
-                      実際に表示するフィードバック項目の名前を入力してください。
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-
-                <FormField
-                  v-slot="{ componentField }"
-                  :name="`feedbackItems.${index}.description`"
-                >
-                  <FormItem>
-                    <FormLabel>項目{{ index + 1 }}の説明</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="例: デザインの美しさや一貫性について評価してください"
-                        v-bind="componentField"
-                        v-model="feedbackItems[index].description"
-                      />
-                    </FormControl>
-                    <FormDescription class="text-xs">
-                      フィードバックを収集するための項目を設定します。
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-              </div>
+              </template>
 
               <div class="flex flex-col gap-2">
                 <Button
@@ -333,46 +371,48 @@ const onSubmit = form.handleSubmit((values) => {
             </div>
 
             <!-- rating items -->
-            <div
-              v-for="(item, index) in feedbackItems"
-              :key="item.id"
-              :class="[
-                'border-2 border-dashed p-4 rounded-md',
-                index === 0
-                  ? 'border-pink'
-                  : index === 1
-                  ? 'border-purple'
-                  : 'border-blue',
-              ]"
-            >
-              <p class="text-sm font-medium">
-                {{ item.name || `フィードバック項目${index + 1}` }}
-              </p>
-              <span class="text-xs text-muted-foreground">
-                {{
-                  item.description ||
-                  "フィードバックを収集するための項目を設定します。"
-                }}
-              </span>
-              <div class="flex items-center justify-between mt-3">
-                <div class="flex items-center gap-2">
-                  <Button
-                    v-for="(_, starIndex) in [1, 2, 3, 4, 5]"
-                    :key="starIndex"
-                    variant="ghost"
-                    type="button"
-                    size="icon"
-                    class="cursor-pointer rounded-full hover:bg-yellow-500/20 dark:hover:bg-yellow-500/20"
-                  >
-                    <Icon
-                      name="mdi:star-outline"
-                      class="!size-6 text-muted-foreground hover:text-yellow-500"
-                    />
-                  </Button>
+            <template v-if="category === 'star'">
+              <div
+                v-for="(item, index) in feedbackItems"
+                :key="item.id"
+                :class="[
+                  'border-2 border-dashed p-4 rounded-md',
+                  index === 0
+                    ? 'border-pink'
+                    : index === 1
+                    ? 'border-purple'
+                    : 'border-blue',
+                ]"
+              >
+                <p class="text-sm font-medium">
+                  {{ item.name || `フィードバック項目${index + 1}` }}
+                </p>
+                <span class="text-xs text-muted-foreground">
+                  {{
+                    item.description ||
+                    "フィードバックを収集するための項目を設定します。"
+                  }}
+                </span>
+                <div class="flex items-center justify-between mt-3">
+                  <div class="flex items-center gap-2">
+                    <Button
+                      v-for="(_, starIndex) in [1, 2, 3, 4, 5]"
+                      :key="starIndex"
+                      variant="ghost"
+                      type="button"
+                      size="icon"
+                      class="cursor-pointer rounded-full hover:bg-yellow-500/20 dark:hover:bg-yellow-500/20"
+                    >
+                      <Icon
+                        name="mdi:star-outline"
+                        class="!size-6 text-muted-foreground hover:text-yellow-500"
+                      />
+                    </Button>
+                  </div>
+                  <span class="text-sm text-muted-foreground"> 0/5 </span>
                 </div>
-                <span class="text-sm text-muted-foreground"> 0/5 </span>
               </div>
-            </div>
+            </template>
 
             <!-- comment -->
             <div>

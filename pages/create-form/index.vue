@@ -60,12 +60,6 @@ function clickPreviewButton(id: number, e: Event) {
       rating_type: item.rating_type,
       value: 0,
     }));
-    console.log(
-      "Preview items for template ID",
-      id,
-      ":",
-      ratingPerCriteria.value
-    );
   } else {
     console.error("Template not found for ID:", id);
     ratingPerCriteria.value = [];
@@ -88,7 +82,6 @@ const { data: formTemplates } = await useAsyncData(
         .order("is_featured", { ascending: false });
 
       if (error) throw new Error(error.message);
-      console.log("Fetched templates:", templates);
       return templates as FormTemplate[];
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -303,7 +296,7 @@ const { data: formTemplates } = await useAsyncData(
           </Dialog>
           <Button variant="main" class="w-full cursor-pointer" as-child>
             <NuxtLink
-              :to="`/create-form/${template.id}`"
+              :to="`/create-form/${template.category}`"
               class="flex items-center gap-1"
             >
               <Icon name="mdi:plus" />

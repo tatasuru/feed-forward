@@ -9,6 +9,25 @@ definePageMeta({
     "Feed Forwardのマイフォームページです。あなたが作成したフィードバックフォームを確認できます。",
   twitterCard: "summary_large_image",
 });
+
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+
+const { data: myFormsList } = await useAsyncData("myFormsList", async () => {
+  try {
+    const { data, error } = await supabase
+      .from("my_forms")
+      .select("*")
+      .eq("user_id", user.value?.id)
+      .limit(100);
+
+    if (error) throw new Error(error.message);
+    return data;
+  } catch (error) {
+    console.error("Error fetching form templates:", error);
+    return [];
+  }
+});
 </script>
 
 <template>
@@ -25,6 +44,10 @@ definePageMeta({
           フォームを作成
         </NuxtLink>
       </Button>
+    </div>
+
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
+      <MyFormCard v-for="form in myFormsList" :key="form.id" :myForm="form" />
     </div>
   </div>
 </template>

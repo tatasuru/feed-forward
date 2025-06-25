@@ -3,48 +3,23 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import { ref, computed } from "vue";
+import { toast } from "vue-sonner";
 
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 const route = useRoute();
-const category = route.params.category as string;
+const type = route.params.type as "star" | "scale_10" | "radio";
 
 interface FeedbackItem {
   id: string;
   name: string;
-  description: string;
+  question: string;
+  type?: "star" | "scale_10" | "radio";
+  required?: boolean;
+  options?: string[]; // for radio type
+  maxRating?: number; // for scale_10 type and star type
 }
 
-onMounted(() => {
-  console.log(newTemplateView.value, "Mounted newTemplateView", category);
-});
-
-/******************************
- * Fetch data
- *******************************/
-const newTemplateView = computed(() => {
-  return formTemplatesView.value?.[0];
-});
-
-const { data: formTemplatesView } = await useAsyncData(
-  "projectsList",
-  async () => {
-    try {
-      let { data: rating_types, error } = await supabase
-        .from("rating_types")
-        .select("*")
-        .eq("code", category);
-
-      if (error) throw new Error(error.message);
-      return rating_types;
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-      return [];
-    }
-  },
-  {
-    server: true,
-  }
-);
 /******************************
  * form validation schema
  *******************************/
@@ -54,7 +29,7 @@ const feedbackItemSchema = z.object({
       required_error: "項目名は必須です",
     })
     .min(1, "項目名は必須です"),
-  description: z
+  question: z
     .string({
       required_error: "項目の説明は必須です",
     })
@@ -65,20 +40,6 @@ const formSchema = toTypedSchema(
   z.object({
     formName: z.string().min(1, "フォーム名は必須です"),
     formDescription: z.string().min(1, "フォームの説明は必須です"),
-    buttonBgColor: z
-      .string()
-      .optional()
-      .refine((val) => !val || /^#[0-9A-Fa-f]{6}$/.test(val), {
-        message:
-          "カラーコードは#から始まる6桁の16進数で入力してください（例：#FF5733）",
-      }),
-    buttonTextColor: z
-      .string()
-      .optional()
-      .refine((val) => !val || /^#[0-9A-Fa-f]{6}$/.test(val), {
-        message:
-          "カラーコードは#から始まる6桁の16進数で入力してください（例：#FF5733）",
-      }),
     feedbackItems: z
       .array(feedbackItemSchema)
       .min(1, "少なくとも1つの項目が必要です")
@@ -93,7 +54,7 @@ const feedbackItems = ref<FeedbackItem[]>([
   {
     id: "1",
     name: "",
-    description: "",
+    question: "",
   },
 ]);
 const maxItems = 3;
@@ -106,7 +67,7 @@ const addFeedbackItem = () => {
     feedbackItems.value.push({
       id: newId,
       name: "",
-      description: "",
+      question: "",
     });
   }
 };
@@ -116,6 +77,33 @@ const removeFeedbackItem = (index: number) => {
   }
 };
 
+/*******************************
+ * fetch form catalog
+ *******************************/
+const thumbnail = computed(() => {
+  const template = formTemplates.value?.find((t) => t.form_type === type);
+  return template ? template.thumbnail : "";
+});
+
+const { data: formTemplates } = await useAsyncData(
+  "formTemplates",
+  async () => {
+    try {
+      const { data, error } = await supabase
+        .from("form_template_catalog")
+        .select("*")
+        .order("is_featured", { ascending: false })
+        .eq("form_type", type);
+
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (error) {
+      console.error("Error fetching form templates:", error);
+      return [];
+    }
+  }
+);
+
 /******************************
  * form handling
  *******************************/
@@ -124,14 +112,60 @@ const form = useForm({
   initialValues: {
     formName: "",
     formDescription: "",
-    buttonBgColor: "",
-    buttonTextColor: "",
     feedbackItems: feedbackItems.value,
   },
 });
 
-const onSubmit = form.handleSubmit((values) => {
-  console.log("Form submitted!", values);
+const onSubmit = form.handleSubmit(async (values) => {
+  console.log("Form values", values);
+  const { data, error } = await supabase
+    .from("my_forms")
+    .insert([
+      {
+        user_id: user.value?.id || null,
+        form_type: type,
+        title: values.formName,
+        description: values.formDescription,
+        feedback_items: values.feedbackItems.map((item) => ({
+          name: item.name,
+          question: item.question,
+          type: type,
+          required: true,
+          options: [],
+          max_rating:
+            type === "star" ? 5 : type === "scale_10" ? 10 : undefined,
+        })),
+        is_published: true,
+        embed_code: "",
+        thumbnail: thumbnail.value,
+      },
+    ])
+    .select();
+
+  if (error) {
+    console.error("Error saving form:", error);
+    toast.error("フィードバックフォームの保存に失敗しました。", {
+      description: error.message || "不明なエラーが発生しました。",
+    });
+    return;
+  }
+
+  console.log("Form saved successfully:", data);
+
+  // clear the form state
+  form.resetForm();
+
+  // show success message
+  toast.success("フィードバックフォームが作成されました！", {
+    description: "マイフォーム一覧から確認できます。",
+  });
+
+  setTimeout(() => {
+    //TODO: Redirect to the newly created form's page
+    navigateTo("/my-forms");
+  }, 2000);
+
+  return data;
 });
 </script>
 
@@ -143,9 +177,9 @@ const onSubmit = form.handleSubmit((values) => {
         class="flex items-center justify-between w-full sticky top-0 z-100 bg-background border-b border-border py-4"
       >
         <PageTitle title="フィードバックフォームの作成" size="medium" />
-        <Button @click="onSubmit" variant="main" class="cursor-pointer"
-          >保存する</Button
-        >
+        <Button @click="onSubmit" variant="main" class="cursor-pointer">
+          保存する
+        </Button>
       </div>
 
       <!-- main -->
@@ -207,7 +241,7 @@ const onSubmit = form.handleSubmit((values) => {
                 size="small"
               />
 
-              <template v-if="category === 'star'">
+              <template v-if="type === 'star'">
                 <div
                   v-for="(item, index) in feedbackItems"
                   :key="item.id"
@@ -257,7 +291,7 @@ const onSubmit = form.handleSubmit((values) => {
 
                   <FormField
                     v-slot="{ componentField }"
-                    :name="`feedbackItems.${index}.description`"
+                    :name="`feedbackItems.${index}.question`"
                   >
                     <FormItem>
                       <FormLabel>項目{{ index + 1 }}の説明</FormLabel>
@@ -266,7 +300,7 @@ const onSubmit = form.handleSubmit((values) => {
                           type="text"
                           placeholder="例: デザインの美しさや一貫性について評価してください"
                           v-bind="componentField"
-                          v-model="feedbackItems[index].description"
+                          v-model="feedbackItems[index].question"
                         />
                       </FormControl>
                       <FormDescription class="text-xs">
@@ -292,51 +326,6 @@ const onSubmit = form.handleSubmit((values) => {
                 <span class="flex self-center text-xs text-muted-foreground">
                   残り{{ remainingItems }}つまで
                 </span>
-              </div>
-            </div>
-
-            <!-- step-3 -->
-            <div class="flex flex-col gap-6 p-8 border rounded-md shadow-sm">
-              <PageTitle
-                title="3.フォームの見た目"
-                description="フォームの見た目を設定してください。"
-                size="small"
-              />
-              <div class="flex flex-col gap-6">
-                <FormField v-slot="{ componentField }" name="buttonBgColor">
-                  <FormItem>
-                    <FormLabel> ボタンの背景 </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="#FF5733"
-                        v-bind="componentField"
-                      />
-                    </FormControl>
-                    <FormDescription class="text-xs">
-                      ボタンに使用するカラーコードを入力してください。
-                      例:#FF5733
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-                <FormField v-slot="{ componentField }" name="buttonTextColor">
-                  <FormItem>
-                    <FormLabel> ボタンのテキスト </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="#FF5733"
-                        v-bind="componentField"
-                      />
-                    </FormControl>
-                    <FormDescription class="text-xs">
-                      ボタンのテキストに使用するカラーコードを入力してください。
-                      例:#FF5733
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
               </div>
             </div>
           </form>
@@ -371,7 +360,7 @@ const onSubmit = form.handleSubmit((values) => {
             </div>
 
             <!-- rating items -->
-            <template v-if="category === 'star'">
+            <template v-if="type === 'star'">
               <div
                 v-for="(item, index) in feedbackItems"
                 :key="item.id"
@@ -389,7 +378,7 @@ const onSubmit = form.handleSubmit((values) => {
                 </p>
                 <span class="text-xs text-muted-foreground">
                   {{
-                    item.description ||
+                    item.question ||
                     "フィードバックを収集するための項目を設定します。"
                   }}
                 </span>
@@ -428,15 +417,7 @@ const onSubmit = form.handleSubmit((values) => {
             </div>
 
             <!-- form submit -->
-            <Button
-              class="w-full cursor-pointer"
-              :style="
-                form.values.buttonBgColor
-                  ? `background-color: ${form.values.buttonBgColor};
-                  color: ${form.values.buttonTextColor || '#fff'};`
-                  : ''
-              "
-            >
+            <Button class="w-full cursor-pointer">
               フィードバックを送信する
             </Button>
           </div>

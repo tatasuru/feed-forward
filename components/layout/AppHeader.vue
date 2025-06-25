@@ -31,17 +31,18 @@ const toggleSidebar = () => {
 
 // get unread notifications
 async function fetchUnreadNotifications() {
-  const { data, error } = await supabase.rpc("get_user_notifications", {
-    p_user_id: user.value?.id,
-    p_unread_only: true,
-  });
+  let { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", user.value?.id)
+    .eq("is_read", false);
 
   if (error) {
     console.error("通知の取得に失敗しました:", error);
     return [];
   }
 
-  return data.notifications || [];
+  return data as Notification[];
 }
 
 // read notifications post

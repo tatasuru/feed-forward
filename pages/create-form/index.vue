@@ -5,26 +5,31 @@ const supabase = useSupabaseClient();
 
 type FormTemplate = {
   id: number;
-  category: string;
+  form_type: string;
   description: string;
   is_featured: boolean;
   name: string;
+  thumbnail: string;
   item_count: number;
-  preview_items: {
-    name: string;
-    description: string;
-    display_order: number;
-    rating_code: string;
-    rating_type: string;
+  preview_data: {
+    id: number;
+    title: string;
+    type: "star" | "scale_10" | "radio";
+    question: string;
+    required: boolean;
+    options?: string[]; // for radio type
+    max_rating?: number; // for scale_10 type and star type
   }[];
 };
 
 type RatingPerCriteria = {
-  name: string;
-  description: string;
-  display_order: number;
-  rating_code: string;
-  rating_type: string;
+  id: number;
+  title: string;
+  type: "star" | "scale_10" | "radio";
+  question: string;
+  required: boolean;
+  options?: string[]; // for radio type
+  max_rating?: number; // for scale_10 type and star type
   value?: number;
 };
 
@@ -32,39 +37,6 @@ type RatingPerCriteria = {
  * for forms preview
  ********************************/
 const ratingPerCriteria = ref<RatingPerCriteria[]>([]);
-
-const hoverStarIndexObj = ref<{
-  [key: number]: number;
-}>({
-  0: -1,
-  1: -1,
-  2: -1,
-});
-
-function clickPreviewButton(id: number, e: Event) {
-  e.preventDefault();
-  e.stopPropagation();
-  hoverStarIndexObj.value = {
-    0: -1,
-    1: -1,
-    2: -1,
-  };
-
-  const template = newTemplate.value?.find((template) => template.id === id);
-  if (template) {
-    ratingPerCriteria.value = template.preview_items.map((item) => ({
-      name: item.name,
-      description: item.description,
-      display_order: item.display_order,
-      rating_code: item.rating_code,
-      rating_type: item.rating_type,
-      value: 0,
-    }));
-  } else {
-    console.error("Template not found for ID:", id);
-    ratingPerCriteria.value = [];
-  }
-}
 
 /********************************
  * for form templates
@@ -77,7 +49,7 @@ const { data: formTemplates } = await useAsyncData(
   async () => {
     try {
       let { data: templates, error } = await supabase
-        .from("template_catalog")
+        .from("form_template_catalog")
         .select("*")
         .order("is_featured", { ascending: false });
 
@@ -109,7 +81,7 @@ const { data: formTemplates } = await useAsyncData(
         class="cursor-pointer hover:shadow-lg transition-shadow duration-200 grid grid-rows-subgrid row-span-3"
       >
         <NuxtImg
-          :src="`/${template.category}-feedback-thumbnail.png`"
+          :src="template.thumbnail"
           :alt="`${template.name}テンプレート`"
           class="w-full h-32 object-contain rounded-t-md"
         />
@@ -132,7 +104,7 @@ const { data: formTemplates } = await useAsyncData(
                 variant="link"
                 type="button"
                 class="p-0 size-fit text-xs text-purple hover:underline cursor-pointer"
-                @click="(e: Event) => clickPreviewButton(template.id, e)"
+                @click="ratingPerCriteria = template.preview_data"
               >
                 プレビューを見る
               </Button>
@@ -154,15 +126,15 @@ const { data: formTemplates } = await useAsyncData(
                 >
                   <!-- for star -->
                   <div
-                    v-if="criteria.rating_code === 'star'"
+                    v-if="criteria.type === 'star'"
                     class="flex flex-col gap-2"
                   >
                     <div class="flex flex-col gap-1">
                       <p class="text-sm font-medium">
-                        {{ criteria.name }}
+                        {{ criteria.title }}
                       </p>
                       <span class="flex text-xs text-muted-foreground">
-                        {{ criteria.description }}
+                        {{ criteria.question }}
                       </span>
                     </div>
                     <div class="flex items-center justify-between">
@@ -174,41 +146,28 @@ const { data: formTemplates } = await useAsyncData(
                           type="button"
                           size="icon"
                           class="cursor-pointer rounded-full hover:bg-yellow-500/20 dark:hover:bg-yellow-500/20"
-                          @click="hoverStarIndexObj[criteriaIndex] = index"
                         >
                           <Icon
-                            v-if="hoverStarIndexObj[criteriaIndex] >= index"
-                            name="mdi:star"
-                            class="!size-6 text-yellow-500"
-                          />
-                          <Icon
-                            v-else
                             name="mdi:star-outline"
                             class="!size-6 text-muted-foreground hover:text-yellow-500"
                           />
                         </Button>
                       </div>
-                      <span class="text-sm text-muted-foreground">
-                        {{
-                          hoverStarIndexObj[criteriaIndex] < 0
-                            ? 0
-                            : hoverStarIndexObj[criteriaIndex] + 1
-                        }}/5
-                      </span>
+                      <span class="text-sm text-muted-foreground"> 0/5 </span>
                     </div>
                   </div>
 
                   <!-- for scale_10 -->
                   <div
-                    v-else-if="criteria.rating_code === 'scale_10'"
+                    v-else-if="criteria.type === 'scale_10'"
                     class="flex flex-col gap-2"
                   >
                     <div class="flex flex-col gap-1">
                       <p class="text-sm font-medium">
-                        {{ criteria.name }}
+                        {{ criteria.title }}
                       </p>
                       <span class="flex text-xs text-muted-foreground">
-                        {{ criteria.description }}
+                        {{ criteria.question }}
                       </span>
                     </div>
                     <div class="flex items-center justify-between">
@@ -220,32 +179,25 @@ const { data: formTemplates } = await useAsyncData(
                           type="button"
                           size="icon"
                           class="cursor-pointer"
-                          @click="hoverStarIndexObj[criteriaIndex] = index - 1"
                         >
                           {{ index }}
                         </Button>
                       </div>
-                      <span class="text-sm text-muted-foreground">
-                        {{
-                          hoverStarIndexObj[criteriaIndex] < 0
-                            ? 0
-                            : hoverStarIndexObj[criteriaIndex] + 1
-                        }}/10
-                      </span>
+                      <span class="text-sm text-muted-foreground"> 0/10 </span>
                     </div>
                   </div>
 
                   <!-- for radio -->
                   <div
-                    v-if="criteria.rating_code === 'radio'"
+                    v-if="criteria.type === 'radio'"
                     class="flex flex-col gap-2"
                   >
                     <div class="flex flex-col gap-1">
                       <p class="text-sm font-medium">
-                        {{ criteria.name }}
+                        {{ criteria.title }}
                       </p>
                       <span class="flex text-xs text-muted-foreground">
-                        {{ criteria.description }}
+                        {{ criteria.question }}
                       </span>
                     </div>
                     <div class="flex flex-col gap-2">
@@ -296,7 +248,7 @@ const { data: formTemplates } = await useAsyncData(
           </Dialog>
           <Button variant="main" class="w-full cursor-pointer" as-child>
             <NuxtLink
-              :to="`/create-form/${template.category}`"
+              :to="`/create-form/${template.form_type}`"
               class="flex items-center gap-1"
             >
               <Icon name="mdi:plus" />

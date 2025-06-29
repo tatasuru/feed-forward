@@ -46,8 +46,30 @@ const { data: myFormsList } = await useAsyncData("myFormsList", async () => {
       </Button>
     </div>
 
-    <div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
+    <div
+      v-if="!myFormsList || myFormsList.length > 0"
+      class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6"
+    >
       <MyFormCard v-for="form in myFormsList" :key="form.id" :myForm="form" />
+    </div>
+
+    <div
+      v-else
+      class="border border-purple-500/20 rounded-lg p-6 bg-purple-50 text-purple-800 flex flex-col items-center justify-center gap-4"
+    >
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-center">
+          あなたのフォームはまだありません。
+          <br />
+          フォームを作成して、フィードバックを受け取りましょう！
+        </span>
+      </div>
+      <Button variant="main" class="w-fit cursor-pointer">
+        <NuxtLink to="/create-form" class="flex items-center gap-1">
+          <Icon name="mdi:plus" />
+          フォームを作成
+        </NuxtLink>
+      </Button>
     </div>
   </div>
 </template>

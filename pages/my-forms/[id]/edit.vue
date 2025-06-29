@@ -9,6 +9,8 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const route = useRoute();
 const router = useRouter();
+const isDeleting = ref<boolean>(false);
+const isSubmitting = ref<boolean>(false);
 
 interface FeedbackItem {
   id: string;
@@ -128,9 +130,7 @@ const form = useForm({
   },
 });
 
-const onSubmit = form.handleSubmit(async (values) => {
-  console.log("Form values", values);
-
+async function updateForm(values: any) {
   const { data, error } = await supabase
     .from("my_forms")
     .update({
@@ -138,7 +138,7 @@ const onSubmit = form.handleSubmit(async (values) => {
       form_type: type.value,
       title: values.formName,
       description: values.formDescription,
-      feedback_items: values.feedbackItems.map((item) => ({
+      feedback_items: values.feedbackItems.map((item: FeedbackItem) => ({
         name: item.name,
         question: item.question,
         type: type.value,
@@ -157,15 +157,57 @@ const onSubmit = form.handleSubmit(async (values) => {
     })
     .eq("id", route.params.id)
     .select();
+
   if (error) {
-    console.error("Error saving form:", error);
-    toast.error("フィードバックフォームの保存に失敗しました。", {
-      description: error.message || "不明なエラーが発生しました。",
-    });
-    return;
+    throw new Error(error.message);
   }
 
-  console.log("Form saved successfully:", data);
+  return data;
+}
+
+async function deleteForm() {
+  isDeleting.value = true;
+
+  const { error } = await supabase
+    .from("my_forms")
+    .delete()
+    .eq("id", route.params.id);
+
+  if (error) {
+    toast.error("フィードバックフォームの削除に失敗しました。", {
+      description: error.message || "不明なエラーが発生しました。",
+    });
+    isDeleting.value = false;
+    throw new Error(error.message);
+  }
+
+  // show success message
+  toast.success("フィードバックフォームを削除しました。", {
+    description: "マイフォームに戻ります。",
+  });
+
+  setTimeout(() => {
+    //TODO: Redirect to the newly created form's page
+    navigateTo("/my-forms");
+  }, 2000);
+}
+
+const onSubmit = form.handleSubmit(async (values) => {
+  console.log("Form values", values);
+  isSubmitting.value = true;
+
+  const result = await updateForm(values)
+    .then((data) => {
+      console.log("Form updated successfully:", data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("Error updating form:", error);
+      toast.error("フィードバックフォームの更新に失敗しました。", {
+        description: error.message || "不明なエラーが発生しました。",
+      });
+      return null;
+    });
 
   // show success message
   toast.success("フィードバックフォームが更新されました！");
@@ -174,7 +216,8 @@ const onSubmit = form.handleSubmit(async (values) => {
   hasUnsavedChanges.value = false;
   initialFormValues.value = JSON.stringify(form.values);
 
-  return data;
+  isSubmitting.value = false;
+  return result;
 });
 
 /******************************
@@ -243,12 +286,60 @@ watch(
     <div class="flex flex-col gap-4">
       <!-- header -->
       <div
-        class="flex items-center justify-between w-full sticky top-0 z-100 bg-background border-b border-border py-4"
+        class="flex items-center justify-between w-full sticky top-0 z-50 bg-background border-b border-border py-4"
       >
-        <PageTitle title="フィードバックフォームの作成" size="medium" />
-        <Button @click="onSubmit" variant="main" class="cursor-pointer">
-          保存する
-        </Button>
+        <PageTitle title="フィードバックフォームの編集" size="medium" />
+        <div class="flex items-center gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger as-child>
+              <Button
+                variant="outline"
+                class="cursor-pointer border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                削除する
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle> フォームを削除しますか？ </AlertDialogTitle>
+                <AlertDialogDescription>
+                  この操作は元に戻せません。フォームを削除すると、すべてのデータが失われます。
+                  <br />
+                  本当に削除しますか？
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel class="cursor-pointer">
+                  キャンセル
+                </AlertDialogCancel>
+                <Button
+                  variant="destructive"
+                  @click="deleteForm"
+                  class="cursor-pointer"
+                  :class="isDeleting ? 'opacity-50 cursor-not-allowed' : ''"
+                >
+                  <template v-if="isDeleting">
+                    <Icon name="mdi:loading" class="!size-4 animate-spin" />
+                    削除中...
+                  </template>
+                  <span v-else>削除する</span>
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button
+            @click="onSubmit"
+            variant="main"
+            class="cursor-pointer"
+            :class="isSubmitting ? 'opacity-50 cursor-not-allowed' : ''"
+          >
+            <template v-if="isSubmitting">
+              <Icon name="mdi:loading" class="!size-4 animate-spin" />
+              保存中...
+            </template>
+            <span v-else>保存する</span>
+          </Button>
+        </div>
       </div>
 
       <!-- main -->

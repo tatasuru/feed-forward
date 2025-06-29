@@ -8,6 +8,7 @@ import { toast } from "vue-sonner";
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const route = useRoute();
+const isSubmitting = ref<boolean>(false);
 const type = route.params.type as "star" | "scale_10" | "radio";
 
 interface FeedbackItem {
@@ -116,8 +117,7 @@ const form = useForm({
   },
 });
 
-const onSubmit = form.handleSubmit(async (values) => {
-  console.log("Form values", values);
+async function createForm(values: any) {
   const { data, error } = await supabase
     .from("my_forms")
     .insert([
@@ -126,7 +126,7 @@ const onSubmit = form.handleSubmit(async (values) => {
         form_type: type,
         title: values.formName,
         description: values.formDescription,
-        feedback_items: values.feedbackItems.map((item) => ({
+        feedback_items: values.feedbackItems.map((item: FeedbackItem) => ({
           name: item.name,
           question: item.question,
           type: type,
@@ -143,14 +143,28 @@ const onSubmit = form.handleSubmit(async (values) => {
     .select();
 
   if (error) {
-    console.error("Error saving form:", error);
-    toast.error("フィードバックフォームの保存に失敗しました。", {
-      description: error.message || "不明なエラーが発生しました。",
-    });
-    return;
+    console.error("Error creating form:", error);
+    throw new Error(error.message);
   }
 
-  console.log("Form saved successfully:", data);
+  return data[0];
+}
+
+const onSubmit = form.handleSubmit(async (values) => {
+  console.log("Form values:", values);
+  isSubmitting.value = true;
+
+  const result = createForm(values)
+    .then((data) => {
+      console.log("Form created successfully:", data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("Error creating form:", error);
+      toast.error("フィードバックフォームの作成に失敗しました。", {
+        description: error.message || "不明なエラーが発生しました。",
+      });
+    });
 
   // clear the form state
   form.resetForm();
@@ -165,7 +179,8 @@ const onSubmit = form.handleSubmit(async (values) => {
     navigateTo("/my-forms");
   }, 2000);
 
-  return data;
+  isSubmitting.value = false;
+  return result;
 });
 </script>
 
@@ -174,11 +189,20 @@ const onSubmit = form.handleSubmit(async (values) => {
     <div class="flex flex-col gap-4">
       <!-- header -->
       <div
-        class="flex items-center justify-between w-full sticky top-0 z-100 bg-background border-b border-border py-4"
+        class="flex items-center justify-between w-full sticky top-0 z-50 bg-background border-b border-border py-4"
       >
         <PageTitle title="フィードバックフォームの作成" size="medium" />
-        <Button @click="onSubmit" variant="main" class="cursor-pointer">
-          保存する
+        <Button
+          @click="onSubmit"
+          variant="main"
+          class="cursor-pointer"
+          :class="isSubmitting ? 'opacity-50 cursor-not-allowed' : ''"
+        >
+          <template v-if="isSubmitting">
+            <Icon name="mdi:loading" class="!size-4 animate-spin" />
+            保存中...
+          </template>
+          <span v-else>保存する</span>
         </Button>
       </div>
 

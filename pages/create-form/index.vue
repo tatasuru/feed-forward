@@ -68,11 +68,30 @@ const { data: formTemplates } = await useAsyncData(
 
 <template>
   <div id="create-project" class="flex flex-col w-full gap-8">
-    <PageTitle
-      title="テンプレート選択"
-      description="テンプレートからフィードバックフォームを作成できます。"
-      size="large"
-    />
+    <div class="flex items-center justify-between">
+      <PageTitle
+        title="テンプレート選択"
+        description="テンプレートからフィードバックフォームを作成できます。"
+        size="large"
+      />
+
+      <div class="relative w-full max-w-sm items-center">
+        <Input
+          id="search"
+          type="text"
+          placeholder="テンプレート検索..."
+          class="pl-10"
+        />
+        <div
+          class="absolute start-0 inset-y-0 flex items-center justify-center px-2"
+        >
+          <Icon
+            name="solar:magnifer-linear"
+            class="!size-5 text-muted-foreground"
+          />
+        </div>
+      </div>
+    </div>
 
     <div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
       <Card

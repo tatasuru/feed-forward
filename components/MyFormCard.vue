@@ -90,7 +90,8 @@ const props = defineProps<{
           :to="`/my-forms/${props.myForm.id}/detail`"
           class="flex items-center gap-1"
         >
-          フォーム詳細へ
+          フォーム詳細
+          <Icon name="mdi:arrow-right" />
         </NuxtLink>
       </Button>
     </CardFooter>

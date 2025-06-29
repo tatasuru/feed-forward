@@ -88,7 +88,7 @@ onMounted(async () => {
 
 <template>
   <header
-    class="flex items-center justify-between w-full p-2 px-6"
+    class="flex items-center justify-between w-full p-4 px-6"
     :class="{
       'p-2 px-4 md:p-4 w-full fixed top-0 shadow-md z-10 bg-background border-b':
         route.path === '/',
@@ -106,12 +106,18 @@ onMounted(async () => {
       <h1 class="text-xl md:text-2xl font-bold gradient-text">FeedForward</h1>
     </NuxtLink>
 
-    <!-- sidebar trigger -->
-    <SidebarTrigger
-      v-if="route.path !== '/'"
-      class="cursor-pointer"
-      @click="toggleSidebar"
-    />
+    <!-- left -->
+    <div class="flex items-center gap-4">
+      <!-- sidebar trigger -->
+      <SidebarTrigger
+        v-if="route.path !== '/'"
+        class="cursor-pointer"
+        @click="toggleSidebar"
+      />
+
+      <!-- search input -->
+      <Input id="search" type="text" placeholder="検索..." class="w-[300px]" />
+    </div>
 
     <!-- right menu -->
     <div class="items-center gap-1 md:gap-2 flex">

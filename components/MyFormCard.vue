@@ -75,11 +75,21 @@ const props = defineProps<{
         variant="link"
         type="button"
         class="p-0 size-fit text-xs text-purple hover:underline cursor-pointer gap-1"
+        as-child
       >
-        フォームを編集する
+        <NuxtLink
+          :to="`/my-forms/${props.myForm.id}/edit`"
+          class="flex items-center gap-1"
+        >
+          <Icon name="mdi:pencil" />
+          フォームを編集する
+        </NuxtLink>
       </Button>
       <Button variant="main" class="w-full cursor-pointer" as-child>
-        <NuxtLink to="/my-forms/detail/[id]" class="flex items-center gap-1">
+        <NuxtLink
+          :to="`/my-forms/${props.myForm.id}/detail`"
+          class="flex items-center gap-1"
+        >
           フォーム詳細へ
         </NuxtLink>
       </Button>

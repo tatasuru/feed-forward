@@ -67,7 +67,7 @@ const { data: formTemplates } = await useAsyncData(
 </script>
 
 <template>
-  <div id="create-project" class="flex flex-col w-full gap-8">
+  <div id="create-project" class="flex flex-col w-full gap-4">
     <div class="flex items-center justify-between">
       <PageTitle
         title="テンプレート選択"

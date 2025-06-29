@@ -185,7 +185,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div id="create-project" class="grid w-full h-full gap-8">
+  <div id="create-project" class="grid w-full h-full gap-4">
     <div class="flex flex-col gap-4">
       <!-- header -->
       <div

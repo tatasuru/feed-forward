@@ -12,7 +12,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div id="dashboard" class="grid w-full gap-12">
+  <div id="dashboard" class="grid w-full gap-4">
     <PageTitle
       title="ダッシュボード"
       description="プロジェクトとフィードバックの概要"

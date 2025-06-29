@@ -2,7 +2,6 @@
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
-import { ref, computed } from "vue";
 import { toast } from "vue-sonner";
 
 const supabase = useSupabaseClient();
@@ -282,7 +281,7 @@ watch(
 </script>
 
 <template>
-  <div id="create-project" class="grid w-full h-full gap-8">
+  <div id="create-project" class="grid w-full h-full gap-4">
     <div class="flex flex-col gap-4">
       <!-- header -->
       <div

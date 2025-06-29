@@ -31,7 +31,7 @@ const { data: myFormsList } = await useAsyncData("myFormsList", async () => {
 </script>
 
 <template>
-  <div id="create-project" class="grid w-full gap-8">
+  <div id="create-project" class="grid w-full gap-4">
     <div class="flex items-center justify-between">
       <PageTitle
         title="マイフォーム"

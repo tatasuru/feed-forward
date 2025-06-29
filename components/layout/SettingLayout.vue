@@ -30,7 +30,7 @@ const settingsMenu = [
 </script>
 
 <template>
-  <div id="settings" class="grid w-full gap-8">
+  <div id="settings" class="grid w-full gap-4">
     <PageTitle
       title="各種設定"
       description="アカウントの設定や通知の管理を行います"

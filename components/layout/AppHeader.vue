@@ -1,55 +1,16 @@
 <script setup lang="ts">
 import type { Notification } from "@/types/notifications.type";
+import { useSidebarStore } from "@/stores/sidebar";
 import { format } from "date-fns";
 import { toast } from "vue-sonner";
 
-const router = useRouter();
 const colorMode = useColorMode();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const store = useStore();
-const isOpen = ref<boolean>(false);
-const pageMenu = [
-  {
-    name: "ダッシュボード",
-    link: "/dashboard",
-    icon: "mdi:home",
-  },
-  {
-    name: "マイプロジェクト",
-    link: "/my-projects",
-    icon: "mdi:folder",
-  },
-  {
-    name: "新規プロジェクト作成",
-    link: "/create-project",
-    icon: "mdi:plus-circle-outline",
-  },
-  {
-    name: "みんなのプロジェクト",
-    link: "/projects",
-    icon: "mdi:earth",
-  },
-  {
-    name: "各種設定",
-    link: "/settings/account",
-    icon: "mdi:cog-outline",
-  },
-];
+const sidebarStore = useSidebarStore();
+const route = useRoute();
 const unreadNotifications = ref<Notification[]>([]);
-
-// for active link - changed to computed property for reactivity
-const isActive = (path: string) => {
-  if (path === "/") {
-    return router.currentRoute.value.path === path;
-  }
-
-  if (path.includes("settings")) {
-    return router.currentRoute.value.path.includes("settings");
-  }
-
-  return router.currentRoute.value.path.includes(path);
-};
 
 // for logout
 const logout = async () => {
@@ -63,19 +24,25 @@ const logout = async () => {
   }
 };
 
+// sidebar toggle
+const toggleSidebar = () => {
+  sidebarStore.toggleSidebar();
+};
+
 // get unread notifications
 async function fetchUnreadNotifications() {
-  const { data, error } = await supabase.rpc("get_user_notifications", {
-    p_user_id: user.value?.id,
-    p_unread_only: true,
-  });
+  let { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", user.value?.id)
+    .eq("is_read", false);
 
   if (error) {
     console.error("通知の取得に失敗しました:", error);
     return [];
   }
 
-  return data.notifications || [];
+  return data as Notification[];
 }
 
 // read notifications post
@@ -121,12 +88,12 @@ onMounted(async () => {
 
 <template>
   <header
-    class="flex items-center justify-between p-2 px-4 md:p-4 w-full fixed top-0 shadow-md z-10 bg-background border-b"
+    class="flex items-center justify-between w-full p-4 px-6"
+    :class="{
+      'p-2 px-4 md:p-4 w-full fixed top-0 shadow-md z-10 bg-background border-b':
+        route.path === '/',
+    }"
   >
-    <NuxtLink to="/">
-      <h1 class="text-xl md:text-2xl font-bold gradient-text">FeedForward</h1>
-    </NuxtLink>
-
     <!-- loading bar -->
     <NuxtLoadingIndicator
       :color="'#8658e1'"
@@ -135,25 +102,22 @@ onMounted(async () => {
       :throttle="0"
     />
 
-    <!-- page menus -->
-    <NavigationMenu v-if="user" class="md:flex hidden">
-      <NavigationMenuList>
-        <NavigationMenuItem v-for="menu in pageMenu" :key="menu.name">
-          <NuxtLink
-            :to="menu.link"
-            :class="[
-              isActive(menu.link)
-                ? 'bg-purple dark:bg-purple/40 text-white hover:bg-purple hover:text-white focus:bg-purple focus:text-white'
-                : 'text-foreground hover:bg-purple/10 hover:text-purple focus:bg-purple/10 focus:text-purple',
-            ]"
-            class="px-4 py-2 rounded-md dark:text-white flex items-center gap-1 text-sm"
-          >
-            <Icon :name="menu.icon" class="!size-5" />
-            {{ menu.name }}
-          </NuxtLink>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+    <NuxtLink v-if="route.path === '/'" to="/">
+      <h1 class="text-xl md:text-2xl font-bold gradient-text">FeedForward</h1>
+    </NuxtLink>
+
+    <!-- left -->
+    <div class="flex items-center gap-4">
+      <!-- sidebar trigger -->
+      <SidebarTrigger
+        v-if="route.path !== '/'"
+        class="cursor-pointer"
+        @click="toggleSidebar"
+      />
+
+      <!-- search input -->
+      <Input id="search" type="text" placeholder="検索..." class="w-[300px]" />
+    </div>
 
     <!-- right menu -->
     <div class="items-center gap-1 md:gap-2 flex">
@@ -367,61 +331,6 @@ onMounted(async () => {
           </Button>
         </div>
       </div>
-
-      <!-- hamburger menu -->
-      <Sheet :open="isOpen" @update:open="isOpen = $event">
-        <SheetTrigger v-if="user" as-child>
-          <Button
-            :variant="'ghost'"
-            class="cursor-pointer rounded-full flex md:hidden"
-            size="icon"
-            @click="isOpen = true"
-          >
-            <Icon
-              name="solar:hamburger-menu-linear"
-              class="dark:text-white text-black !size-5 flex"
-            />
-          </Button>
-        </SheetTrigger>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle class="text-xl md:text-2xl font-bold gradient-text">
-              FeedForward
-            </SheetTitle>
-          </SheetHeader>
-
-          <nav class="space-y-4 w-full p-4">
-            <div v-for="menu in pageMenu" :key="menu.name" class="w-full">
-              <NuxtLink
-                :to="menu.link"
-                :class="[
-                  'flex items-center w-full px-4 py-3 rounded-md transition-colors duration-200 text-sm gap-2',
-                  isActive(menu.link)
-                    ? 'bg-purple dark:bg-purple/40 text-white font-medium'
-                    : 'text-black dark:text-white hover:bg-purple/10 hover:text-purple',
-                ]"
-                @click="isOpen = false"
-              >
-                <Icon :name="menu.icon" class="!size-4" />
-                {{ menu.name }}
-              </NuxtLink>
-            </div>
-          </nav>
-
-          <Separator />
-
-          <div class="p-4">
-            <Button
-              :variant="'ghost'"
-              class="cursor-pointer w-full justify-center text-destructive hover:bg-destructive/10 hover:text-destructive"
-              @click="logout"
-            >
-              <Icon name="mdi:logout" class="size-4 mr-2" />
-              ログアウト
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   </header>
 </template>

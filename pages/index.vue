@@ -1,7 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: "auth",
-  layout: "home",
   title:
     "デザイン・コードのフィードバックプラットフォーム FeedForward – AI分析で制作物の品質向上",
   description:

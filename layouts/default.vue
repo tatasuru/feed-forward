@@ -1,15 +1,31 @@
 <script setup lang="ts">
+import { useSidebarStore } from "@/stores/sidebar";
+import AppSidebar from "@/components/layout/AppSidebar.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
+
+const route = useRoute();
+const sidebarStore = useSidebarStore();
+
+onMounted(() => {
+  const sidebarOpen = localStorage.getItem("sidebarOpen");
+
+  if (sidebarOpen) {
+    sidebarStore.setSidebarOpen(sidebarOpen === "true");
+  } else {
+    sidebarStore.setSidebarOpen(true);
+    localStorage.setItem("sidebarOpen", "true");
+  }
+});
 </script>
 
 <template>
-  <div class="w-full">
-    <AppHeader />
-
-    <main
-      class="mx-auto w-full min-h-svh md:min-h-screen mt-[53px] md:mt-[68px] max-w-[1440px] px-4 pt-8 pb-12 md:p-8"
-    >
-      <NuxtPage />
+  <SidebarProvider :open="sidebarStore.isSidebarOpen">
+    <AppSidebar v-if="route.path !== '/'" />
+    <main class="flex-1 flex flex-col">
+      <AppHeader />
+      <div class="py-2 px-6 min-h-[calc(100svh-52px)]">
+        <slot />
+      </div>
     </main>
-  </div>
+  </SidebarProvider>
 </template>

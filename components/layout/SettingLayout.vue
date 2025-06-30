@@ -30,7 +30,7 @@ const settingsMenu = [
 </script>
 
 <template>
-  <div id="settings" class="grid w-full gap-8">
+  <div id="settings" class="grid w-full gap-4">
     <PageTitle
       title="各種設定"
       description="アカウントの設定や通知の管理を行います"
@@ -55,8 +55,8 @@ const settingsMenu = [
               class="w-full text-left rounded-md py-2 px-4 flex items-center gap-2 flex-row dark:text-white text-sm"
               :class="
                 currentPath === menu.link
-                  ? 'bg-purple dark:bg-purple/40 text-white hover:bg-purple hover:text-white focus:bg-purple focus:text-white'
-                  : 'hover:bg-purple/10 hover:text-purple transition-colors'
+                  ? 'bg-purple/20 dark:bg-purple/40 text-purple hover:bg-purple/20 hover:text-purple focus:bg-purple/20 focus:text-purple active:bg-purple/20 active:text-purple'
+                  : 'hover:bg-purple/20 hover:text-purple transition-colors active:bg-purple/20 active:text-purple focus:bg-purple/20 focus:text-purple'
               "
             >
               <Icon :name="menu.icon" class="!size-5" />
@@ -87,8 +87,8 @@ const settingsMenu = [
                   class="w-full text-left rounded-md py-2 px-4 flex items-center gap-2 flex-row dark:text-white text-sm"
                   :class="
                     currentPath === menu.link
-                      ? 'bg-purple text-background hover:bg-purple hover:text-background'
-                      : 'hover:bg-purple/10 hover:text-purple transition-colors'
+                      ? 'bg-purple/20 dark:bg-purple/40 text-purple hover:bg-purple/20 hover:text-purple focus:bg-purple/20 focus:text-purple active:bg-purple/20 active:text-purple'
+                      : 'hover:bg-purple/20 hover:text-purple transition-colors active:bg-purple/20 active:text-purple focus:bg-purple/20 focus:text-purple'
                   "
                 >
                   <Icon :name="menu.icon" class="!size-5" />

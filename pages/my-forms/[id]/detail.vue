@@ -264,15 +264,28 @@ const table = useVueTable({
         description="フォームの詳細を確認できます。"
         size="large"
       />
-      <Button variant="main" type="button" as-child>
-        <NuxtLink
-          :to="`/my-forms/${$route.params.id}/edit`"
-          class="flex items-center gap-1"
-        >
-          <Icon name="mdi:pencil" />
-          フォームを編集する
-        </NuxtLink>
-      </Button>
+
+      <div class="flex items-center gap-2">
+        <Button variant="mainOutline" type="button" as-child>
+          <NuxtLink
+            :to="`/my-forms/${$route.params.id}/preview`"
+            class="flex items-center gap-1"
+            target="_blank"
+          >
+            <Icon name="mdi:eye" />
+            フォームプレビュー
+          </NuxtLink>
+        </Button>
+        <Button variant="main" type="button" as-child>
+          <NuxtLink
+            :to="`/my-forms/${$route.params.id}/edit`"
+            class="flex items-center gap-1"
+          >
+            <Icon name="mdi:pencil" />
+            フォームを編集する
+          </NuxtLink>
+        </Button>
+      </div>
     </div>
 
     <Tabs default-value="analytics" class="w-full">
@@ -427,11 +440,11 @@ const table = useVueTable({
           orientation="vertical"
         >
           <TabsList
-            class="w-[150px] bg-background flex-col border-none justify-start rounded-none p-0 relative"
+            class="w-full max-w-[200px] bg-background flex-col border-none justify-start rounded-none p-0 relative"
           >
             <TabsTrigger
               value="share"
-              class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/10 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none"
+              class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/20 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none"
             >
               共有設定
             </TabsTrigger>

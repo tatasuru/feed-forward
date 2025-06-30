@@ -269,6 +269,10 @@ const { data: formTemplates } = await useAsyncData(
             <NuxtLink
               :to="`/create-form/${template.form_type}`"
               class="flex items-center gap-1"
+              :class="
+                template.form_type !== 'star' &&
+                'opacity-50 pointer-events-none'
+              "
             >
               <Icon name="mdi:plus" />
               このテンプレートを使う

@@ -10,6 +10,7 @@ const user = useSupabaseUser();
 const route = useRoute();
 const isSubmitting = ref<boolean>(false);
 const type = route.params.type as "star" | "scale_10" | "radio";
+const baseUrl = useRuntimeConfig().public.baseUrl;
 
 interface FeedbackItem {
   id: string;
@@ -137,6 +138,7 @@ async function createForm(values: any) {
         })),
         is_published: true,
         embed_code: "",
+        publish_url: "",
         thumbnail: thumbnail.value,
       },
     ])
@@ -359,89 +361,15 @@ const onSubmit = form.handleSubmit(async (values) => {
         <div
           class="w-full h-fit flex flex-col justify-center items-center gap-4 p-4 sticky top-20 z-10"
         >
-          <div
-            class="flex flex-col gap-6 border p-6 rounded-md w-full max-w-[520px] h-fit mx-auto shadow-sm"
-          >
-            <!-- title and description -->
-            <div>
-              <h2 class="text-lg font-semibold">
-                {{
-                  form.values.formName
-                    ? form.values.formName
-                    : "フィードバックフォームタイトル"
-                }}
-              </h2>
-              <p class="text-sm text-muted-foreground">
-                {{
-                  form.values.formDescription
-                    ? form.values.formDescription
-                    : "このフォームはフィードバックを収集するためのものです。"
-                }}
-              </p>
-            </div>
-
-            <!-- rating items -->
-            <template v-if="type === 'star'">
-              <div
-                v-for="(item, index) in feedbackItems"
-                :key="item.id"
-                :class="[
-                  'border-2 border-dashed p-4 rounded-md',
-                  index === 0
-                    ? 'border-pink'
-                    : index === 1
-                    ? 'border-purple'
-                    : 'border-blue',
-                ]"
-              >
-                <p class="text-sm font-medium">
-                  {{ item.name || `フィードバック項目${index + 1}` }}
-                </p>
-                <span class="text-xs text-muted-foreground">
-                  {{
-                    item.question ||
-                    "フィードバックを収集するための項目を設定します。"
-                  }}
-                </span>
-                <div class="flex items-center justify-between mt-3">
-                  <div class="flex items-center gap-2">
-                    <Button
-                      v-for="(_, starIndex) in [1, 2, 3, 4, 5]"
-                      :key="starIndex"
-                      variant="ghost"
-                      type="button"
-                      size="icon"
-                      class="cursor-pointer rounded-full hover:bg-yellow-500/20 dark:hover:bg-yellow-500/20"
-                    >
-                      <Icon
-                        name="mdi:star-outline"
-                        class="!size-6 text-muted-foreground hover:text-yellow-500"
-                      />
-                    </Button>
-                  </div>
-                  <span class="text-sm text-muted-foreground"> 0/5 </span>
-                </div>
-              </div>
-            </template>
-
-            <!-- comment -->
-            <div>
-              <p class="text-sm font-medium">コメント</p>
-              <Textarea
-                type="text"
-                placeholder="フィードバックを入力"
-                class="w-full h-24 border border-muted-foreground/20 rounded-md p-4"
-              />
-              <span class="text-xs text-muted-foreground">
-                フィードバックで伝えたい想いがあればご記入ください。
-              </span>
-            </div>
-
-            <!-- form submit -->
-            <Button class="w-full cursor-pointer">
-              フィードバックを送信する
-            </Button>
-          </div>
+          <StarForm
+            v-if="type === 'star'"
+            :form-title="form.values.formName"
+            :form-description="form.values.formDescription"
+            :type="type"
+            :feedback-items="feedbackItems"
+            :preview="false"
+            size="small"
+          />
         </div>
       </div>
     </div>

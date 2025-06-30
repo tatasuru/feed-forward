@@ -80,7 +80,9 @@ const isActive = (url: string) => {
       <Separator />
 
       <SidebarGroup>
-        <SidebarGroupLabel>アクション</SidebarGroupLabel>
+        <SidebarGroupLabel v-if="sidebarStore.isSidebarOpen">
+          アクション
+        </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>

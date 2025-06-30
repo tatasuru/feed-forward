@@ -34,12 +34,14 @@ const { data: myFormsDetails } = await useAsyncData(
 </script>
 
 <template>
-  <StarForm
-    :form-title="myFormsDetails.title"
-    :form-description="myFormsDetails.description"
-    :type="myFormsDetails.form_type"
-    :feedback-items="myFormsDetails?.feedback_items"
-    :preview="true"
-    size="large"
-  />
+  <div class="p-8">
+    <StarForm
+      :form-title="myFormsDetails.title"
+      :form-description="myFormsDetails.description"
+      :type="myFormsDetails.form_type"
+      :feedback-items="myFormsDetails?.feedback_items"
+      :preview="true"
+      size="large"
+    />
+  </div>
 </template>

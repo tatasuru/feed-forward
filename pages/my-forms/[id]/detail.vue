@@ -18,24 +18,9 @@ import {
 import { ArrowUpDown, ChevronDown } from "lucide-vue-next";
 import { h, ref } from "vue";
 import { valueUpdater } from "@/components/ui/table/utils";
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { toast } from "vue-sonner";
 
 export interface Feedback {
   id: string;
@@ -46,6 +31,17 @@ export interface Feedback {
   create_at: string;
 }
 
+const supabase = useSupabaseClient();
+const route = useRoute();
+const baseUrl = useRuntimeConfig().public.baseUrl;
+const fullPublishUrl = computed(() => {
+  if (!myFormsDetails.value?.publish_url) return "";
+  return baseUrl + myFormsDetails.value.publish_url;
+});
+
+/******************************
+ * For table view
+ ******************************/
 const data: Feedback[] = [
   {
     id: "1",
@@ -251,6 +247,50 @@ const table = useVueTable({
     },
   },
 });
+
+/******************************
+ * fetch form details
+ ******************************/
+const { data: myFormsDetails } = await useAsyncData(
+  `myFormsDetails`,
+  async () => {
+    try {
+      const { data, error } = await supabase
+        .from("my_forms")
+        .select("*")
+        .eq("id", route.params.id);
+
+      if (error) throw new Error(error.message);
+      return data[0];
+    } catch (error) {
+      console.error("Error fetching form templates:", error);
+      return [];
+    }
+  }
+);
+
+const isCopied = ref<boolean>(false);
+const copyUrl = async (text: string) => {
+  if (!text) {
+    console.error("コピーするURLがありません");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    isCopied.value = true;
+
+    // 2秒後にアイコンを元に戻す
+    setTimeout(() => {
+      isCopied.value = false;
+    }, 2000);
+
+    // 必要に応じてトースト通知を追加
+    toast.success("URLがコピーされました！");
+  } catch (error) {
+    console.error("コピーに失敗しました:", error);
+  }
+};
 </script>
 
 <template>
@@ -288,7 +328,7 @@ const table = useVueTable({
       </div>
     </div>
 
-    <Tabs default-value="analytics" class="w-full">
+    <Tabs default-value="analytics" class="w-full gap-4">
       <TabsList
         class="w-full bg-background border-b border-border justify-start rounded-none p-0 relative"
       >
@@ -316,9 +356,9 @@ const table = useVueTable({
       </TabsList>
       <TabsContent value="analytics"> analytics </TabsContent>
       <TabsContent value="feedbacks">
-        <div class="w-full">
+        <div class="w-full flex flex-col gap-2">
           <!-- header -->
-          <div class="flex items-center py-4">
+          <div class="flex items-center mb-2">
             <Input
               class="max-w-sm"
               placeholder="Filter emails..."
@@ -407,7 +447,7 @@ const table = useVueTable({
             </Table>
           </div>
           <!-- footer -->
-          <div class="flex items-center justify-end space-x-2 py-4">
+          <div class="flex items-center justify-end space-x-2">
             <div class="flex-1 text-sm text-muted-foreground">
               {{ table.getFilteredSelectedRowModel().rows.length }} of
               {{ table.getFilteredRowModel().rows.length }} row(s) selected.
@@ -450,7 +490,80 @@ const table = useVueTable({
             </TabsTrigger>
           </TabsList>
           <Separator orientation="vertical" class="h-full border-border" />
-          <TabsContent value="share"> 共有の設定 </TabsContent>
+          <TabsContent value="share" class="flex flex-col gap-4">
+            <PageTitle
+              title="共有設定"
+              description="フォームの共有設定を行います。"
+              size="medium"
+            />
+
+            <!-- publish url -->
+            <Card>
+              <CardHeader>
+                <CardTitle>フォームの専用リンク（URL）</CardTitle>
+                <CardDescription>
+                  フォームの専用リンクをコピーして、他の人と共有できます。
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div class="w-full relative">
+                  <Input class="w-full pr-16" :value="fullPublishUrl" readonly>
+                    {{ fullPublishUrl }}
+                  </Input>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
+                    @click="copyUrl(fullPublishUrl)"
+                  >
+                    <Icon name="mdi:content-copy" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <!-- iframe -->
+            <Card>
+              <CardHeader>
+                <CardTitle>埋め込みコード</CardTitle>
+                <CardDescription>
+                  フォームをウェブサイトに埋め込むためのコードです。
+                  <br />
+                  iFrameのwidthとheightは必要に応じて調整してください。
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div class="w-full relative">
+                  <Input
+                    class="w-full pr-16"
+                    :value="`<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`"
+                    readonly
+                  >
+                    {{ `<iframe
+                      src="${fullPublishUrl}"
+                      width="100%"
+                      height="500px"
+                      frameborder="0"
+                    >
+                    </iframe
+                    >` }}
+                  </Input>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
+                    @click="
+                      copyUrl(
+                        `<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`
+                      )
+                    "
+                  >
+                    <Icon name="mdi:content-copy" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </TabsContent>
     </Tabs>

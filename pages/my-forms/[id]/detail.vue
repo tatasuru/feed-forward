@@ -36,49 +36,60 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import DropdownAction from "./DataTableDemoColumn.vue";
 
-export interface Payment {
+export interface Feedback {
   id: string;
-  amount: number;
-  status: "pending" | "processing" | "success" | "failed";
-  email: string;
+  feedback_1: number;
+  feedback_2: number;
+  feedback_3: number;
+  comment: string;
+  create_at: string;
 }
 
-const data: Payment[] = [
+const data: Feedback[] = [
   {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
+    id: "1",
+    feedback_1: 2,
+    feedback_2: 3,
+    feedback_3: 4,
+    comment: "Great service!",
+    create_at: "2023-10-01T12:00:00Z",
   },
   {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
+    id: "2",
+    feedback_1: 2,
+    feedback_2: 1,
+    feedback_3: 4,
+    comment: "Great service!",
+    create_at: "2023-10-01T12:00:00Z",
   },
   {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
+    id: "3",
+    feedback_1: 2,
+    feedback_2: 4,
+    feedback_3: 5,
+    comment: "Great service!",
+    create_at: "2023-10-01T12:00:00Z",
   },
   {
-    id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@gmail.com",
+    id: "4",
+    feedback_1: 1,
+    feedback_2: 3,
+    feedback_3: 2,
+    comment: "Great service!",
+    create_at: "2023-10-01T12:00:00Z",
   },
   {
-    id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@hotmail.com",
+    id: "5",
+    feedback_1: 2,
+    feedback_2: 5,
+    feedback_3: 3,
+    comment: "Great service!",
+    create_at: "2023-10-01T12:00:00Z",
   },
 ];
 
-const columns: ColumnDef<Payment>[] = [
+const columns: ColumnDef<Feedback>[] = [
   {
     id: "select",
     header: ({ table }) =>
@@ -100,13 +111,23 @@ const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) =>
-      h("div", { class: "capitalize" }, row.getValue("status")),
+    id: "id",
+    accessorKey: "id",
+    header: ({ column }) => {
+      return h(
+        Button,
+        {
+          variant: "ghost",
+          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+          class: "cursor-pointer",
+        },
+        () => ["ID", h(ArrowUpDown, { class: "ml-2 h-4 w-4" })]
+      );
+    },
+    cell: ({ row }) => h("div", { class: "lowercase" }, row.getValue("id")),
   },
   {
-    accessorKey: "email",
+    accessorKey: "feedback_1",
     header: ({ column }) => {
       return h(
         Button,
@@ -114,38 +135,80 @@ const columns: ColumnDef<Payment>[] = [
           variant: "ghost",
           onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
         },
-        () => ["Email", h(ArrowUpDown, { class: "ml-2 h-4 w-4" })]
+        () => "文字の大きさ"
       );
     },
-    cell: ({ row }) => h("div", { class: "lowercase" }, row.getValue("email")),
+    cell: ({ row }) =>
+      h("div", { class: "lowercase" }, row.getValue("feedback_1")),
   },
   {
-    accessorKey: "amount",
-    header: () => h("div", { class: "text-right" }, "Amount"),
-    cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue("amount"));
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-
-      return h("div", { class: "text-right font-medium" }, formatted);
+    accessorKey: "feedback_2",
+    header: ({ column }) => {
+      return h(
+        Button,
+        {
+          variant: "ghost",
+          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+        },
+        () => "色使い"
+      );
     },
+    cell: ({ row }) =>
+      h("div", { class: "lowercase" }, row.getValue("feedback_2")),
   },
   {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-
-      // return h(DropdownAction, {
-      //   payment,
-      //   onExpand: row.toggleExpanded,
-      // });
+    accessorKey: "feedback_3",
+    header: ({ column }) => {
+      return h(
+        Button,
+        {
+          variant: "ghost",
+          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+        },
+        () => "わかりやすさ"
+      );
     },
+    cell: ({ row }) =>
+      h("div", { class: "lowercase" }, row.getValue("feedback_3")),
   },
+  {
+    accessorKey: "comment",
+    header: () => h("div", {}, "Comment"),
+    cell: ({ row }) => h("div", {}, row.getValue("comment")),
+  },
+  {
+    accessorKey: "create_at",
+    header: ({ column }) => {
+      return h(
+        Button,
+        {
+          variant: "ghost",
+          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+          class: "cursor-pointer",
+        },
+        () => ["フィードバック日", h(ArrowUpDown, { class: "ml-2 h-4 w-4" })]
+      );
+    },
+    cell: ({ row }) =>
+      h(
+        "div",
+        {},
+        new Date(row.getValue("create_at")).toLocaleDateString("ja-JP")
+      ),
+  },
+  // TODO: actions column
+  // {
+  //   id: "actions",
+  //   enableHiding: false,
+  //   cell: ({ row }) => {
+  //     const payment = row.original;
+
+  //     return h("div", {
+  //       payment,
+  //       onExpand: row.toggleExpanded,
+  //     });
+  //   },
+  // },
 ];
 
 const sorting = ref<SortingState>([]);
@@ -191,7 +254,10 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div id="create-project" class="grid w-full gap-4">
+  <div
+    id="create-project"
+    class="grid grid-rows-[auto_1fr] w-full h-full gap-4"
+  >
     <div class="flex items-center justify-between">
       <PageTitle
         title="フォーム詳細"
@@ -250,8 +316,9 @@ const table = useVueTable({
             />
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <Button variant="outline" class="ml-auto">
-                  Columns <ChevronDown class="ml-2 h-4 w-4" />
+                <Button variant="outline" class="ml-auto cursor-pointer">
+                  行の表示
+                  <ChevronDown class="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -339,7 +406,7 @@ const table = useVueTable({
                 :disabled="!table.getCanPreviousPage()"
                 @click="table.previousPage()"
               >
-                Previous
+                前へ
               </Button>
               <Button
                 variant="outline"
@@ -347,13 +414,32 @@ const table = useVueTable({
                 :disabled="!table.getCanNextPage()"
                 @click="table.nextPage()"
               >
-                Next
+                次へ
               </Button>
             </div>
           </div>
         </div>
       </TabsContent>
-      <TabsContent value="settings"> settings </TabsContent>
+      <TabsContent value="settings">
+        <Tabs
+          default-value="share"
+          class="flex-row gap-12 h-full"
+          orientation="vertical"
+        >
+          <TabsList
+            class="w-[150px] bg-background flex-col border-none justify-start rounded-none p-0 relative"
+          >
+            <TabsTrigger
+              value="share"
+              class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/10 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none"
+            >
+              共有設定
+            </TabsTrigger>
+          </TabsList>
+          <Separator orientation="vertical" class="h-full border-border" />
+          <TabsContent value="share"> 共有の設定 </TabsContent>
+        </Tabs>
+      </TabsContent>
     </Tabs>
   </div>
 </template>

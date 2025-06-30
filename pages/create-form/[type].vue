@@ -166,9 +166,6 @@ const onSubmit = form.handleSubmit(async (values) => {
       });
     });
 
-  // clear the form state
-  form.resetForm();
-
   // show success message
   toast.success("フィードバックフォームが作成されました！", {
     description: "マイフォーム一覧から確認できます。",

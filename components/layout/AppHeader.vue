@@ -116,7 +116,13 @@ onMounted(async () => {
       />
 
       <!-- search input -->
-      <Input id="search" type="text" placeholder="検索..." class="w-[300px]" />
+      <Input
+        v-if="route.path !== '/'"
+        id="search"
+        type="text"
+        placeholder="検索..."
+        class="w-[300px]"
+      />
     </div>
 
     <!-- right menu -->

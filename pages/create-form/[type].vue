@@ -226,7 +226,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                     <FormControl>
                       <Input
                         type="text"
-                        placeholder="プロジェクト"
+                        placeholder="フィードバックフォーム"
                         v-bind="componentField"
                       />
                     </FormControl>
@@ -240,10 +240,11 @@ const onSubmit = form.handleSubmit(async (values) => {
                   <FormItem>
                     <FormLabel>フォームの説明</FormLabel>
                     <FormControl>
-                      <Input
+                      <Textarea
                         type="text"
                         placeholder="このフォームはフィードバックを収集するためのものです。"
                         v-bind="componentField"
+                        class="h-24"
                       />
                     </FormControl>
                     <FormDescription class="text-xs">

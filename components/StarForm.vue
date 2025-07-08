@@ -167,8 +167,16 @@ onMounted(() => {
         :name="`ratings[${index}]`"
       >
         <FormItem
-          class="flex flex-col"
-          :class="[props.size === 'small' ? 'gap-2' : 'gap-4']"
+          class="flex flex-col border-dashed rounded-lg"
+          :class="[
+            props.size === 'small' ? 'gap-2 p-4' : 'gap-4',
+            index === 0
+              ? 'border-pink'
+              : index === 1
+              ? 'border-purple'
+              : 'border-blue',
+            preview ? 'border-2' : '',
+          ]"
         >
           <div class="flex flex-col gap-1">
             <FormLabel

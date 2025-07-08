@@ -15,7 +15,21 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { ArrowUpDown, ChevronDown } from "lucide-vue-next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-vue-next";
 import { valueUpdater } from "@/components/ui/table/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -94,6 +108,8 @@ const tableData = computed<Feedback[]>(() => {
       feedback_2: feedback.response_data.items[1].rating,
       feedback_3: feedback.response_data.items[2].rating,
       comment: feedback.response_data.comment || "",
+      referrer_url:
+        feedback.referrer_url === "unknown" ? "" : feedback.referrer_url,
       create_at: feedback.created_at,
     })) || []
   );
@@ -101,7 +117,7 @@ const tableData = computed<Feedback[]>(() => {
 
 const feedbackHeaders = computed(() => {
   return (
-    myFormFeedbacks.value?.[0]?.response_data?.items.map(
+    myFormsDetails.value?.feedback_items.map(
       (item: any) => item.name || `フィードバック項目`
     ) || []
   );
@@ -127,7 +143,7 @@ const columns: ColumnDef<Feedback>[] = [
         "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
         ariaLabel: "Select row",
         class:
-          "cursor-pointer data-[state=checked]:bg-purple data-[state=checked]:border-purple data-[state=indeterminate]:bg-purple text-white"
+          "cursor-pointer data-[state=checked]:bg-purple data-[state=checked]:border-purple data-[state=indeterminate]:bg-purple text-white",
       }),
     enableSorting: false,
     enableHiding: false,
@@ -160,7 +176,7 @@ const columns: ColumnDef<Feedback>[] = [
           class: "cursor-pointer",
         },
         () => [
-          feedbackHeaders.value[0],
+          feedbackHeaders.value[0] || "フィードバック項目 1",
           h(ArrowUpDown, { class: "ml-2 h-4 w-4" }),
         ]
       );
@@ -208,11 +224,11 @@ const columns: ColumnDef<Feedback>[] = [
   },
   {
     accessorKey: "comment",
-    header: () => h("div", {}, "Comment"),
+    header: () => h("div", {}, "コメント"),
     cell: ({ row }) => {
       const comment = row.getValue("comment") as string;
       if (!comment) return h("div", {}, "");
-      if (comment.length >= 18) {
+      if (comment.length >= 50) {
         return h(
           Tooltip,
           {},
@@ -235,9 +251,16 @@ const columns: ColumnDef<Feedback>[] = [
               ),
               h(
                 TooltipContent,
-                { class: "max-w-[300px] whitespace-normal" },
+                { class: "max-w-[300px]" },
                 {
-                  default: () => comment,
+                  default: () =>
+                    h(
+                      "p",
+                      {
+                        class: "w-full break-words",
+                      },
+                      comment
+                    ),
                 }
               ),
             ],
@@ -254,6 +277,26 @@ const columns: ColumnDef<Feedback>[] = [
         );
       }
     },
+  },
+  {
+    accessorKey: "referrer_url",
+    header: () => h("div", {}, "参照元"),
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "lowercase" },
+        row.getValue("referrer_url")
+          ? h(
+              "a",
+              {
+                href: row.getValue("referrer_url"),
+                target: "_blank",
+                class: "text-blue-500 hover:underline",
+              },
+              row.getValue("referrer_url")
+            )
+          : "なし"
+      ),
   },
   {
     accessorKey: "create_at",
@@ -281,6 +324,59 @@ const columns: ColumnDef<Feedback>[] = [
           second: "2-digit",
         })
       ),
+  },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => {
+      return h(
+        DropdownMenu,
+        {},
+        {
+          default: () => [
+            h(
+              DropdownMenuTrigger,
+              { asChild: true },
+              {
+                default: () =>
+                  h(Button, { variant: "ghost", class: "cursor-pointer" }, () =>
+                    h(MoreHorizontal, { class: "h-4 w-4" })
+                  ),
+              }
+            ),
+            h(
+              DropdownMenuContent,
+              {
+                align: "end",
+                sideOffset: -8,
+                alignOffset: 0,
+                class: "w-56",
+              },
+              {
+                default: () =>
+                  h(DropdownMenuGroup, {}, () =>
+                    h(
+                      DropdownMenuItem,
+                      {
+                        onClick: () => {
+                          copyUrl(
+                            `${baseUrl}/my-forms/${route.params.id}/feedbacks/${row.original.id}`
+                          );
+                        },
+                        class: "cursor-pointer",
+                      },
+                      () =>
+                        h("div", { class: "flex items-center gap-2 text-sm" }, [
+                          "フィードバックのURLをコピー",
+                        ])
+                    )
+                  ),
+              }
+            ),
+          ],
+        }
+      );
+    },
   },
 ];
 
@@ -357,8 +453,8 @@ const copyUrl = async (text: string) => {
     >
       <div class="flex items-center justify-between">
         <PageTitle
-          title="フォーム詳細"
-          description="フォームの詳細を確認できます。"
+          :title="myFormsDetails?.title"
+          :description="myFormsDetails?.description"
           size="large"
         />
 
@@ -385,43 +481,35 @@ const copyUrl = async (text: string) => {
         </div>
       </div>
 
-      <Tabs default-value="analytics" class="w-full gap-4">
+      <Tabs default-value="feedbacks" class="w-full gap-4">
         <TabsList
           class="w-full bg-background border-b border-border justify-start rounded-none p-0 relative"
         >
           <TabsTrigger
-            value="analytics"
-            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
-          >
-            <Icon name="mdi:google-analytics" class="!size-4" />
-            アナリティクス
-          </TabsTrigger>
-          <TabsTrigger
             value="feedbacks"
-            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
+            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:dark:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
           >
             <Icon name="mdi:comment-arrow-left-outline" class="!size-4" />
             フィードバック
           </TabsTrigger>
           <TabsTrigger
             value="settings"
-            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
+            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:dark:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
           >
             <Icon name="mdi:cog-outline" class="!size-4" />
             設定
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="analytics"> analytics </TabsContent>
         <TabsContent value="feedbacks">
           <div class="w-full flex flex-col gap-2">
             <!-- header -->
             <div class="flex items-center mb-2">
               <Input
                 class="max-w-sm"
-                placeholder="Filter emails..."
-                :model-value="table.getColumn('email')?.getFilterValue() as string"
+                placeholder="コメントを検索..."
+                :model-value="table.getColumn('comment')?.getFilterValue() as string"
                 @update:model-value="
-                  table.getColumn('email')?.setFilterValue($event)
+                  table.getColumn('comment')?.setFilterValue($event)
                 "
               />
               <DropdownMenu>
@@ -500,7 +588,7 @@ const copyUrl = async (text: string) => {
                       :colspan="columns.length"
                       class="h-24 text-center"
                     >
-                      No results.
+                      フィードバックはまだありません。
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -512,13 +600,15 @@ const copyUrl = async (text: string) => {
                 {{ table.getFilteredSelectedRowModel().rows.length }} /
                 {{ table.getFilteredRowModel().rows.length }} 件のフィードバック
               </div>
-              <div class="space-x-2">
+              <div class="flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   :disabled="!table.getCanPreviousPage()"
                   @click="table.previousPage()"
+                  class="cursor-pointer"
                 >
+                  <Icon name="mdi:chevron-left" />
                   前へ
                 </Button>
                 <Button
@@ -526,8 +616,10 @@ const copyUrl = async (text: string) => {
                   size="sm"
                   :disabled="!table.getCanNextPage()"
                   @click="table.nextPage()"
+                  class="cursor-pointer"
                 >
                   次へ
+                  <Icon name="mdi:chevron-right" />
                 </Button>
               </div>
             </div>
@@ -544,8 +636,9 @@ const copyUrl = async (text: string) => {
             >
               <TabsTrigger
                 value="share"
-                class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/20 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none"
+                class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/20 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none dark:text-white hover:dark:bg-purple/20 data-[state=active]:dark:bg-purple/40 data-[state=active]:dark:text-white"
               >
+                <Icon name="mdi:share-variant" class="!size-4" />
                 共有設定
               </TabsTrigger>
             </TabsList>
@@ -554,79 +647,86 @@ const copyUrl = async (text: string) => {
               <PageTitle
                 title="共有設定"
                 description="フォームの共有設定を行います。"
-                size="medium"
+                size="small"
               />
 
-              <!-- publish url -->
-              <Card>
-                <CardHeader>
-                  <CardTitle>フォームの専用リンク（URL）</CardTitle>
-                  <CardDescription>
-                    フォームの専用リンクをコピーして、他の人と共有できます。
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div class="w-full relative">
-                    <Input
-                      class="w-full pr-16"
-                      :value="fullPublishUrl"
-                      readonly
-                    >
-                      {{ fullPublishUrl }}
-                    </Input>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
-                      @click="copyUrl(fullPublishUrl)"
-                    >
-                      <Icon name="mdi:content-copy" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <!-- iframe -->
-              <Card>
-                <CardHeader>
-                  <CardTitle>埋め込みコード</CardTitle>
-                  <CardDescription>
-                    フォームをウェブサイトに埋め込むためのコードです。
-                    <br />
-                    iFrameのwidthとheightは必要に応じて調整してください。
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div class="w-full relative">
-                    <Input
-                      class="w-full pr-16"
-                      :value="`<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`"
-                      readonly
-                    >
-                      {{ `<iframe
-                        src="${fullPublishUrl}"
-                        width="100%"
-                        height="500px"
-                        frameborder="0"
+              <div class="flex flex-col gap-3">
+                <!-- publish url -->
+                <Card
+                  class="flex flex-col gap-4 shadow-none border-purple border-dashed rounded-sm py-4"
+                >
+                  <CardHeader class="px-4">
+                    <CardTitle class="text-sm">
+                      フォームの専用リンク（URL）
+                    </CardTitle>
+                    <CardDescription class="text-xs text-muted-foreground">
+                      フォームの専用リンクをコピーして、他の人と共有できます。
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent class="px-4">
+                    <div class="w-full relative">
+                      <Input
+                        class="w-full pr-16"
+                        :value="fullPublishUrl"
+                        readonly
                       >
-                      </iframe
-                      >` }}
-                    </Input>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
-                      @click="
-                        copyUrl(
-                          `<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`
-                        )
-                      "
-                    >
-                      <Icon name="mdi:content-copy" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                        {{ fullPublishUrl }}
+                      </Input>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
+                        @click="copyUrl(fullPublishUrl)"
+                      >
+                        <Icon name="mdi:content-copy" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <!-- iframe -->
+                <Card
+                  class="flex flex-col gap-4 shadow-none border-purple border-dashed rounded-sm py-4"
+                >
+                  <CardHeader class="px-4">
+                    <CardTitle class="text-sm">埋め込みコード</CardTitle>
+                    <CardDescription class="text-xs text-muted-foreground">
+                      フォームをウェブサイトに埋め込むためのコードです。
+                      iFrameのwidthとheightは必要に応じて調整してください。
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent class="px-4">
+                    <div class="w-full relative">
+                      <Input
+                        class="w-full pr-16"
+                        :value="`<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`"
+                        readonly
+                      >
+                        {{ `<iframe
+                          src="${fullPublishUrl}"
+                          width="100%"
+                          height="500px"
+                          frameborder="0"
+                        >
+                        </iframe
+                        >` }}
+                      </Input>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
+                        @click="
+                          copyUrl(
+                            `<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`
+                          )
+                        "
+                      >
+                        <Icon name="mdi:content-copy" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </TabsContent>

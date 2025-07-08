@@ -20,6 +20,12 @@ import { valueUpdater } from "@/components/ui/table/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "vue-sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface Feedback {
   id: string;
@@ -112,12 +118,16 @@ const columns: ColumnDef<Feedback>[] = [
         "onUpdate:modelValue": (value) =>
           table.toggleAllPageRowsSelected(!!value),
         ariaLabel: "Select all",
+        class:
+          "cursor-pointer data-[state=checked]:bg-purple data-[state=checked]:border-purple data-[state=indeterminate]:bg-purple data-[state=indeterminate]:border-purple text-white",
       }),
     cell: ({ row }) =>
       h(Checkbox, {
         modelValue: row.getIsSelected(),
         "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
         ariaLabel: "Select row",
+        class:
+          "cursor-pointer data-[state=checked]:bg-purple data-[state=checked]:border-purple data-[state=indeterminate]:bg-purple text-white"
       }),
     enableSorting: false,
     enableHiding: false,
@@ -199,15 +209,51 @@ const columns: ColumnDef<Feedback>[] = [
   {
     accessorKey: "comment",
     header: () => h("div", {}, "Comment"),
-    cell: ({ row }) =>
-      h(
-        "div",
-        {
-          class:
-            "max-w-[250px] overflow-hidden text-ellipsis whitespace-nowrap",
-        },
-        row.getValue("comment")
-      ),
+    cell: ({ row }) => {
+      const comment = row.getValue("comment") as string;
+      if (!comment) return h("div", {}, "");
+      if (comment.length >= 18) {
+        return h(
+          Tooltip,
+          {},
+          {
+            default: () => [
+              h(
+                TooltipTrigger,
+                { asChild: true },
+                {
+                  default: () =>
+                    h(
+                      "div",
+                      {
+                        class:
+                          "max-w-[400px] overflow-hidden text-ellipsis whitespace-nowrap cursor-help",
+                      },
+                      comment
+                    ),
+                }
+              ),
+              h(
+                TooltipContent,
+                { class: "max-w-[300px] whitespace-normal" },
+                {
+                  default: () => comment,
+                }
+              ),
+            ],
+          }
+        );
+      } else {
+        return h(
+          "div",
+          {
+            class:
+              "max-w-[250px] overflow-hidden text-ellipsis whitespace-nowrap",
+          },
+          comment
+        );
+      }
+    },
   },
   {
     accessorKey: "create_at",
@@ -226,7 +272,14 @@ const columns: ColumnDef<Feedback>[] = [
       h(
         "div",
         { class: "lowercase  px-3" },
-        new Date(row.getValue("create_at")).toLocaleDateString("ja-JP")
+        new Date(row.getValue("create_at")).toLocaleDateString("ja-JP", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
       ),
   },
 ];
@@ -297,278 +350,287 @@ const copyUrl = async (text: string) => {
 </script>
 
 <template>
-  <div
-    id="create-project"
-    class="grid grid-rows-[auto_1fr] w-full h-full gap-4"
-  >
-    <div class="flex items-center justify-between">
-      <PageTitle
-        title="フォーム詳細"
-        description="フォームの詳細を確認できます。"
-        size="large"
-      />
+  <TooltipProvider>
+    <div
+      id="create-project"
+      class="grid grid-rows-[auto_1fr] w-full h-full gap-4"
+    >
+      <div class="flex items-center justify-between">
+        <PageTitle
+          title="フォーム詳細"
+          description="フォームの詳細を確認できます。"
+          size="large"
+        />
 
-      <div class="flex items-center gap-2">
-        <Button variant="mainOutline" type="button" as-child>
-          <NuxtLink
-            :to="`/my-forms/${$route.params.id}/preview`"
-            class="flex items-center gap-1"
-            target="_blank"
-          >
-            <Icon name="mdi:eye" />
-            フォームプレビュー
-          </NuxtLink>
-        </Button>
-        <Button variant="main" type="button" as-child>
-          <NuxtLink
-            :to="`/my-forms/${$route.params.id}/edit`"
-            class="flex items-center gap-1"
-          >
-            <Icon name="mdi:pencil" />
-            フォームを編集する
-          </NuxtLink>
-        </Button>
+        <div class="flex items-center gap-2">
+          <Button variant="mainOutline" type="button" as-child>
+            <NuxtLink
+              :to="`/my-forms/${$route.params.id}/preview`"
+              class="flex items-center gap-1"
+              target="_blank"
+            >
+              <Icon name="mdi:eye" />
+              フォームプレビュー
+            </NuxtLink>
+          </Button>
+          <Button variant="main" type="button" as-child>
+            <NuxtLink
+              :to="`/my-forms/${$route.params.id}/edit`"
+              class="flex items-center gap-1"
+            >
+              <Icon name="mdi:pencil" />
+              フォームを編集する
+            </NuxtLink>
+          </Button>
+        </div>
       </div>
-    </div>
 
-    <Tabs default-value="analytics" class="w-full gap-4">
-      <TabsList
-        class="w-full bg-background border-b border-border justify-start rounded-none p-0 relative"
-      >
-        <TabsTrigger
-          value="analytics"
-          class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
+      <Tabs default-value="analytics" class="w-full gap-4">
+        <TabsList
+          class="w-full bg-background border-b border-border justify-start rounded-none p-0 relative"
         >
-          <Icon name="mdi:google-analytics" class="!size-4" />
-          アナリティクス
-        </TabsTrigger>
-        <TabsTrigger
-          value="feedbacks"
-          class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
-        >
-          <Icon name="mdi:comment-arrow-left-outline" class="!size-4" />
-          フィードバック
-        </TabsTrigger>
-        <TabsTrigger
-          value="settings"
-          class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
-        >
-          <Icon name="mdi:cog-outline" class="!size-4" />
-          設定
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="analytics"> analytics </TabsContent>
-      <TabsContent value="feedbacks">
-        <div class="w-full flex flex-col gap-2">
-          <!-- header -->
-          <div class="flex items-center mb-2">
-            <Input
-              class="max-w-sm"
-              placeholder="Filter emails..."
-              :model-value="table.getColumn('email')?.getFilterValue() as string"
-              @update:model-value="
-                table.getColumn('email')?.setFilterValue($event)
-              "
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <Button variant="outline" class="ml-auto cursor-pointer">
-                  行の表示
-                  <ChevronDown class="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuCheckboxItem
-                  v-for="column in table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())"
-                  :key="column.id"
-                  class="capitalize"
-                  :model-value="column.getIsVisible()"
-                  @update:model-value="
+          <TabsTrigger
+            value="analytics"
+            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
+          >
+            <Icon name="mdi:google-analytics" class="!size-4" />
+            アナリティクス
+          </TabsTrigger>
+          <TabsTrigger
+            value="feedbacks"
+            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
+          >
+            <Icon name="mdi:comment-arrow-left-outline" class="!size-4" />
+            フィードバック
+          </TabsTrigger>
+          <TabsTrigger
+            value="settings"
+            class="w-fit border-t-0 border-l-0 border-r-0 border-b-0 rounded-none flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none data-[state=active]:border-b-purple data-[state=active]:border-b-2 -mb-1 data-[state=active]:relative data-[state=active]:z-10"
+          >
+            <Icon name="mdi:cog-outline" class="!size-4" />
+            設定
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="analytics"> analytics </TabsContent>
+        <TabsContent value="feedbacks">
+          <div class="w-full flex flex-col gap-2">
+            <!-- header -->
+            <div class="flex items-center mb-2">
+              <Input
+                class="max-w-sm"
+                placeholder="Filter emails..."
+                :model-value="table.getColumn('email')?.getFilterValue() as string"
+                @update:model-value="
+                  table.getColumn('email')?.setFilterValue($event)
+                "
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="outline" class="ml-auto cursor-pointer">
+                    行の表示
+                    <ChevronDown class="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuCheckboxItem
+                    v-for="column in table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())"
+                    :key="column.id"
+                    class="capitalize"
+                    :model-value="column.getIsVisible()"
+                    @update:model-value="
                     (value: any) => {
                       column.toggleVisibility(!!value);
                     }
                   "
-                >
-                  {{ column.id }}
-                </DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <!-- table -->
-          <div class="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow
-                  v-for="headerGroup in table.getHeaderGroups()"
-                  :key="headerGroup.id"
-                >
-                  <TableHead
-                    v-for="header in headerGroup.headers"
-                    :key="header.id"
                   >
-                    <FlexRender
-                      v-if="!header.isPlaceholder"
-                      :render="header.column.columnDef.header"
-                      :props="header.getContext()"
-                    />
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <template v-if="table.getRowModel().rows?.length">
-                  <template
-                    v-for="row in table.getRowModel().rows"
-                    :key="row.id"
-                  >
-                    <TableRow :data-state="row.getIsSelected() && 'selected'">
-                      <TableCell
-                        v-for="cell in row.getVisibleCells()"
-                        :key="cell.id"
-                      >
-                        <FlexRender
-                          :render="cell.column.columnDef.cell"
-                          :props="cell.getContext()"
-                        />
-                      </TableCell>
-                    </TableRow>
-                    <TableRow v-if="row.getIsExpanded()">
-                      <TableCell :colspan="row.getAllCells().length">
-                        {{ JSON.stringify(row.original) }}
-                      </TableCell>
-                    </TableRow>
-                  </template>
-                </template>
-
-                <TableRow v-else>
-                  <TableCell :colspan="columns.length" class="h-24 text-center">
-                    No results.
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-          <!-- footer -->
-          <div class="flex items-center justify-end space-x-2">
-            <div class="flex-1 text-sm text-muted-foreground">
-              {{ table.getFilteredSelectedRowModel().rows.length }} of
-              {{ table.getFilteredRowModel().rows.length }} row(s) selected.
+                    {{ column.id }}
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <div class="space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                :disabled="!table.getCanPreviousPage()"
-                @click="table.previousPage()"
-              >
-                前へ
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                :disabled="!table.getCanNextPage()"
-                @click="table.nextPage()"
-              >
-                次へ
-              </Button>
-            </div>
-          </div>
-        </div>
-      </TabsContent>
-      <TabsContent value="settings">
-        <Tabs
-          default-value="share"
-          class="flex-row gap-12 h-full"
-          orientation="vertical"
-        >
-          <TabsList
-            class="w-full max-w-[200px] bg-background flex-col border-none justify-start rounded-none p-0 relative"
-          >
-            <TabsTrigger
-              value="share"
-              class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/20 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none"
-            >
-              共有設定
-            </TabsTrigger>
-          </TabsList>
-          <Separator orientation="vertical" class="h-full border-border" />
-          <TabsContent value="share" class="flex flex-col gap-4">
-            <PageTitle
-              title="共有設定"
-              description="フォームの共有設定を行います。"
-              size="medium"
-            />
-
-            <!-- publish url -->
-            <Card>
-              <CardHeader>
-                <CardTitle>フォームの専用リンク（URL）</CardTitle>
-                <CardDescription>
-                  フォームの専用リンクをコピーして、他の人と共有できます。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div class="w-full relative">
-                  <Input class="w-full pr-16" :value="fullPublishUrl" readonly>
-                    {{ fullPublishUrl }}
-                  </Input>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
-                    @click="copyUrl(fullPublishUrl)"
+            <!-- table -->
+            <div class="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow
+                    v-for="headerGroup in table.getHeaderGroups()"
+                    :key="headerGroup.id"
                   >
-                    <Icon name="mdi:content-copy" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <!-- iframe -->
-            <Card>
-              <CardHeader>
-                <CardTitle>埋め込みコード</CardTitle>
-                <CardDescription>
-                  フォームをウェブサイトに埋め込むためのコードです。
-                  <br />
-                  iFrameのwidthとheightは必要に応じて調整してください。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div class="w-full relative">
-                  <Input
-                    class="w-full pr-16"
-                    :value="`<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`"
-                    readonly
-                  >
-                    {{ `<iframe
-                      src="${fullPublishUrl}"
-                      width="100%"
-                      height="500px"
-                      frameborder="0"
+                    <TableHead
+                      v-for="header in headerGroup.headers"
+                      :key="header.id"
                     >
-                    </iframe
-                    >` }}
-                  </Input>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
-                    @click="
-                      copyUrl(
-                        `<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`
-                      )
-                    "
-                  >
-                    <Icon name="mdi:content-copy" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </TabsContent>
-    </Tabs>
-  </div>
+                      <FlexRender
+                        v-if="!header.isPlaceholder"
+                        :render="header.column.columnDef.header"
+                        :props="header.getContext()"
+                      />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <template v-if="table.getRowModel().rows?.length">
+                    <template
+                      v-for="row in table.getRowModel().rows"
+                      :key="row.id"
+                    >
+                      <TableRow :data-state="row.getIsSelected() && 'selected'">
+                        <TableCell
+                          v-for="cell in row.getVisibleCells()"
+                          :key="cell.id"
+                        >
+                          <FlexRender
+                            :render="cell.column.columnDef.cell"
+                            :props="cell.getContext()"
+                          />
+                        </TableCell>
+                      </TableRow>
+                      <TableRow v-if="row.getIsExpanded()">
+                        <TableCell :colspan="row.getAllCells().length">
+                          {{ JSON.stringify(row.original) }}
+                        </TableCell>
+                      </TableRow>
+                    </template>
+                  </template>
+
+                  <TableRow v-else>
+                    <TableCell
+                      :colspan="columns.length"
+                      class="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+            <!-- footer -->
+            <div class="flex items-center justify-end space-x-2">
+              <div class="flex-1 text-sm text-muted-foreground">
+                {{ table.getFilteredSelectedRowModel().rows.length }} /
+                {{ table.getFilteredRowModel().rows.length }} 件のフィードバック
+              </div>
+              <div class="space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  :disabled="!table.getCanPreviousPage()"
+                  @click="table.previousPage()"
+                >
+                  前へ
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  :disabled="!table.getCanNextPage()"
+                  @click="table.nextPage()"
+                >
+                  次へ
+                </Button>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="settings">
+          <Tabs
+            default-value="share"
+            class="flex-row gap-12 h-full"
+            orientation="vertical"
+          >
+            <TabsList
+              class="w-full max-w-[200px] bg-background flex-col border-none justify-start rounded-none p-0 relative"
+            >
+              <TabsTrigger
+                value="share"
+                class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/20 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none"
+              >
+                共有設定
+              </TabsTrigger>
+            </TabsList>
+            <Separator orientation="vertical" class="h-full border-border" />
+            <TabsContent value="share" class="flex flex-col gap-4">
+              <PageTitle
+                title="共有設定"
+                description="フォームの共有設定を行います。"
+                size="medium"
+              />
+
+              <!-- publish url -->
+              <Card>
+                <CardHeader>
+                  <CardTitle>フォームの専用リンク（URL）</CardTitle>
+                  <CardDescription>
+                    フォームの専用リンクをコピーして、他の人と共有できます。
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div class="w-full relative">
+                    <Input
+                      class="w-full pr-16"
+                      :value="fullPublishUrl"
+                      readonly
+                    >
+                      {{ fullPublishUrl }}
+                    </Input>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
+                      @click="copyUrl(fullPublishUrl)"
+                    >
+                      <Icon name="mdi:content-copy" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <!-- iframe -->
+              <Card>
+                <CardHeader>
+                  <CardTitle>埋め込みコード</CardTitle>
+                  <CardDescription>
+                    フォームをウェブサイトに埋め込むためのコードです。
+                    <br />
+                    iFrameのwidthとheightは必要に応じて調整してください。
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div class="w-full relative">
+                    <Input
+                      class="w-full pr-16"
+                      :value="`<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`"
+                      readonly
+                    >
+                      {{ `<iframe
+                        src="${fullPublishUrl}"
+                        width="100%"
+                        height="500px"
+                        frameborder="0"
+                      >
+                      </iframe
+                      >` }}
+                    </Input>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="absolute top-0 right-0 h-full rounded-l-none cursor-pointer"
+                      @click="
+                        copyUrl(
+                          `<iframe src='${fullPublishUrl}' width='100%' height='500px' frameborder='0'></iframe>`
+                        )
+                      "
+                    >
+                      <Icon name="mdi:content-copy" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+      </Tabs>
+    </div>
+  </TooltipProvider>
 </template>

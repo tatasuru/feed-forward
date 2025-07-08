@@ -37,12 +37,13 @@ const isActive = (url: string) => {
       class="flex flex-row items-center gap-2"
       data-slot="sidebar-header"
       data-sidebar="header"
+      :class="!sidebarStore.isSidebarOpen && 'justify-center'"
     >
       <NuxtImg
         src="/logo.png"
         alt="Feed Forward Logo"
-        width="24"
-        height="24"
+        width="28"
+        height="28"
         class="rounded-full"
       />
       <span

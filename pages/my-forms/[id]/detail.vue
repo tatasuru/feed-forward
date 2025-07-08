@@ -16,7 +16,6 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 import { ArrowUpDown, ChevronDown } from "lucide-vue-next";
-import { h, ref } from "vue";
 import { valueUpdater } from "@/components/ui/table/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,50 +39,67 @@ const fullPublishUrl = computed(() => {
 });
 
 /******************************
+ * fetch form details
+ ******************************/
+const { data: myFormsDetails } = await useAsyncData(
+  `myFormsDetails`,
+  async () => {
+    try {
+      const { data, error } = await supabase
+        .from("my_forms")
+        .select("*")
+        .eq("id", route.params.id);
+
+      if (error) throw new Error(error.message);
+      return data[0];
+    } catch (error) {
+      console.error("Error fetching form templates:", error);
+      return [];
+    }
+  }
+);
+
+const { data: myFormFeedbacks } = await useAsyncData(
+  `myFormFeedbacks`,
+  async () => {
+    try {
+      const { data, error } = await supabase
+        .from("form_responses")
+        .select("*")
+        .eq("form_id", route.params.id);
+
+      if (error) throw new Error(error.message);
+      return data;
+    } catch (error) {
+      console.error("Error fetching form feedbacks:", error);
+      return [];
+    }
+  }
+);
+
+/******************************
  * For table view
  ******************************/
-const data: Feedback[] = [
-  {
-    id: "1",
-    feedback_1: 2,
-    feedback_2: 3,
-    feedback_3: 4,
-    comment: "Great service!",
-    create_at: "2023-10-01T12:00:00Z",
-  },
-  {
-    id: "2",
-    feedback_1: 2,
-    feedback_2: 1,
-    feedback_3: 4,
-    comment: "Great service!",
-    create_at: "2023-10-01T12:00:00Z",
-  },
-  {
-    id: "3",
-    feedback_1: 2,
-    feedback_2: 4,
-    feedback_3: 5,
-    comment: "Great service!",
-    create_at: "2023-10-01T12:00:00Z",
-  },
-  {
-    id: "4",
-    feedback_1: 1,
-    feedback_2: 3,
-    feedback_3: 2,
-    comment: "Great service!",
-    create_at: "2023-10-01T12:00:00Z",
-  },
-  {
-    id: "5",
-    feedback_1: 2,
-    feedback_2: 5,
-    feedback_3: 3,
-    comment: "Great service!",
-    create_at: "2023-10-01T12:00:00Z",
-  },
-];
+const tableData = computed<Feedback[]>(() => {
+  return (
+    myFormFeedbacks.value?.map((feedback) => ({
+      id: feedback.id,
+      feedback_1: feedback.response_data.items[0].rating,
+      feedback_2: feedback.response_data.items[1].rating,
+      feedback_3: feedback.response_data.items[2].rating,
+      comment: feedback.response_data.comment || "",
+      create_at: feedback.created_at,
+    })) || []
+  );
+});
+
+const feedbackHeaders = computed(() => {
+  return (
+    myFormFeedbacks.value?.[0]?.response_data?.items.map(
+      (item: any) => item.name || `フィードバック項目`
+    ) || []
+  );
+});
 
 const columns: ColumnDef<Feedback>[] = [
   {
@@ -120,7 +136,8 @@ const columns: ColumnDef<Feedback>[] = [
         () => ["ID", h(ArrowUpDown, { class: "ml-2 h-4 w-4" })]
       );
     },
-    cell: ({ row }) => h("div", { class: "lowercase" }, row.getValue("id")),
+    cell: ({ row }) =>
+      h("div", { class: "lowercase px-3" }, row.getValue("id")),
   },
   {
     accessorKey: "feedback_1",
@@ -130,12 +147,16 @@ const columns: ColumnDef<Feedback>[] = [
         {
           variant: "ghost",
           onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+          class: "cursor-pointer",
         },
-        () => "文字の大きさ"
+        () => [
+          feedbackHeaders.value[0],
+          h(ArrowUpDown, { class: "ml-2 h-4 w-4" }),
+        ]
       );
     },
     cell: ({ row }) =>
-      h("div", { class: "lowercase" }, row.getValue("feedback_1")),
+      h("div", { class: "lowercase px-3" }, row.getValue("feedback_1")),
   },
   {
     accessorKey: "feedback_2",
@@ -145,12 +166,16 @@ const columns: ColumnDef<Feedback>[] = [
         {
           variant: "ghost",
           onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+          class: "cursor-pointer",
         },
-        () => "色使い"
+        () => [
+          feedbackHeaders.value[1] || "フィードバック項目 2",
+          h(ArrowUpDown, { class: "ml-2 h-4 w-4" }),
+        ]
       );
     },
     cell: ({ row }) =>
-      h("div", { class: "lowercase" }, row.getValue("feedback_2")),
+      h("div", { class: "lowercase px-3" }, row.getValue("feedback_2")),
   },
   {
     accessorKey: "feedback_3",
@@ -160,17 +185,29 @@ const columns: ColumnDef<Feedback>[] = [
         {
           variant: "ghost",
           onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+          class: "cursor-pointer",
         },
-        () => "わかりやすさ"
+        () => [
+          feedbackHeaders.value[2] || "フィードバック項目 3",
+          h(ArrowUpDown, { class: "ml-2 h-4 w-4" }),
+        ]
       );
     },
     cell: ({ row }) =>
-      h("div", { class: "lowercase" }, row.getValue("feedback_3")),
+      h("div", { class: "lowercase px-3" }, row.getValue("feedback_3")),
   },
   {
     accessorKey: "comment",
     header: () => h("div", {}, "Comment"),
-    cell: ({ row }) => h("div", {}, row.getValue("comment")),
+    cell: ({ row }) =>
+      h(
+        "div",
+        {
+          class:
+            "max-w-[250px] overflow-hidden text-ellipsis whitespace-nowrap",
+        },
+        row.getValue("comment")
+      ),
   },
   {
     accessorKey: "create_at",
@@ -188,23 +225,10 @@ const columns: ColumnDef<Feedback>[] = [
     cell: ({ row }) =>
       h(
         "div",
-        {},
+        { class: "lowercase  px-3" },
         new Date(row.getValue("create_at")).toLocaleDateString("ja-JP")
       ),
   },
-  // TODO: actions column
-  // {
-  //   id: "actions",
-  //   enableHiding: false,
-  //   cell: ({ row }) => {
-  //     const payment = row.original;
-
-  //     return h("div", {
-  //       payment,
-  //       onExpand: row.toggleExpanded,
-  //     });
-  //   },
-  // },
 ];
 
 const sorting = ref<SortingState>([]);
@@ -214,7 +238,7 @@ const rowSelection = ref({});
 const expanded = ref<ExpandedState>({});
 
 const table = useVueTable({
-  data,
+  data: tableData,
   columns,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
@@ -247,27 +271,6 @@ const table = useVueTable({
     },
   },
 });
-
-/******************************
- * fetch form details
- ******************************/
-const { data: myFormsDetails } = await useAsyncData(
-  `myFormsDetails`,
-  async () => {
-    try {
-      const { data, error } = await supabase
-        .from("my_forms")
-        .select("*")
-        .eq("id", route.params.id);
-
-      if (error) throw new Error(error.message);
-      return data[0];
-    } catch (error) {
-      console.error("Error fetching form templates:", error);
-      return [];
-    }
-  }
-);
 
 const isCopied = ref<boolean>(false);
 const copyUrl = async (text: string) => {

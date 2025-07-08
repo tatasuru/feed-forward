@@ -100,9 +100,7 @@ const onSubmit = form.handleSubmit(async (values) => {
  * Star rating click handler
  ******************************/
 function clickStar(index: number, itemIndex: number) {
-  console.log(`Star clicked: ${index + 1} for item ${itemIndex + 1}`);
-  const currentRating = starRatings.value[itemIndex] || 0;
-  starRatings.value[itemIndex] = currentRating === index + 1 ? 0 : index + 1;
+  starRatings.value[itemIndex] = index + 1;
   form.setFieldValue(`ratings.${itemIndex}`, starRatings.value[itemIndex]);
 }
 
@@ -150,7 +148,11 @@ onMounted(() => {
     </div>
 
     <!-- form -->
-    <form @submit="onSubmit" class="flex flex-col gap-6">
+    <form
+      @submit="onSubmit"
+      class="flex flex-col"
+      :class="[props.size === 'small' ? 'gap-6' : 'gap-8']"
+    >
       <FormField
         v-for="(item, index) in props.feedbackItems"
         v-slot="{ componentField }"
@@ -163,7 +165,7 @@ onMounted(() => {
         >
           <div class="flex flex-col gap-1">
             <FormLabel
-              class="font-medium"
+              class="font-medium pointer-events-none"
               :class="[props.size === 'small' ? 'text-sm' : 'text-lg']"
             >
               {{ item.name || `フィードバック項目${index + 1}` }}
@@ -193,7 +195,7 @@ onMounted(() => {
                   variant="ghost"
                   type="button"
                   size="icon"
-                  class="cursor-pointer rounded-full hover:bg-yellow-500/20 dark:hover:bg-yellow-500/20"
+                  class="cursor-pointer rounded-full hover:bg-yellow-500/20 dark:hover:bg-yellow-500/20 focus:bg-transparent focus:ring-0 focus:ring-transparent focus:ring-offset-0"
                   @click="clickStar(starIndex, index)"
                 >
                   <Icon

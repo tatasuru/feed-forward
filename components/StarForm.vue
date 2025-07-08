@@ -26,6 +26,7 @@ const route = useRoute();
 const supabase = useSupabaseClient();
 const parentUrl = ref<string | undefined>(undefined);
 const starRatings = ref<number[]>([]);
+const currentPath = useRoute().path;
 
 /******************************
  * form setup
@@ -58,6 +59,12 @@ const form = useForm({
 });
 
 const onSubmit = form.handleSubmit(async (values) => {
+  if (props.preview) {
+    console.log("Preview mode: Form submission skipped.");
+    toast.info("プレビュー中のため送信されません。");
+    return;
+  }
+
   try {
     const responseData = {
       items: props.feedbackItems.map((item, index) => ({

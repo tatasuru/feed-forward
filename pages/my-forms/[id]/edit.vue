@@ -505,7 +505,7 @@ watch(
             :form-description="form.values.formDescription"
             :type="type"
             :feedback-items="feedbackItems"
-            :preview="false"
+            :preview="true"
             size="small"
           />
         </div>

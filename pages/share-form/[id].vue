@@ -40,7 +40,7 @@ const { data: myFormsDetails } = await useAsyncData(
       :form-description="myFormsDetails.description"
       :type="myFormsDetails.form_type"
       :feedback-items="myFormsDetails?.feedback_items"
-      :preview="true"
+      :preview="false"
       size="large"
     />
   </div>

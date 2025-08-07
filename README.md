@@ -66,3 +66,8 @@ pnpm preview
 - `stores/` - Pinia state stores
 - `types/` - TypeScript type definitions
 - `utils/` - Utility functions and helpers
+
+## memo
+
+ドメインごとにフォームの出しわけができる機能
+⇨ 課金の仕方によっては 1 サイトのみで使えるとかの制限で必要になる。

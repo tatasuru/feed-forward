@@ -39,13 +39,6 @@ const isActive = (url: string) => {
       data-sidebar="header"
       :class="!sidebarStore.isSidebarOpen && 'justify-center'"
     >
-      <NuxtImg
-        src="/logo.png"
-        alt="Feed Forward Logo"
-        width="28"
-        height="28"
-        class="rounded-full"
-      />
       <span
         v-if="sidebarStore.isSidebarOpen"
         class="text-2xl font-bold gradient-text whitespace-nowrap overflow-hidden"

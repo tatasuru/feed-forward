@@ -27,6 +27,7 @@ const supabase = useSupabaseClient();
 const parentUrl = ref<string | undefined>(undefined);
 const starRatings = ref<number[]>([]);
 const currentPath = useRoute().path;
+const borderColor = ["border-pink", "border-purple", "border-blue"];
 
 /******************************
  * form setup
@@ -170,12 +171,8 @@ onMounted(() => {
           class="flex flex-col border-dashed rounded-lg"
           :class="[
             props.size === 'small' ? 'gap-2 p-4' : 'gap-4',
-            index === 0
-              ? 'border-pink'
-              : index === 1
-              ? 'border-purple'
-              : 'border-blue',
-            preview ? 'border-2' : '',
+            !currentPath.includes('preview') && preview && borderColor[index],
+            !currentPath.includes('preview') && preview && 'border-2',
           ]"
         >
           <div class="flex flex-col gap-1">

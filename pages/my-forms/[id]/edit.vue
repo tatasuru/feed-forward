@@ -44,7 +44,7 @@ const myFormDetail = computed(() => {
   );
 });
 const { data: myFormsDetails } = await useAsyncData(
-  `myFormsDetails`,
+  `myFormsDetails-${route.params.id}`,
   async () => {
     try {
       const { data, error } = await supabase
@@ -505,7 +505,7 @@ watch(
             :form-description="form.values.formDescription"
             :type="type"
             :feedback-items="feedbackItems"
-            :preview="false"
+            :preview="true"
             size="small"
           />
         </div>

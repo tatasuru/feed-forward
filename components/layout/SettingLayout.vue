@@ -50,16 +50,17 @@ const settingsMenu = [
             :key="menu.name"
             class="min-w-fit md:w-full"
           >
+            <!-- class="w-full justify-start bg-none text-purple hover:bg-purple/20 data-[state=active]:bg-purple/20 data-[state=active]:text-purple rounded-[3px] flex-0 cursor-pointer shadow-none hover:shadow-none data-[state=active]:shadow-none dark:text-white hover:dark:bg-purple/20 data-[state=active]:dark:bg-purple/40 data-[state=active]:dark:text-white" -->
             <NuxtLink
               :to="menu.link"
-              class="w-full text-left rounded-md py-2 px-4 flex items-center gap-2 flex-row dark:text-white text-sm"
+              class="w-full text-left rounded-[3px] py-1 px-2 flex items-center gap-1.5 flex-row dark:text-white text-sm"
               :class="
                 currentPath === menu.link
                   ? 'bg-purple/20 dark:bg-purple/40 text-purple hover:bg-purple/20 hover:text-purple focus:bg-purple/20 focus:text-purple active:bg-purple/20 active:text-purple'
                   : 'hover:bg-purple/20 hover:text-purple transition-colors active:bg-purple/20 active:text-purple focus:bg-purple/20 focus:text-purple'
               "
             >
-              <Icon :name="menu.icon" class="!size-5" />
+              <Icon :name="menu.icon" class="!size-4" />
               {{ menu.name }}
             </NuxtLink>
           </NavigationMenuItem>

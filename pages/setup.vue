@@ -287,7 +287,7 @@ const {
               validate();
 
               if (stepIndex === steps.length && meta.valid) {
-                onSubmit(values);
+                onSubmit(values as formValues);
               }
             }
           "
